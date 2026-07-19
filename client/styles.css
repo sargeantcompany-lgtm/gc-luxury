@@ -136,27 +136,6 @@ h1 em, h2 em {
   box-shadow: 0 8px 24px rgba(201, 162, 75, 0.25);
 }
 
-/* Trust row */
-.trust-row {
-  display: flex;
-  justify-content: center;
-  gap: clamp(1.5rem, 5vw, 4rem);
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 2rem 1.5rem 4rem;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-  flex-wrap: wrap;
-}
-
-.trust-item {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  font-size: 0.92rem;
-  color: var(--muted);
-}
-
 .trust-num {
   font-family: "Fraunces", serif;
   font-style: italic;
