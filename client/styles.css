@@ -1,14 +1,20 @@
 :root {
-  --obsidian: #0A0A0A;
-  --obsidian-raised: #131313;
-  --gold-start: #C9A040;
-  --gold-end: #F0D060;
-  --ivory: #EAE6DD;
-  --muted: #9A968C;
+  --bg: #0B0B0D;
+  --bg-raised: #141416;
+  --bg-card: #17171A;
+  --gold: #C9A24B;
+  --gold-soft: rgba(201, 162, 75, 0.35);
+  --ivory: #F2EFE9;
+  --muted: #8E8A80;
+  --line: rgba(201, 162, 75, 0.14);
 }
 
 * {
   box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 html, body {
@@ -17,177 +23,276 @@ html, body {
 }
 
 body {
-  background-color: var(--obsidian);
+  background: radial-gradient(120% 100% at 50% -10%, #1a1a1d 0%, var(--bg) 55%);
   color: var(--ivory);
-  font-family: "Cormorant Garamond", serif;
-  font-size: 1.15rem;
+  font-family: "Inter", sans-serif;
+  font-size: 1rem;
   line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, .wordmark {
-  font-family: "Cinzel", serif;
+h1, h2 {
+  font-family: "Fraunces", serif;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+h1 em, h2 em {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--gold);
+}
+
+.eyebrow {
+  font-size: 0.78rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
-}
-
-.gold-text,
-.wordmark,
-.submit-btn,
-h2 {
-  background: linear-gradient(120deg, var(--gold-start), var(--gold-end));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin: 0 0 1rem;
 }
 
 /* Header */
 .site-header {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  padding: 2.5rem 1.5rem 1.5rem;
-  text-align: center;
-  border-bottom: 1px solid rgba(201, 160, 64, 0.2);
+  justify-content: space-between;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.75rem 1.5rem;
 }
 
 .wordmark {
-  font-size: 1.6rem;
-  font-weight: 700;
+  font-family: "Fraunces", serif;
+  font-size: 1.35rem;
+  font-weight: 500;
+  color: var(--ivory);
+  text-decoration: none;
+  letter-spacing: 0.01em;
 }
 
-.tagline {
-  margin-top: 0.4rem;
-  font-size: 0.95rem;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--muted);
+.nav-cta {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--ivory);
+  text-decoration: none;
+  padding: 0.55rem 1.3rem;
+  border: 1px solid var(--gold-soft);
+  border-radius: 999px;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.nav-cta:hover {
+  border-color: var(--gold);
+  background: rgba(201, 162, 75, 0.08);
 }
 
 /* Hero */
 .hero {
-  max-width: 780px;
-  margin: 0 auto;
-  padding: 5rem 1.5rem 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 78vh;
+  padding: 3rem 1.5rem;
   text-align: center;
 }
 
+.hero-inner {
+  max-width: 720px;
+  animation: rise 0.7s ease both;
+}
+
 .hero h1 {
-  font-size: 2.6rem;
-  line-height: 1.3;
+  font-size: clamp(2.4rem, 5.5vw, 3.8rem);
+  line-height: 1.15;
   color: var(--ivory);
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.6rem;
 }
 
 .hero-sub {
-  font-size: 1.3rem;
+  font-size: 1.15rem;
   color: var(--muted);
-  font-style: italic;
-  max-width: 560px;
+  max-width: 480px;
+  margin: 0 auto 2.4rem;
+}
+
+.hero-cta {
+  display: inline-block;
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--bg);
+  background: var(--gold);
+  padding: 0.95rem 2.2rem;
+  border-radius: 4px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hero-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(201, 162, 75, 0.25);
+}
+
+/* Trust row */
+.trust-row {
+  display: flex;
+  justify-content: center;
+  gap: clamp(1.5rem, 5vw, 4rem);
+  max-width: 900px;
   margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+
+.trust-item {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-size: 0.92rem;
+  color: var(--muted);
+}
+
+.trust-num {
+  font-family: "Fraunces", serif;
+  font-style: italic;
+  color: var(--gold);
+  font-size: 1rem;
 }
 
 /* Enquiry section */
 .enquiry-section {
-  max-width: 560px;
+  max-width: 640px;
   margin: 0 auto;
-  padding: 2rem 1.5rem 5rem;
+  padding: 5rem 1.5rem 6rem;
   text-align: center;
 }
 
 .enquiry-section h2 {
-  font-size: 1.8rem;
-  margin-bottom: 0.5rem;
+  font-size: 2.1rem;
+  margin-bottom: 1.2rem;
 }
 
 .section-sub {
   color: var(--muted);
-  margin-bottom: 2.5rem;
-}
-
-.enquiry-form {
-  background: var(--obsidian-raised);
-  border: 1px solid rgba(201, 160, 64, 0.25);
-  border-radius: 6px;
-  padding: 2.5rem;
+  font-size: 0.98rem;
+  line-height: 1.75;
+  margin-bottom: 2.8rem;
   text-align: left;
 }
 
+.enquiry-form {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 2.25rem;
+  text-align: left;
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 1.2rem;
+}
+
+.field-span {
+  grid-column: 1 / -1;
+}
+
 .field {
-  margin-bottom: 1.4rem;
+  margin-bottom: 1.3rem;
   display: flex;
   flex-direction: column;
 }
 
 .field label {
-  font-size: 0.95rem;
-  letter-spacing: 0.06em;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--gold-end);
-  margin-bottom: 0.5rem;
+  color: var(--gold);
+  margin-bottom: 0.55rem;
 }
 
 .field input,
 .field select,
 .field textarea {
-  background: #0F0F0F;
-  border: 1px solid rgba(201, 160, 64, 0.3);
-  border-radius: 4px;
-  padding: 0.7rem 0.9rem;
+  background: var(--bg);
+  border: 1px solid rgba(201, 162, 75, 0.22);
+  border-radius: 6px;
+  padding: 0.75rem 0.9rem;
   color: var(--ivory);
-  font-family: "Cormorant Garamond", serif;
-  font-size: 1.1rem;
+  font-family: "Inter", sans-serif;
+  font-size: 0.96rem;
   resize: vertical;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .field select {
   appearance: none;
-  background-image: linear-gradient(45deg, transparent 50%, var(--gold-end) 50%),
-    linear-gradient(135deg, var(--gold-end) 50%, transparent 50%);
+  background-image: linear-gradient(45deg, transparent 50%, var(--gold) 50%),
+    linear-gradient(135deg, var(--gold) 50%, transparent 50%);
   background-position: calc(100% - 1.2rem) center, calc(100% - 0.9rem) center;
   background-size: 6px 6px, 6px 6px;
   background-repeat: no-repeat;
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+  color: #55524b;
 }
 
 .field input:focus,
 .field select:focus,
 .field textarea:focus {
   outline: none;
-  border-color: var(--gold-end);
-  box-shadow: 0 0 0 1px var(--gold-end);
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(201, 162, 75, 0.12);
 }
 
 .submit-btn {
   width: 100%;
-  padding: 0.9rem;
-  margin-top: 0.5rem;
-  background: transparent;
-  border: 1px solid var(--gold-end);
-  border-radius: 4px;
-  font-family: "Cinzel", serif;
-  font-size: 1rem;
-  letter-spacing: 0.08em;
+  padding: 0.95rem;
+  margin-top: 0.6rem;
+  background: var(--gold);
+  border: none;
+  border-radius: 6px;
+  color: var(--bg);
+  font-family: "Inter", sans-serif;
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
 }
 
 .submit-btn:hover {
-  background: linear-gradient(120deg, var(--gold-start), var(--gold-end));
-  color: var(--obsidian);
-  -webkit-background-clip: initial;
-  background-clip: initial;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(201, 162, 75, 0.25);
+}
+
+.submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .form-status {
   margin-top: 1.2rem;
   margin-bottom: 0;
   min-height: 1.4em;
-  font-size: 1rem;
+  font-size: 0.92rem;
   text-align: center;
 }
 
 .form-status.success {
-  color: var(--gold-end);
+  color: var(--gold);
 }
 
 .form-status.error {
@@ -197,8 +302,22 @@ h2 {
 /* Footer */
 .site-footer {
   text-align: center;
-  padding: 2rem 1.5rem;
+  padding: 2.5rem 1.5rem;
   color: var(--muted);
-  font-size: 0.9rem;
-  border-top: 1px solid rgba(201, 160, 64, 0.15);
+  font-size: 0.85rem;
+  border-top: 1px solid var(--line);
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 560px) {
+  .field-grid {
+    grid-template-columns: 1fr;
+  }
+  .enquiry-form {
+    padding: 1.6rem;
+  }
 }

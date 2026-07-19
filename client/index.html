@@ -6,24 +6,44 @@
 <title>GC Luxury — Off-Market Gold Coast Properties</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
 
 <header class="site-header">
-  <div class="wordmark">GC&nbsp;LUXURY</div>
-  <div class="tagline">Off-Market Properties · Gold Coast</div>
+  <a href="#" class="wordmark">GC Luxury</a>
+  <a href="#enquire" class="nav-cta">Enquire</a>
 </header>
 
 <main class="hero">
-  <h1>Gold Coast Luxury Houses &amp; Apartments</h1>
-  <p class="hero-sub">
-    Access to new listings and off-market properties, before they reach the open market.
-  </p>
+  <div class="hero-inner">
+    <p class="eyebrow">Off-Market &amp; New-to-Market · Gold Coast</p>
+    <h1>Gold Coast luxury<br /><em>houses &amp; apartments</em></h1>
+    <p class="hero-sub">
+      Access to new listings and off-market properties, before they reach the open market.
+    </p>
+    <a href="#enquire" class="hero-cta">Register Your Interest</a>
+  </div>
 </main>
 
+<section class="trust-row">
+  <div class="trust-item">
+    <span class="trust-num">01</span>
+    <span>No cost to buyers</span>
+  </div>
+  <div class="trust-item">
+    <span class="trust-num">02</span>
+    <span>Strictly confidential</span>
+  </div>
+  <div class="trust-item">
+    <span class="trust-num">03</span>
+    <span>Translators available</span>
+  </div>
+</section>
+
 <section class="enquiry-section" id="enquire">
+  <p class="eyebrow">Get In Touch</p>
   <h2>Enquire Privately</h2>
   <p class="section-sub">
     Fill in your details below, including the type of property you're looking for
@@ -36,44 +56,46 @@
   </p>
 
   <form id="enquiry-form" class="enquiry-form" novalidate>
-    <div class="field">
-      <label for="fullName">Full Name</label>
-      <input type="text" id="fullName" name="fullName" autocomplete="name" required />
-    </div>
+    <div class="field-grid">
+      <div class="field">
+        <label for="fullName">Full Name</label>
+        <input type="text" id="fullName" name="fullName" autocomplete="name" required />
+      </div>
 
-    <div class="field">
-      <label for="email">Email</label>
-      <input type="email" id="email" name="email" autocomplete="email" required />
-    </div>
+      <div class="field">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" autocomplete="email" required />
+      </div>
 
-    <div class="field">
-      <label for="phone">Phone</label>
-      <input type="tel" id="phone" name="phone" autocomplete="tel" required />
-    </div>
+      <div class="field">
+        <label for="phone">Phone</label>
+        <input type="tel" id="phone" name="phone" autocomplete="tel" required />
+      </div>
 
-    <div class="field">
-      <label for="propertyType">Property Type</label>
-      <select id="propertyType" name="propertyType">
-        <option value="">Select a type...</option>
-        <option value="House">House</option>
-        <option value="Apartment">Apartment</option>
-        <option value="Either">Either</option>
-      </select>
-    </div>
+      <div class="field">
+        <label for="propertyType">Property Type</label>
+        <select id="propertyType" name="propertyType">
+          <option value="">Select a type...</option>
+          <option value="House">House</option>
+          <option value="Apartment">Apartment</option>
+          <option value="Either">Either</option>
+        </select>
+      </div>
 
-    <div class="field">
-      <label for="locations">Preferred Location(s)</label>
-      <input type="text" id="locations" name="locations" placeholder="e.g. Broadbeach, Surfers Paradise" />
-    </div>
+      <div class="field field-span">
+        <label for="locations">Preferred Location(s)</label>
+        <input type="text" id="locations" name="locations" placeholder="e.g. Broadbeach, Surfers Paradise" />
+      </div>
 
-    <div class="field">
-      <label for="translator">Translator Needed?</label>
-      <input type="text" id="translator" name="translator" placeholder="Language, if required — leave blank if not needed" />
+      <div class="field field-span">
+        <label for="translator">Translator Needed?</label>
+        <input type="text" id="translator" name="translator" placeholder="Language, if required — leave blank if not needed" />
+      </div>
     </div>
 
     <div class="field">
       <label for="message">Message</label>
-      <textarea id="message" name="message" rows="5" placeholder="Tell us what you're looking for..."></textarea>
+      <textarea id="message" name="message" rows="4" placeholder="Tell us what you're looking for..."></textarea>
     </div>
 
     <button type="submit" class="submit-btn">Submit Enquiry</button>
