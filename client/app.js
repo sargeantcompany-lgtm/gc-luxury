@@ -11,6 +11,7 @@ form.addEventListener("submit", async (event) => {
     email: form.email.value.trim(),
     phone: form.phone.value.trim(),
     propertyType: form.propertyType.value.trim(),
+    priceRange: form.priceRange.value.trim(),
     locations: form.locations.value.trim(),
     translator: form.translator.value.trim(),
     message: form.message.value.trim(),

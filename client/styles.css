@@ -164,6 +164,111 @@ h1 em, h2 em {
   font-size: 1rem;
 }
 
+/* Categories */
+.categories-section {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 5.5rem 1.5rem 2rem;
+  text-align: center;
+}
+
+.categories-section h2,
+.process-section h2 {
+  font-size: clamp(1.7rem, 3.5vw, 2.3rem);
+  line-height: 1.25;
+  margin-bottom: 3rem;
+}
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.1rem;
+  text-align: left;
+}
+
+.category-card {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 1.6rem;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.category-card:hover {
+  border-color: var(--gold-soft);
+  transform: translateY(-2px);
+}
+
+.category-card h3 {
+  font-family: "Fraunces", serif;
+  font-weight: 500;
+  font-size: 1.15rem;
+  color: var(--ivory);
+  margin: 0 0 0.6rem;
+}
+
+.category-card p {
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.6;
+  margin: 0 0 1.1rem;
+}
+
+.price-tag {
+  display: inline-block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--gold);
+  border: 1px solid var(--gold-soft);
+  border-radius: 999px;
+  padding: 0.3rem 0.8rem;
+}
+
+.category-note {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-style: italic;
+  margin-top: 2rem;
+}
+
+/* Process */
+.process-section {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 5.5rem 1.5rem;
+  text-align: center;
+  border-top: 1px solid var(--line);
+}
+
+.process-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 2rem;
+  text-align: left;
+}
+
+.process-step .trust-num {
+  display: block;
+  font-size: 1.6rem;
+  margin-bottom: 0.9rem;
+}
+
+.process-step h3 {
+  font-family: "Fraunces", serif;
+  font-weight: 500;
+  font-size: 1.05rem;
+  color: var(--ivory);
+  margin: 0 0 0.5rem;
+}
+
+.process-step p {
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
 /* Enquiry section */
 .enquiry-section {
   max-width: 640px;

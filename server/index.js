@@ -59,7 +59,7 @@ app.get("/api/health", async (req, res) => {
 
 // GC Luxury enquiry form -> lands as a CRM contact under the "GC Luxury" brand
 app.post("/api/enquiries", async (req, res) => {
-  const { fullName, email, phone, propertyType, locations, translator, message } = req.body;
+  const { fullName, email, phone, propertyType, priceRange, locations, translator, message } = req.body;
 
   if (!fullName || !email) {
     return res.status(400).json({ status: "error", message: "Full name and email are required." });
@@ -74,6 +74,7 @@ app.post("/api/enquiries", async (req, res) => {
 
     const customFields = {
       property_type: propertyType || null,
+      price_range: priceRange || null,
       locations: locations || null,
       translator: translator || null,
     };
@@ -88,6 +89,7 @@ app.post("/api/enquiries", async (req, res) => {
 
     const noteLines = [];
     if (propertyType) noteLines.push(`Property type: ${propertyType}`);
+    if (priceRange) noteLines.push(`Budget: ${priceRange}`);
     if (locations) noteLines.push(`Preferred location(s): ${locations}`);
     if (translator) noteLines.push(`Translator requested: ${translator}`);
     if (message) noteLines.push(`Message: ${message}`);
