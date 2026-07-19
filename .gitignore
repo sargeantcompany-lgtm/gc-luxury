@@ -1,3 +1,4 @@
 node_modules/
+admin-frontend/dist/
 .env
 .claude/
