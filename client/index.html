@@ -17,16 +17,23 @@
 </header>
 
 <main class="hero">
-  <h1>Discreet Access to<br />the Gold Coast's Finest Addresses</h1>
+  <h1>Gold Coast Luxury Houses &amp; Apartments</h1>
   <p class="hero-sub">
-    A private portfolio of off-market residences, reserved for those who value
-    discretion as much as distinction. Register your interest below.
+    Access to new listings and off-market properties, before they reach the open market.
   </p>
 </main>
 
 <section class="enquiry-section" id="enquire">
   <h2>Enquire Privately</h2>
-  <p class="section-sub">Every enquiry is handled personally and in confidence.</p>
+  <p class="section-sub">
+    Fill in your details below, including the type of property you're looking for
+    and your preferred locations. When something suits, we'll be in touch to go
+    over further information, confirm it's a good match, and clarify a few details
+    with the owner before any appointment is arranged. There is no charge to
+    buyers for this service, and your information is kept private — never shared
+    with buyers or sellers before a transaction takes place. If you require a
+    translator, let us know below; our team can assist.
+  </p>
 
   <form id="enquiry-form" class="enquiry-form" novalidate>
     <div class="field">
@@ -42,6 +49,26 @@
     <div class="field">
       <label for="phone">Phone</label>
       <input type="tel" id="phone" name="phone" autocomplete="tel" required />
+    </div>
+
+    <div class="field">
+      <label for="propertyType">Property Type</label>
+      <select id="propertyType" name="propertyType">
+        <option value="">Select a type...</option>
+        <option value="House">House</option>
+        <option value="Apartment">Apartment</option>
+        <option value="Either">Either</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="locations">Preferred Location(s)</label>
+      <input type="text" id="locations" name="locations" placeholder="e.g. Broadbeach, Surfers Paradise" />
+    </div>
+
+    <div class="field">
+      <label for="translator">Translator Needed?</label>
+      <input type="text" id="translator" name="translator" placeholder="Language, if required — leave blank if not needed" />
     </div>
 
     <div class="field">

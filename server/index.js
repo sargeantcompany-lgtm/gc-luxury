@@ -59,7 +59,7 @@ app.get("/api/health", async (req, res) => {
 
 // GC Luxury enquiry form -> lands as a CRM contact under the "GC Luxury" brand
 app.post("/api/enquiries", async (req, res) => {
-  const { fullName, email, phone, message } = req.body;
+  const { fullName, email, phone, propertyType, locations, translator, message } = req.body;
 
   if (!fullName || !email) {
     return res.status(400).json({ status: "error", message: "Full name and email are required." });
@@ -72,18 +72,30 @@ app.post("/api/enquiries", async (req, res) => {
     const [firstName, ...rest] = fullName.trim().split(/\s+/);
     const lastName = rest.join(" ");
 
+    const customFields = {
+      property_type: propertyType || null,
+      locations: locations || null,
+      translator: translator || null,
+    };
+
     const contactResult = await query(
-      `INSERT INTO contacts (brand_id, first_name, last_name, email, phone, source, pipeline_stage)
-       VALUES ($1, $2, $3, $4, $5, 'Website', 'New')
+      `INSERT INTO contacts (brand_id, first_name, last_name, email, phone, source, pipeline_stage, custom_fields)
+       VALUES ($1, $2, $3, $4, $5, 'Website', 'New', $6)
        RETURNING id`,
-      [brandId, firstName || fullName, lastName, email, phone || null]
+      [brandId, firstName || fullName, lastName, email, phone || null, JSON.stringify(customFields)]
     );
     const contactId = contactResult.rows[0].id;
 
-    if (message) {
+    const noteLines = [];
+    if (propertyType) noteLines.push(`Property type: ${propertyType}`);
+    if (locations) noteLines.push(`Preferred location(s): ${locations}`);
+    if (translator) noteLines.push(`Translator requested: ${translator}`);
+    if (message) noteLines.push(`Message: ${message}`);
+
+    if (noteLines.length) {
       await query(
         "INSERT INTO contact_notes (contact_id, note, created_by) VALUES ($1, $2, $3)",
-        [contactId, message, "Website Enquiry"]
+        [contactId, noteLines.join("\n"), "Website Enquiry"]
       );
     }
 
