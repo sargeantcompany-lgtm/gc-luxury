@@ -1,7 +1,7 @@
 {
   "name": "gc-luxury",
   "version": "1.0.0",
-  "description": "GC Luxury - exclusive Gold Coast buyers list, $3M+ waterfront, penthouse & acreage properties",
+  "description": "GC Luxury - private access to off-market and pre-market Gold Coast waterfront, penthouse & acreage properties, $3M-$35M",
   "main": "server/index.js",
   "scripts": {
     "start": "node server/index.js",

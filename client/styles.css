@@ -145,6 +145,12 @@ h1 em, h2 em {
   box-shadow: 0 8px 24px rgba(201, 162, 75, 0.25);
 }
 
+.hero-microline {
+  margin: 1.1rem 0 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
 .trust-num {
   font-family: "Fraunces", serif;
   font-style: italic;

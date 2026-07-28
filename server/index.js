@@ -89,7 +89,7 @@ app.post("/api/enquiries", async (req, res) => {
 
     const noteLines = [];
     if (propertyType) noteLines.push(`Property type: ${propertyType}`);
-    if (priceRange) noteLines.push(`Budget: ${priceRange}`);
+    if (priceRange) noteLines.push(`Price range: ${priceRange}`);
     if (locations) noteLines.push(`Preferred location(s): ${locations}`);
     if (translator) noteLines.push(`Translator requested: ${translator}`);
     if (message) noteLines.push(`Message: ${message}`);
