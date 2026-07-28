@@ -94,7 +94,7 @@ h1 em, h2 em {
   align-items: center;
   justify-content: center;
   min-height: 78vh;
-  padding: 3rem 1.5rem;
+  padding: 4.5rem 1.5rem;
   text-align: center;
 }
 
@@ -111,10 +111,19 @@ h1 em, h2 em {
 }
 
 .hero-sub {
-  font-size: 1.15rem;
+  font-size: 1.05rem;
+  line-height: 1.7;
   color: var(--muted);
-  max-width: 480px;
-  margin: 0 auto 2.4rem;
+  max-width: 560px;
+  margin: 0 auto 2.6rem;
+}
+
+.hero-sub p {
+  margin: 0 0 1.1rem;
+}
+
+.hero-sub p:last-child {
+  margin-bottom: 0;
 }
 
 .hero-cta {
