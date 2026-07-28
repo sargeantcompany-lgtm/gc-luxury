@@ -166,13 +166,6 @@ h1 em, h2 em {
   text-align: center;
 }
 
-.categories-section h2,
-.process-section h2 {
-  font-size: clamp(1.7rem, 3.5vw, 2.3rem);
-  line-height: 1.25;
-  margin-bottom: 3rem;
-}
-
 .category-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -229,13 +222,6 @@ h1 em, h2 em {
   padding: 0.3rem 0.8rem;
 }
 
-.category-note {
-  color: var(--muted);
-  font-size: 0.82rem;
-  font-style: italic;
-  margin-top: 2rem;
-}
-
 /* Process */
 .process-section {
   max-width: 1000px;
@@ -279,11 +265,6 @@ h1 em, h2 em {
   margin: 0 auto;
   padding: 5rem 1.5rem 6rem;
   text-align: center;
-}
-
-.enquiry-section h2 {
-  font-size: 2.1rem;
-  margin-bottom: 1.2rem;
 }
 
 .section-sub {
