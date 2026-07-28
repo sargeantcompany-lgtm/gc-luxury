@@ -1,7 +1,7 @@
 {
   "name": "gc-luxury",
   "version": "1.0.0",
-  "description": "GC Luxury - off-market luxury property enquiries, Gold Coast",
+  "description": "GC Luxury - exclusive Gold Coast buyers list, $3M+ waterfront, penthouse & acreage properties",
   "main": "server/index.js",
   "scripts": {
     "start": "node server/index.js",
