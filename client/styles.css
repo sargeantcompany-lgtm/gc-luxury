@@ -145,17 +145,16 @@ h1 em, h2 em {
   box-shadow: 0 8px 24px rgba(201, 162, 75, 0.25);
 }
 
-.hero-microline {
-  margin: 1.1rem 0 0;
-  font-size: 0.82rem;
-  color: var(--muted);
-}
-
 .trust-num {
   font-family: "Fraunces", serif;
   font-style: italic;
   color: var(--gold);
   font-size: 1rem;
+}
+
+.section-heading {
+  font-size: clamp(1.6rem, 3.2vw, 2rem);
+  margin-bottom: 2.5rem;
 }
 
 /* Categories */
@@ -220,6 +219,13 @@ h1 em, h2 em {
   border: 1px solid var(--gold-soft);
   border-radius: 999px;
   padding: 0.3rem 0.8rem;
+}
+
+.category-note {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-style: italic;
+  margin-top: 2rem;
 }
 
 /* Process */

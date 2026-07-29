@@ -13,7 +13,6 @@ form.addEventListener("submit", async (event) => {
     propertyType: form.propertyType.value.trim(),
     priceRange: form.priceRange.value.trim(),
     locations: form.locations.value.trim(),
-    translator: form.translator.value.trim(),
     message: form.message.value.trim(),
   };
 

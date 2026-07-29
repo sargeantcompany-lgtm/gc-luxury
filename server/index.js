@@ -32,7 +32,7 @@ app.use(morgan(isProd ? "combined" : "dev"));
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
-// GC Luxury public marketing site
+// Gold Coast Luxury public marketing site
 app.use(express.static(CLIENT_DIR));
 
 // CRM admin (built React app), served under /admin
@@ -57,16 +57,16 @@ app.get("/api/health", async (req, res) => {
   }
 });
 
-// GC Luxury enquiry form -> lands as a CRM contact under the "GC Luxury" brand
+// Gold Coast Luxury enquiry form -> lands as a CRM contact under the "Gold Coast Luxury" brand
 app.post("/api/enquiries", async (req, res) => {
-  const { fullName, email, phone, propertyType, priceRange, locations, translator, message } = req.body;
+  const { fullName, email, phone, propertyType, priceRange, locations, message } = req.body;
 
   if (!fullName || !email) {
     return res.status(400).json({ status: "error", message: "Full name and email are required." });
   }
 
   try {
-    const brandResult = await query("SELECT id FROM brands WHERE name = $1", ["GC Luxury"]);
+    const brandResult = await query("SELECT id FROM brands WHERE name = $1", ["Gold Coast Luxury"]);
     const brandId = brandResult.rows[0]?.id || null;
 
     const [firstName, ...rest] = fullName.trim().split(/\s+/);
@@ -76,7 +76,6 @@ app.post("/api/enquiries", async (req, res) => {
       property_type: propertyType || null,
       price_range: priceRange || null,
       locations: locations || null,
-      translator: translator || null,
     };
 
     const contactResult = await query(
@@ -91,7 +90,6 @@ app.post("/api/enquiries", async (req, res) => {
     if (propertyType) noteLines.push(`Property type: ${propertyType}`);
     if (priceRange) noteLines.push(`Price range: ${priceRange}`);
     if (locations) noteLines.push(`Preferred location(s): ${locations}`);
-    if (translator) noteLines.push(`Translator requested: ${translator}`);
     if (message) noteLines.push(`Message: ${message}`);
 
     if (noteLines.length) {
@@ -104,7 +102,7 @@ app.post("/api/enquiries", async (req, res) => {
     await query(
       `INSERT INTO activity_log (contact_id, brand_id, type, description)
        VALUES ($1, $2, 'contact_created', $3)`,
-      [contactId, brandId, `New enquiry from GC Luxury website: ${fullName}`]
+      [contactId, brandId, `New enquiry from Gold Coast Luxury website: ${fullName}`]
     );
 
     console.log("New enquiry saved as contact:", contactId);
@@ -130,7 +128,7 @@ app.use((err, req, res, next) => {
 ensureSchema()
   .then(() => {
     app.listen(PORT, () => {
-      console.log(`GC Luxury server running at http://localhost:${PORT}`);
+      console.log(`Gold Coast Luxury server running at http://localhost:${PORT}`);
     });
   })
   .catch((err) => {
