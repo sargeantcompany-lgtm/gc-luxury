@@ -44,15 +44,6 @@ h1 em, h2 em {
   color: var(--gold);
 }
 
-.eyebrow {
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--gold);
-  margin: 0 0 1rem;
-}
-
 /* Header */
 .site-header {
   display: flex;
@@ -145,124 +136,9 @@ h1 em, h2 em {
   box-shadow: 0 8px 24px rgba(201, 162, 75, 0.25);
 }
 
-.trust-num {
-  font-family: "Fraunces", serif;
-  font-style: italic;
-  color: var(--gold);
-  font-size: 1rem;
-}
-
 .section-heading {
   font-size: clamp(1.6rem, 3.2vw, 2rem);
   margin-bottom: 2.5rem;
-}
-
-/* Categories */
-.categories-section {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 5.5rem 1.5rem 2rem;
-  text-align: center;
-}
-
-.category-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.1rem;
-  text-align: left;
-}
-
-.category-grid-3 {
-  grid-template-columns: repeat(3, 1fr);
-}
-
-@media (max-width: 720px) {
-  .category-grid-3 {
-    grid-template-columns: 1fr;
-  }
-}
-
-.category-card {
-  background: var(--bg-card);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 1.6rem;
-  transition: border-color 0.2s ease, transform 0.2s ease;
-}
-
-.category-card:hover {
-  border-color: var(--gold-soft);
-  transform: translateY(-2px);
-}
-
-.category-card h3 {
-  font-family: "Fraunces", serif;
-  font-weight: 500;
-  font-size: 1.15rem;
-  color: var(--ivory);
-  margin: 0 0 0.6rem;
-}
-
-.category-card p {
-  color: var(--muted);
-  font-size: 0.92rem;
-  line-height: 1.6;
-  margin: 0 0 1.1rem;
-}
-
-.price-tag {
-  display: inline-block;
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  color: var(--gold);
-  border: 1px solid var(--gold-soft);
-  border-radius: 999px;
-  padding: 0.3rem 0.8rem;
-}
-
-.category-note {
-  color: var(--muted);
-  font-size: 0.82rem;
-  font-style: italic;
-  margin-top: 2rem;
-}
-
-/* Process */
-.process-section {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 5.5rem 1.5rem;
-  text-align: center;
-  border-top: 1px solid var(--line);
-}
-
-.process-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 2rem;
-  text-align: left;
-}
-
-.process-step .trust-num {
-  display: block;
-  font-size: 1.6rem;
-  margin-bottom: 0.9rem;
-}
-
-.process-step h3 {
-  font-family: "Fraunces", serif;
-  font-weight: 500;
-  font-size: 1.05rem;
-  color: var(--ivory);
-  margin: 0 0 0.5rem;
-}
-
-.process-step p {
-  color: var(--muted);
-  font-size: 0.9rem;
-  line-height: 1.6;
-  margin: 0;
 }
 
 /* Enquiry section */
