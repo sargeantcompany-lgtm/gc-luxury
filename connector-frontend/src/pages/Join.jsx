@@ -98,9 +98,11 @@ export default function Join() {
 
   return (
     <div className="page page-narrow">
-      <h1 className="page-title">What are you after?</h1>
+      <h1 className="page-title">What's Your Brief</h1>
       <p className="page-sub">
-        Tell us what you're looking for — you can update this any time.
+        Please fill in the details below and the Connector will curate you a
+        list of suitable properties. You will receive an email when the
+        property search has been completed.
       </p>
 
       <div className="card">
@@ -129,7 +131,7 @@ export default function Join() {
             <textarea id="mustHaves" name="mustHaves" rows="4" value={brief.mustHaves} onChange={handleBriefChange} placeholder="Pool, water frontage, home theatre, etc." />
           </div>
           <button className="btn" type="submit" disabled={submitting}>
-            {submitting ? 'Finishing…' : 'Save & See My Matches'}
+            {submitting ? 'Submitting…' : 'Submit and Go to Dashboard'}
           </button>
           {error && <p className="msg error">{error}</p>}
         </form>
