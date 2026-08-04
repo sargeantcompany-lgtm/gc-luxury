@@ -13,6 +13,7 @@ import AdminListings from './pages/admin/AdminListings';
 import AdminTopFive from './pages/admin/AdminTopFive';
 import AdminValuations from './pages/admin/AdminValuations';
 import AdminBuyers from './pages/admin/AdminBuyers';
+import AdminBuyerDetail from './pages/admin/AdminBuyerDetail';
 import AdminAgents from './pages/admin/AdminAgents';
 
 function RequireBuyer({ children }) {
@@ -52,6 +53,7 @@ export default function App() {
           <Route path="/admin/top-five" element={<AdminGate><AdminLayout><AdminTopFive /></AdminLayout></AdminGate>} />
           <Route path="/admin/valuations" element={<AdminGate><AdminLayout><AdminValuations /></AdminLayout></AdminGate>} />
           <Route path="/admin/buyers" element={<AdminGate><AdminLayout><AdminBuyers /></AdminLayout></AdminGate>} />
+          <Route path="/admin/buyers/:id" element={<AdminGate><AdminLayout><AdminBuyerDetail /></AdminLayout></AdminGate>} />
           <Route path="/admin/agents" element={<AdminGate><AdminLayout><AdminAgents /></AdminLayout></AdminGate>} />
         </Routes>
       </BrowserRouter>

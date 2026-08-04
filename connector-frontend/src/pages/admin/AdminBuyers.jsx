@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { adminApi, getAdminKey } from '../../services/adminApi';
 
 export default function AdminBuyers() {
@@ -68,12 +69,13 @@ export default function AdminBuyers() {
         {buyers.map((b) => (
           <div className="agent-row" key={b.id} style={{ flexDirection: 'column', alignItems: 'stretch', padding: '1.1rem 1.5rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <div>
+              <Link to={`/admin/buyers/${b.id}`} style={{ textDecoration: 'none' }}>
                 <div className="agent-name">{b.name}</div>
                 <div className="agent-meta">{b.email} · {b.phone}</div>
-              </div>
+              </Link>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
                 <div className="agent-meta">via {b.joined_via || 'direct'}</div>
+                <Link to={`/admin/buyers/${b.id}`} className="save-btn" style={{ textDecoration: 'none', display: 'inline-block' }}>View</Link>
                 <button className="save-btn" onClick={() => handleDelete(b.id)}>Delete</button>
               </div>
             </div>

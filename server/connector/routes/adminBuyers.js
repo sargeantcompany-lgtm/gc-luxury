@@ -58,6 +58,75 @@ router.delete("/buyers/:id", async (req, res) => {
   }
 });
 
+// ─── SINGLE BUYER DETAIL (brief + assigned matches) ────────────
+router.get("/buyers/:id", async (req, res) => {
+  try {
+    const buyerResult = await query("SELECT id, name, phone, email, joined_via, joined_at FROM buyers WHERE id = $1", [req.params.id]);
+    if (!buyerResult.rows.length) return res.status(404).json({ error: "Buyer not found" });
+
+    const briefResult = await query("SELECT * FROM buyer_briefs WHERE buyer_id = $1", [req.params.id]);
+    const matchesResult = await query(
+      `SELECT l.*, cm.id AS match_id, cm.note, cm.assigned_at
+       FROM connector_matches cm
+       JOIN listings l ON l.id = cm.listing_id
+       WHERE cm.buyer_id = $1
+       ORDER BY cm.assigned_at DESC`,
+      [req.params.id]
+    );
+
+    res.json({
+      buyer: buyerResult.rows[0],
+      brief: briefResult.rows[0] || null,
+      matches: matchesResult.rows,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── OFF-MARKET LISTINGS NOT YET ASSIGNED TO THIS BUYER ────────
+router.get("/buyers/:id/available-listings", async (req, res) => {
+  try {
+    const result = await query(
+      `SELECT l.* FROM listings l
+       WHERE l.type = 'off_market'
+       AND NOT EXISTS (
+         SELECT 1 FROM connector_matches cm WHERE cm.listing_id = l.id AND cm.buyer_id = $1
+       )
+       ORDER BY l.created_at DESC`,
+      [req.params.id]
+    );
+    res.json({ listings: result.rows });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── ASSIGN / UNASSIGN AN EXISTING LISTING TO THIS BUYER ───────
+router.post("/buyers/:id/assign/:listingId", async (req, res) => {
+  try {
+    const result = await query(
+      `INSERT INTO connector_matches (listing_id, buyer_id, note) VALUES ($1, $2, $3) RETURNING *`,
+      [req.params.listingId, req.params.id, req.body.note || null]
+    );
+    res.status(201).json({ match: result.rows[0] });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.delete("/buyers/:id/assign/:listingId", async (req, res) => {
+  try {
+    await query(
+      "DELETE FROM connector_matches WHERE buyer_id = $1 AND listing_id = $2",
+      [req.params.id, req.params.listingId]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── AGENT DIRECTORY MANAGEMENT ────────────────────────────────
 router.get("/agents", async (req, res) => {
   try {

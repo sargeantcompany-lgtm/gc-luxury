@@ -49,7 +49,11 @@ export const adminApi = {
   fulfilValuation: (id, reportUrl) => api.post(`/valuations/${id}/fulfil`, { reportUrl }),
 
   buyers: () => api.get('/buyers'),
+  buyer: (id) => api.get(`/buyers/${id}`),
   deleteBuyer: (id) => api.delete(`/buyers/${id}`),
+  availableListingsForBuyer: (id) => api.get(`/buyers/${id}/available-listings`),
+  assignListing: (buyerId, listingId, note) => api.post(`/buyers/${buyerId}/assign/${listingId}`, { note }),
+  unassignListing: (buyerId, listingId) => api.delete(`/buyers/${buyerId}/assign/${listingId}`),
   exportCsvUrl: () => `/api/connector/admin/buyers/export.csv`,
 
   agents: () => api.get('/agents'),
