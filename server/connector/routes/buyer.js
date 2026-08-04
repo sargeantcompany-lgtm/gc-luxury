@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { query } = require("../../db");
-const { createSession, setSessionCookie, requireBuyer } = require("../auth");
+const { createSession, setSessionCookie, clearSessionCookie, destroySession, requireBuyer, parseCookies, SESSION_COOKIE } = require("../auth");
 
 // ─── JOIN ──────────────────────────────────────────────────────
 router.post("/join", async (req, res) => {
@@ -33,6 +33,18 @@ router.post("/join", async (req, res) => {
 // ─── ME ────────────────────────────────────────────────────────
 router.get("/me", requireBuyer, (req, res) => {
   res.json({ buyer: req.buyer });
+});
+
+// ─── LOGOUT ────────────────────────────────────────────────────
+router.post("/logout", async (req, res) => {
+  const cookies = parseCookies(req.headers.cookie);
+  try {
+    await destroySession(cookies[SESSION_COOKIE]);
+    clearSessionCookie(res);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // ─── BRIEF ─────────────────────────────────────────────────────

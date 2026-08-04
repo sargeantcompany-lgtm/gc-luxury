@@ -40,6 +40,24 @@ function setSessionCookie(res, token, expiresAt) {
   res.setHeader("Set-Cookie", parts.join("; "));
 }
 
+function clearSessionCookie(res) {
+  const isProd = process.env.NODE_ENV === "production";
+  const parts = [
+    `${SESSION_COOKIE}=`,
+    "Path=/",
+    "HttpOnly",
+    "SameSite=Lax",
+    "Expires=Thu, 01 Jan 1970 00:00:00 GMT",
+  ];
+  if (isProd) parts.push("Secure");
+  res.setHeader("Set-Cookie", parts.join("; "));
+}
+
+async function destroySession(token) {
+  if (!token) return;
+  await query("DELETE FROM buyer_sessions WHERE token = $1", [token]);
+}
+
 async function requireBuyer(req, res, next) {
   const cookies = parseCookies(req.headers.cookie);
   const token = cookies[SESSION_COOKIE];
@@ -60,4 +78,4 @@ async function requireBuyer(req, res, next) {
   }
 }
 
-module.exports = { createSession, setSessionCookie, requireBuyer, parseCookies, SESSION_COOKIE };
+module.exports = { createSession, setSessionCookie, clearSessionCookie, destroySession, requireBuyer, parseCookies, SESSION_COOKIE };
