@@ -162,3 +162,95 @@ The Houzeey Team'),
 (2, 'Houzeey Follow Up', 'sms', NULL,
 'Hi {{first_name}}, this is Houzeey. We''d love to help you find your dream home. Reply STOP to opt out.')
 ON CONFLICT DO NOTHING;
+
+-- ============================================
+-- The Connector - buyer portal
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS buyers (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(200) NOT NULL,
+    phone VARCHAR(50),
+    email VARCHAR(255) NOT NULL UNIQUE,
+    joined_via VARCHAR(100),
+    joined_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS buyer_sessions (
+    id SERIAL PRIMARY KEY,
+    buyer_id INTEGER NOT NULL REFERENCES buyers(id) ON DELETE CASCADE,
+    token VARCHAR(128) NOT NULL UNIQUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS buyer_briefs (
+    id SERIAL PRIMARY KEY,
+    buyer_id INTEGER NOT NULL REFERENCES buyers(id) ON DELETE CASCADE UNIQUE,
+    property_type VARCHAR(100),
+    price_min BIGINT,
+    price_max BIGINT,
+    areas TEXT,
+    must_haves TEXT,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS listings (
+    id SERIAL PRIMARY KEY,
+    type VARCHAR(20) NOT NULL CHECK (type IN ('off_market', 'connector_match')),
+    source_url TEXT,
+    address VARCHAR(500) NOT NULL,
+    price_guide VARCHAR(100),
+    description TEXT,
+    photos JSONB DEFAULT '[]',
+    added_by_admin VARCHAR(200),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS top_five (
+    id SERIAL PRIMARY KEY,
+    listing_id INTEGER NOT NULL REFERENCES listings(id) ON DELETE CASCADE UNIQUE,
+    pinned_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    pinned_by VARCHAR(200)
+);
+
+CREATE TABLE IF NOT EXISTS saved_listings (
+    id SERIAL PRIMARY KEY,
+    buyer_id INTEGER NOT NULL REFERENCES buyers(id) ON DELETE CASCADE,
+    listing_id INTEGER NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
+    saved_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(buyer_id, listing_id)
+);
+
+CREATE TABLE IF NOT EXISTS connector_matches (
+    id SERIAL PRIMARY KEY,
+    listing_id INTEGER NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
+    buyer_id INTEGER NOT NULL REFERENCES buyers(id) ON DELETE CASCADE,
+    note TEXT,
+    assigned_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS valuation_requests (
+    id SERIAL PRIMARY KEY,
+    buyer_id INTEGER NOT NULL REFERENCES buyers(id) ON DELETE CASCADE,
+    listing_id INTEGER NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
+    status VARCHAR(20) NOT NULL DEFAULT 'requested' CHECK (status IN ('requested', 'fulfilled')),
+    report_url TEXT,
+    requested_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    fulfilled_at TIMESTAMP WITH TIME ZONE
+);
+
+CREATE TABLE IF NOT EXISTS agent_contacts (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(200) NOT NULL,
+    agency VARCHAR(200),
+    phone VARCHAR(50),
+    email VARCHAR(255)
+);
+
+CREATE INDEX IF NOT EXISTS idx_buyer_sessions_token ON buyer_sessions(token);
+CREATE INDEX IF NOT EXISTS idx_buyer_sessions_buyer ON buyer_sessions(buyer_id);
+CREATE INDEX IF NOT EXISTS idx_listings_type ON listings(type);
+CREATE INDEX IF NOT EXISTS idx_saved_listings_buyer ON saved_listings(buyer_id);
+CREATE INDEX IF NOT EXISTS idx_connector_matches_buyer ON connector_matches(buyer_id);
+CREATE INDEX IF NOT EXISTS idx_valuation_requests_status ON valuation_requests(status);

@@ -1,4 +1,5 @@
 node_modules/
 admin-frontend/dist/
+connector-frontend/dist/
 .env
 .claude/

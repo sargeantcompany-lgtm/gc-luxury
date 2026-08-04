@@ -13,12 +13,14 @@ const campaignsRouter = require("./crm/routes/campaigns");
 const templatesRouter = require("./crm/routes/templates");
 const activityRouter = require("./crm/routes/activity");
 const settingsRouter = require("./crm/routes/settings");
+const connectorBuyerRouter = require("./connector/routes/buyer");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const isProd = process.env.NODE_ENV === "production";
 
 const ADMIN_DIST = path.join(__dirname, "..", "admin-frontend", "dist");
+const CONNECTOR_DIST = path.join(__dirname, "..", "connector-frontend", "dist");
 const CLIENT_DIR = path.join(__dirname, "..", "client");
 
 app.use(helmet({ crossOriginResourcePolicy: false, contentSecurityPolicy: false }));
@@ -40,6 +42,11 @@ if (fs.existsSync(ADMIN_DIST)) {
   app.use("/admin", express.static(ADMIN_DIST));
 }
 
+// The Connector buyer portal (built React app), served under /connector
+if (fs.existsSync(CONNECTOR_DIST)) {
+  app.use("/connector", express.static(CONNECTOR_DIST));
+}
+
 // CRM API
 app.use("/api/brands", brandsRouter);
 app.use("/api/contacts", contactsRouter);
@@ -47,6 +54,9 @@ app.use("/api/campaigns", campaignsRouter);
 app.use("/api/templates", templatesRouter);
 app.use("/api/activity", activityRouter);
 app.use("/api/settings", settingsRouter);
+
+// The Connector API
+app.use("/api/connector", connectorBuyerRouter);
 
 app.get("/api/health", async (req, res) => {
   try {
@@ -117,6 +127,13 @@ app.post("/api/enquiries", async (req, res) => {
 if (fs.existsSync(ADMIN_DIST)) {
   app.get("/admin/*splat", (req, res) => {
     res.sendFile(path.join(ADMIN_DIST, "index.html"));
+  });
+}
+
+// SPA fallback for The Connector buyer portal
+if (fs.existsSync(CONNECTOR_DIST)) {
+  app.get("/connector/*splat", (req, res) => {
+    res.sendFile(path.join(CONNECTOR_DIST, "index.html"));
   });
 }
 
