@@ -59,6 +59,7 @@ export default function Join() {
   if (step === 1) {
     return (
       <div className="page page-narrow">
+        <p className="tagline"><strong>The Connector</strong> — find Gold Coast luxury property on-market, off-market, and everything in between.</p>
         <h1 className="page-title">Private access to the Gold Coast's finest</h1>
         <p className="page-sub">
           Register your details to get early access to off-market and pre-market

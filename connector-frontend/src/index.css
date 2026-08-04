@@ -89,6 +89,17 @@ a {
   color: var(--gold);
 }
 
+.tagline {
+  color: var(--muted);
+  font-size: 0.92rem;
+  margin: 0 0 1.4rem;
+}
+
+.tagline strong {
+  color: var(--gold);
+  font-weight: 600;
+}
+
 h1.page-title {
   font-size: clamp(1.7rem, 4vw, 2.2rem);
   margin-bottom: 0.75rem;
