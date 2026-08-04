@@ -30,6 +30,7 @@ export default function Login() {
 
   return (
     <div className="page page-narrow">
+      <p className="brand-label">GC Luxury</p>
       <p className="tagline"><strong>The Connector</strong> — find Gold Coast luxury property on-market, off-market, and everything in between.</p>
       <h1 className="page-title">Log In</h1>
       <p className="page-sub">Welcome back.</p>
