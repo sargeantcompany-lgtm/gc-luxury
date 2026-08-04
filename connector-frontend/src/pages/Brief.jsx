@@ -17,11 +17,13 @@ export default function Brief() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
+  const [hadExistingBrief, setHadExistingBrief] = useState(false);
 
   useEffect(() => {
     connectorApi.getBrief()
       .then(({ brief }) => {
         if (brief) {
+          setHadExistingBrief(true);
           setForm({
             propertyType: brief.property_type || '',
             priceMin: brief.price_min || '2500000',
@@ -44,10 +46,16 @@ export default function Brief() {
     setSaved(false);
     try {
       await connectorApi.saveBrief(form);
-      setSaved(true);
+      if (hadExistingBrief) {
+        // Returning buyer editing their brief: confirm and stay put.
+        setSaved(true);
+        setSaving(false);
+      } else {
+        // First time completing the brief during registration: go straight to the dashboard.
+        navigate('/home');
+      }
     } catch (err) {
       setError(err.message);
-    } finally {
       setSaving(false);
     }
   };
@@ -88,16 +96,18 @@ export default function Brief() {
             <textarea id="mustHaves" name="mustHaves" rows="4" value={form.mustHaves} onChange={handleChange} placeholder="Pool, water frontage, home theatre, etc." />
           </div>
           <button className="btn" type="submit" disabled={saving}>
-            {saving ? 'Saving…' : 'Save Brief'}
+            {saving ? 'Saving…' : hadExistingBrief ? 'Save Brief' : 'Save & Continue'}
           </button>
           {saved && <p className="msg success">Brief saved.</p>}
           {error && <p className="msg error">{error}</p>}
         </form>
       </div>
 
-      <div style={{ marginTop: '1.5rem' }}>
-        <button className="btn btn-ghost" onClick={() => navigate('/home')}>Go to Home</button>
-      </div>
+      {hadExistingBrief && (
+        <div style={{ marginTop: '1.5rem' }}>
+          <button className="btn btn-ghost" onClick={() => navigate('/home')}>Go to Home</button>
+        </div>
+      )}
     </div>
   );
 }
