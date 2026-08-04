@@ -14,6 +14,10 @@ const templatesRouter = require("./crm/routes/templates");
 const activityRouter = require("./crm/routes/activity");
 const settingsRouter = require("./crm/routes/settings");
 const connectorBuyerRouter = require("./connector/routes/buyer");
+const connectorAdminListingsRouter = require("./connector/routes/adminListings");
+const connectorAdminTopFiveRouter = require("./connector/routes/adminTopFive");
+const connectorAdminValuationsRouter = require("./connector/routes/adminValuations");
+const connectorAdminBuyersRouter = require("./connector/routes/adminBuyers");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -57,6 +61,16 @@ app.use("/api/settings", settingsRouter);
 
 // The Connector API
 app.use("/api/connector", connectorBuyerRouter);
+app.use("/api/connector/admin", connectorAdminListingsRouter);
+app.use("/api/connector/admin", connectorAdminTopFiveRouter);
+app.use("/api/connector/admin", connectorAdminValuationsRouter);
+app.use("/api/connector/admin", connectorAdminBuyersRouter);
+
+// Trackable join links, e.g. /join?src=blackcard -> /connector/?src=blackcard
+app.get("/join", (req, res) => {
+  const src = req.query.src ? `?src=${encodeURIComponent(req.query.src)}` : "";
+  res.redirect(`/connector/${src}`);
+});
 
 app.get("/api/health", async (req, res) => {
   try {

@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function ListingCard({ listing, saved, onToggleSave }) {
+export default function ListingCard({ listing, saved, onToggleSave, onRequestValuation, valuationStatus }) {
   const photo = Array.isArray(listing.photos) && listing.photos.length ? listing.photos[0] : null;
 
   return (
@@ -18,6 +18,15 @@ export default function ListingCard({ listing, saved, onToggleSave }) {
           >
             {saved ? 'Saved' : 'Save'}
           </button>
+          {onRequestValuation && (
+            <button
+              className="save-btn"
+              onClick={() => onRequestValuation(listing.id)}
+              disabled={Boolean(valuationStatus)}
+            >
+              {valuationStatus === 'fulfilled' ? 'Valuation Ready' : valuationStatus === 'requested' ? 'Valuation Requested' : 'Request Valuation'}
+            </button>
+          )}
         </div>
       </div>
     </div>

@@ -26,6 +26,8 @@ export const connectorApi = {
   save: (listingId) => api.post(`/save/${listingId}`),
   unsave: (listingId) => api.delete(`/save/${listingId}`),
   agents: () => api.get('/agents'),
+  myValuations: () => api.get('/valuations'),
+  requestValuation: (listingId) => api.post(`/valuations/${listingId}`),
 };
 
 export default api;

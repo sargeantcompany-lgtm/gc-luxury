@@ -13,6 +13,7 @@ export default function Home() {
   const [tab, setTab] = useState('top-five');
   const [listings, setListings] = useState([]);
   const [savedIds, setSavedIds] = useState(new Set());
+  const [valuations, setValuations] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -20,6 +21,17 @@ export default function Home() {
     try {
       const { listings } = await connectorApi.saved();
       setSavedIds(new Set(listings.map((l) => l.id)));
+    } catch {
+      // ignore, non-critical for rendering
+    }
+  };
+
+  const loadValuations = async () => {
+    try {
+      const { requests } = await connectorApi.myValuations();
+      const map = {};
+      requests.forEach((r) => { map[r.listing_id] = r; });
+      setValuations(map);
     } catch {
       // ignore, non-critical for rendering
     }
@@ -46,6 +58,7 @@ export default function Home() {
 
   useEffect(() => {
     loadSavedIds();
+    loadValuations();
   }, []);
 
   useEffect(() => {
@@ -66,6 +79,15 @@ export default function Home() {
         await connectorApi.save(listingId);
         setSavedIds((prev) => new Set(prev).add(listingId));
       }
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const requestValuation = async (listingId) => {
+    try {
+      const { request } = await connectorApi.requestValuation(listingId);
+      setValuations((prev) => ({ ...prev, [listingId]: request }));
     } catch (err) {
       setError(err.message);
     }
@@ -107,6 +129,8 @@ export default function Home() {
             listing={listing}
             saved={savedIds.has(listing.id)}
             onToggleSave={toggleSave}
+            onRequestValuation={tab === 'saved' ? requestValuation : undefined}
+            valuationStatus={valuations[listing.id]?.status}
           />
         ))}
       </div>

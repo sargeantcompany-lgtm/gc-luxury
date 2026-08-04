@@ -141,6 +141,40 @@ router.delete("/save/:listingId", requireBuyer, async (req, res) => {
   }
 });
 
+// ─── VALUATION REQUESTS ────────────────────────────────────────
+router.get("/valuations", requireBuyer, async (req, res) => {
+  try {
+    const result = await query(
+      `SELECT v.*, l.address AS listing_address FROM valuation_requests v
+       JOIN listings l ON l.id = v.listing_id
+       WHERE v.buyer_id = $1 ORDER BY v.requested_at DESC`,
+      [req.buyer.id]
+    );
+    res.json({ requests: result.rows });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post("/valuations/:listingId", requireBuyer, async (req, res) => {
+  try {
+    const existing = await query(
+      `SELECT * FROM valuation_requests WHERE buyer_id = $1 AND listing_id = $2 AND status = 'requested'`,
+      [req.buyer.id, req.params.listingId]
+    );
+    if (existing.rows.length) {
+      return res.status(200).json({ request: existing.rows[0], alreadyRequested: true });
+    }
+    const result = await query(
+      `INSERT INTO valuation_requests (buyer_id, listing_id) VALUES ($1, $2) RETURNING *`,
+      [req.buyer.id, req.params.listingId]
+    );
+    res.status(201).json({ request: result.rows[0] });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── AGENT DIRECTORY ───────────────────────────────────────────
 router.get("/agents", requireBuyer, async (req, res) => {
   try {
