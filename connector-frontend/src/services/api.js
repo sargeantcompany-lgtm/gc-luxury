@@ -16,6 +16,7 @@ api.interceptors.response.use(
 
 export const connectorApi = {
   join: (data) => api.post('/join', data),
+  login: (data) => api.post('/login', data),
   me: () => api.get('/me'),
   logout: () => api.post('/logout'),
   getBrief: () => api.get('/brief'),

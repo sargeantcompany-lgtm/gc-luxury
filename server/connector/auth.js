@@ -1,8 +1,27 @@
 const crypto = require("crypto");
+const { promisify } = require("util");
 const { query } = require("../db");
+
+const scrypt = promisify(crypto.scrypt);
 
 const SESSION_COOKIE = "connector_session";
 const SESSION_DAYS = 180;
+
+async function hashPassword(password) {
+  const salt = crypto.randomBytes(16).toString("hex");
+  const derivedKey = await scrypt(password, salt, 64);
+  return `${salt}:${derivedKey.toString("hex")}`;
+}
+
+async function verifyPassword(password, hash) {
+  if (!hash) return false;
+  const [salt, key] = hash.split(":");
+  if (!salt || !key) return false;
+  const derivedKey = await scrypt(password, salt, 64);
+  const keyBuffer = Buffer.from(key, "hex");
+  if (keyBuffer.length !== derivedKey.length) return false;
+  return crypto.timingSafeEqual(keyBuffer, derivedKey);
+}
 
 function parseCookies(header) {
   const cookies = {};
@@ -78,4 +97,14 @@ async function requireBuyer(req, res, next) {
   }
 }
 
-module.exports = { createSession, setSessionCookie, clearSessionCookie, destroySession, requireBuyer, parseCookies, SESSION_COOKIE };
+module.exports = {
+  createSession,
+  setSessionCookie,
+  clearSessionCookie,
+  destroySession,
+  requireBuyer,
+  parseCookies,
+  hashPassword,
+  verifyPassword,
+  SESSION_COOKIE,
+};

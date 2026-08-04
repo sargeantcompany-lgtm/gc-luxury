@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { connectorApi } from '../services/api';
 import { useBuyer } from '../context/BuyerContext';
 
@@ -12,7 +12,7 @@ export default function Join() {
   const { refresh } = useBuyer();
 
   const [step, setStep] = useState(1);
-  const [contact, setContact] = useState({ name: '', phone: '', email: '' });
+  const [contact, setContact] = useState({ name: '', phone: '', email: '', password: '', confirmPassword: '' });
   const [brief, setBrief] = useState({
     propertyType: '',
     priceMin: '2500000',
@@ -28,6 +28,15 @@ export default function Join() {
 
   const handleContinue = (e) => {
     e.preventDefault();
+    setError('');
+    if (contact.password.length < 8) {
+      setError('Password must be at least 8 characters');
+      return;
+    }
+    if (contact.password !== contact.confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
     setStep(2);
   };
 
@@ -36,7 +45,8 @@ export default function Join() {
     setSubmitting(true);
     setError('');
     try {
-      await connectorApi.join({ ...contact, src });
+      const { confirmPassword, ...contactPayload } = contact;
+      await connectorApi.join({ ...contactPayload, src });
       await connectorApi.saveBrief(brief);
       await refresh();
       navigate('/home');
@@ -69,9 +79,22 @@ export default function Join() {
               <label htmlFor="email">Email</label>
               <input id="email" name="email" type="email" value={contact.email} onChange={handleContactChange} required />
             </div>
+            <div className="field">
+              <label htmlFor="password">Password</label>
+              <input id="password" name="password" type="password" value={contact.password} onChange={handleContactChange} minLength={8} required />
+            </div>
+            <div className="field">
+              <label htmlFor="confirmPassword">Confirm Password</label>
+              <input id="confirmPassword" name="confirmPassword" type="password" value={contact.confirmPassword} onChange={handleContactChange} minLength={8} required />
+            </div>
             <button className="btn" type="submit">Continue</button>
+            {error && <p className="msg error">{error}</p>}
           </form>
         </div>
+
+        <p className="page-sub" style={{ marginTop: '1.2rem', marginBottom: 0, textAlign: 'center' }}>
+          Already registered? <Link to="/login">Log in</Link>
+        </p>
       </div>
     );
   }

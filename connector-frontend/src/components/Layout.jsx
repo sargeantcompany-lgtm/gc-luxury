@@ -35,7 +35,10 @@ export default function Layout({ children }) {
               <button onClick={handleLogout}>Log out</button>
             </>
           ) : (
-            <Link to="/" className={isActive('/') ? 'active' : ''}>Register</Link>
+            <>
+              <Link to="/login" className={isActive('/login') ? 'active' : ''}>Log in</Link>
+              <Link to="/" className={isActive('/') ? 'active' : ''}>Register</Link>
+            </>
           )}
         </nav>
       </div>

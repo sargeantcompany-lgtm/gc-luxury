@@ -172,9 +172,12 @@ CREATE TABLE IF NOT EXISTS buyers (
     name VARCHAR(200) NOT NULL,
     phone VARCHAR(50),
     email VARCHAR(255) NOT NULL UNIQUE,
+    password_hash TEXT,
     joined_via VARCHAR(100),
     joined_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+ALTER TABLE buyers ADD COLUMN IF NOT EXISTS password_hash TEXT;
 
 CREATE TABLE IF NOT EXISTS buyer_sessions (
     id SERIAL PRIMARY KEY,

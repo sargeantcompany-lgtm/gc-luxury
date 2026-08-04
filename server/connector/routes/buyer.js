@@ -1,30 +1,65 @@
 const express = require("express");
 const router = express.Router();
 const { query } = require("../../db");
-const { createSession, setSessionCookie, clearSessionCookie, destroySession, requireBuyer, parseCookies, SESSION_COOKIE } = require("../auth");
+const {
+  createSession, setSessionCookie, clearSessionCookie, destroySession,
+  requireBuyer, parseCookies, hashPassword, verifyPassword, SESSION_COOKIE,
+} = require("../auth");
 
-// ─── JOIN ──────────────────────────────────────────────────────
+function sanitizeBuyer(buyer) {
+  if (!buyer) return buyer;
+  const { password_hash, ...rest } = buyer;
+  return rest;
+}
+
+// ─── JOIN (register) ────────────────────────────────────────────
 router.post("/join", async (req, res) => {
-  const { name, phone, email, src } = req.body;
-  if (!name || !email) {
-    return res.status(400).json({ error: "Name and email are required" });
+  const { name, phone, email, password, src } = req.body;
+  if (!name || !email || !password) {
+    return res.status(400).json({ error: "Name, email, and password are required" });
+  }
+  if (password.length < 8) {
+    return res.status(400).json({ error: "Password must be at least 8 characters" });
   }
 
   try {
-    const existing = await query("SELECT * FROM buyers WHERE email = $1", [email]);
-    let buyer = existing.rows[0];
+    const existing = await query("SELECT id FROM buyers WHERE email = $1", [email]);
+    if (existing.rows.length) {
+      return res.status(409).json({ error: "An account already exists for this email — log in instead." });
+    }
 
-    if (!buyer) {
-      const result = await query(
-        `INSERT INTO buyers (name, phone, email, joined_via) VALUES ($1, $2, $3, $4) RETURNING *`,
-        [name, phone || null, email, src || null]
-      );
-      buyer = result.rows[0];
+    const passwordHash = await hashPassword(password);
+    const result = await query(
+      `INSERT INTO buyers (name, phone, email, password_hash, joined_via) VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      [name, phone || null, email, passwordHash, src || null]
+    );
+    const buyer = result.rows[0];
+
+    const { token, expiresAt } = await createSession(buyer.id);
+    setSessionCookie(res, token, expiresAt);
+    res.status(201).json({ buyer: sanitizeBuyer(buyer) });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── LOGIN ─────────────────────────────────────────────────────
+router.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(400).json({ error: "Email and password are required" });
+  }
+
+  try {
+    const result = await query("SELECT * FROM buyers WHERE email = $1", [email]);
+    const buyer = result.rows[0];
+    if (!buyer || !(await verifyPassword(password, buyer.password_hash))) {
+      return res.status(401).json({ error: "Incorrect email or password" });
     }
 
     const { token, expiresAt } = await createSession(buyer.id);
     setSessionCookie(res, token, expiresAt);
-    res.status(201).json({ buyer });
+    res.json({ buyer: sanitizeBuyer(buyer) });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -32,7 +67,7 @@ router.post("/join", async (req, res) => {
 
 // ─── ME ────────────────────────────────────────────────────────
 router.get("/me", requireBuyer, (req, res) => {
-  res.json({ buyer: req.buyer });
+  res.json({ buyer: sanitizeBuyer(req.buyer) });
 });
 
 // ─── LOGOUT ────────────────────────────────────────────────────

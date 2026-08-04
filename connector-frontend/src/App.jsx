@@ -4,6 +4,7 @@ import { BuyerProvider, useBuyer } from './context/BuyerContext';
 import Layout from './components/Layout';
 import AdminLayout from './components/AdminLayout';
 import Join from './pages/Join';
+import Login from './pages/Login';
 import Brief from './pages/Brief';
 import Home from './pages/Home';
 import Agents from './pages/Agents';
@@ -28,12 +29,20 @@ function JoinOrRedirect() {
   return <Join />;
 }
 
+function LoginOrRedirect() {
+  const { buyer, loading } = useBuyer();
+  if (loading) return <div className="page"><p className="loading">Loading…</p></div>;
+  if (buyer) return <Navigate to="/home" replace />;
+  return <Login />;
+}
+
 export default function App() {
   return (
     <BuyerProvider>
       <BrowserRouter basename="/connector">
         <Routes>
           <Route path="/" element={<Layout><JoinOrRedirect /></Layout>} />
+          <Route path="/login" element={<Layout><LoginOrRedirect /></Layout>} />
           <Route path="/brief" element={<Layout><RequireBuyer><Brief /></RequireBuyer></Layout>} />
           <Route path="/home" element={<Layout><RequireBuyer><Home /></RequireBuyer></Layout>} />
           <Route path="/agents" element={<Layout><RequireBuyer><Agents /></RequireBuyer></Layout>} />
