@@ -1,0 +1,18 @@
+export const GOLD_COAST_SUBURBS = [
+  'Advancetown', 'Alberton', 'Arundel', 'Ashmore', 'Austinville',
+  'Benowa', 'Biggera Waters', 'Bilinga', 'Bonogin', 'Bilambil Heights',
+  'Broadbeach', 'Broadbeach Waters', 'Bundall', 'Burleigh Heads', 'Burleigh Waters',
+  'Carrara', 'Chevron Island', 'Clagiraba', 'Clear Island Waters', 'Coolangatta',
+  'Coomera', 'Coombabah', 'Currumbin', 'Currumbin Valley', 'Currumbin Waters',
+  'Elanora', 'Gaven', 'Gilberton', 'Gilston', 'Guanaba',
+  'Helensvale', 'Highland Park', 'Hollywell', 'Hope Island', 'Jacobs Well',
+  'Kirra', 'Labrador', 'Little Mountain', 'Maudsland', 'Merrimac',
+  'Miami', 'Molendinar', 'Mount Nathan', 'Mudgeeraba', 'Natural Bridge',
+  'Neranwood', 'Nerang', 'Norwell', 'Numinbah Valley', 'Ormeau',
+  'Ormeau Hills', 'Oxenford', 'Palm Beach', 'Paradise Point', 'Parkwood',
+  'Pimpama', 'Mermaid Beach', 'Mermaid Waters', 'Main Beach', 'Rainbow Bay',
+  'Reedy Creek', 'Robina', 'Runaway Bay', 'Sanctuary Cove', 'Southport',
+  'Springbrook', 'Steiglitz', 'Surfers Paradise', 'Tallai', 'Tallebudgera',
+  'Tallebudgera Valley', 'Tugun', 'Upper Coomera', 'Varsity Lakes', 'Willow Vale',
+  'Wongawallan', 'Worongary', 'Yatala',
+];

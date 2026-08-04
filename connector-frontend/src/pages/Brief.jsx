@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { connectorApi } from '../services/api';
+import CurrencyInput from '../components/CurrencyInput';
+import SuburbPicker from '../components/SuburbPicker';
 
 const PROPERTY_TYPES = ['Waterfront property', 'Acreage estate', 'Penthouse / Sub-penthouse', 'Apartment', 'House', 'Other'];
 
@@ -81,15 +83,15 @@ export default function Brief() {
           </div>
           <div className="field">
             <label htmlFor="priceMin">Price Min (floor $2.5M)</label>
-            <input id="priceMin" name="priceMin" type="number" min="2500000" step="100000" value={form.priceMin} onChange={handleChange} />
+            <CurrencyInput id="priceMin" name="priceMin" value={form.priceMin} onChange={handleChange} />
           </div>
           <div className="field">
             <label htmlFor="priceMax">Price Max</label>
-            <input id="priceMax" name="priceMax" type="number" min="2500000" step="100000" value={form.priceMax} onChange={handleChange} />
+            <CurrencyInput id="priceMax" name="priceMax" value={form.priceMax} onChange={handleChange} />
           </div>
           <div className="field">
-            <label htmlFor="areas">Preferred Areas / Suburbs</label>
-            <input id="areas" name="areas" value={form.areas} onChange={handleChange} placeholder="e.g. Sovereign Islands, Mermaid Beach" />
+            <label htmlFor="areas">Preferred Suburbs (up to 3)</label>
+            <SuburbPicker id="areas" name="areas" value={form.areas} onChange={handleChange} />
           </div>
           <div className="field">
             <label htmlFor="mustHaves">Must-Haves</label>

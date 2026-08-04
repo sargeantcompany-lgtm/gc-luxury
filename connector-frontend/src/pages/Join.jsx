@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { connectorApi } from '../services/api';
 import { useBuyer } from '../context/BuyerContext';
+import CurrencyInput from '../components/CurrencyInput';
+import SuburbPicker from '../components/SuburbPicker';
 
 const PROPERTY_TYPES = ['Waterfront property', 'Acreage estate', 'Penthouse / Sub-penthouse', 'Apartment', 'House', 'Other'];
 
@@ -116,15 +118,15 @@ export default function Join() {
           </div>
           <div className="field">
             <label htmlFor="priceMin">Price Min (floor $2.5M)</label>
-            <input id="priceMin" name="priceMin" type="number" min="2500000" step="100000" value={brief.priceMin} onChange={handleBriefChange} />
+            <CurrencyInput id="priceMin" name="priceMin" value={brief.priceMin} onChange={handleBriefChange} />
           </div>
           <div className="field">
             <label htmlFor="priceMax">Price Max</label>
-            <input id="priceMax" name="priceMax" type="number" min="2500000" step="100000" value={brief.priceMax} onChange={handleBriefChange} />
+            <CurrencyInput id="priceMax" name="priceMax" value={brief.priceMax} onChange={handleBriefChange} />
           </div>
           <div className="field">
-            <label htmlFor="areas">Preferred Areas / Suburbs</label>
-            <input id="areas" name="areas" value={brief.areas} onChange={handleBriefChange} placeholder="e.g. Sovereign Islands, Mermaid Beach" />
+            <label htmlFor="areas">Preferred Suburbs (up to 3)</label>
+            <SuburbPicker id="areas" name="areas" value={brief.areas} onChange={handleBriefChange} />
           </div>
           <div className="field">
             <label htmlFor="mustHaves">Must-Haves</label>

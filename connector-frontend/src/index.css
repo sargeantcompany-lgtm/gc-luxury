@@ -166,6 +166,84 @@ h1.page-title {
   box-shadow: 0 0 0 3px rgba(201, 162, 75, 0.12);
 }
 
+.currency-input {
+  position: relative;
+}
+
+.currency-input input {
+  width: 100%;
+  padding-left: 1.6rem;
+}
+
+.currency-prefix {
+  position: absolute;
+  left: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-size: 0.95rem;
+  pointer-events: none;
+}
+
+.suburb-picker {
+  position: relative;
+}
+
+.suburb-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.suburb-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(201, 162, 75, 0.12);
+  border: 1px solid var(--gold-soft);
+  color: var(--gold);
+  border-radius: 999px;
+  padding: 0.3rem 0.5rem 0.3rem 0.85rem;
+  font-size: 0.85rem;
+}
+
+.suburb-chip button {
+  background: none;
+  border: none;
+  color: var(--gold);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0 0.2rem;
+}
+
+.suburb-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 0.3rem;
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 10;
+}
+
+.suburb-option {
+  padding: 0.6rem 0.9rem;
+  font-size: 0.9rem;
+  color: var(--ivory);
+  cursor: pointer;
+}
+
+.suburb-option:hover {
+  background: rgba(201, 162, 75, 0.1);
+  color: var(--gold);
+}
+
 .btn {
   display: inline-block;
   width: 100%;
