@@ -113,7 +113,7 @@ CREATE INDEX IF NOT EXISTS idx_campaign_contacts_campaign ON campaign_contacts(c
 -- Default brands
 INSERT INTO brands (name, color) VALUES ('Real Estate', '#2563eb') ON CONFLICT (name) DO NOTHING;
 INSERT INTO brands (name, color) VALUES ('Houzeey', '#10b981') ON CONFLICT (name) DO NOTHING;
-INSERT INTO brands (name, color) VALUES ('Gold Coast Luxury', '#c9a24b') ON CONFLICT (name) DO NOTHING;
+INSERT INTO brands (name, color) VALUES ('GC Luxury', '#c9a24b') ON CONFLICT (name) DO NOTHING;
 
 -- Default email templates
 INSERT INTO templates (brand_id, name, type, subject, body) VALUES

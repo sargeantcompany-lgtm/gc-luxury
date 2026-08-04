@@ -12,7 +12,7 @@ export default function Layout({ children }) {
     <>
       <div className="top-bar">
         <Link to="/" className="wordmark">
-          The <span>Connector</span>
+          GC Luxury <span>Connector</span>
         </Link>
         {buyer && (
           <nav className="nav-links">

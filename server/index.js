@@ -38,7 +38,7 @@ app.use(morgan(isProd ? "combined" : "dev"));
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
-// Gold Coast Luxury public marketing site
+// GC Luxury public marketing site
 app.use(express.static(CLIENT_DIR));
 
 // CRM admin (built React app), served under /admin
@@ -81,7 +81,7 @@ app.get("/api/health", async (req, res) => {
   }
 });
 
-// Gold Coast Luxury enquiry form -> lands as a CRM contact under the "Gold Coast Luxury" brand
+// GC Luxury enquiry form -> lands as a CRM contact under the "GC Luxury" brand
 app.post("/api/enquiries", async (req, res) => {
   const { fullName, email, phone, propertyType, priceRange, locations, message } = req.body;
 
@@ -90,7 +90,7 @@ app.post("/api/enquiries", async (req, res) => {
   }
 
   try {
-    const brandResult = await query("SELECT id FROM brands WHERE name = $1", ["Gold Coast Luxury"]);
+    const brandResult = await query("SELECT id FROM brands WHERE name = $1", ["GC Luxury"]);
     const brandId = brandResult.rows[0]?.id || null;
 
     const [firstName, ...rest] = fullName.trim().split(/\s+/);
@@ -126,7 +126,7 @@ app.post("/api/enquiries", async (req, res) => {
     await query(
       `INSERT INTO activity_log (contact_id, brand_id, type, description)
        VALUES ($1, $2, 'contact_created', $3)`,
-      [contactId, brandId, `New enquiry from Gold Coast Luxury website: ${fullName}`]
+      [contactId, brandId, `New enquiry from GC Luxury website: ${fullName}`]
     );
 
     console.log("New enquiry saved as contact:", contactId);
@@ -159,7 +159,7 @@ app.use((err, req, res, next) => {
 ensureSchema()
   .then(() => {
     app.listen(PORT, () => {
-      console.log(`Gold Coast Luxury server running at http://localhost:${PORT}`);
+      console.log(`GC Luxury server running at http://localhost:${PORT}`);
     });
   })
   .catch((err) => {

@@ -10,7 +10,7 @@ export default function AdminLayout({ children }) {
     <>
       <div className="top-bar">
         <Link to="/admin" className="wordmark">
-          The <span>Connector</span> — Admin
+          GC Luxury <span>Connector</span> — Admin
         </Link>
         <nav className="nav-links">
           <Link to="/admin/listings" className={isActive('/admin/listings') ? 'active' : ''}>Listings</Link>
