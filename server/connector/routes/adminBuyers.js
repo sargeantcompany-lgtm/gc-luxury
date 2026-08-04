@@ -49,6 +49,15 @@ router.get("/buyers/export.csv", async (req, res) => {
   }
 });
 
+router.delete("/buyers/:id", async (req, res) => {
+  try {
+    await query("DELETE FROM buyers WHERE id = $1", [req.params.id]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── AGENT DIRECTORY MANAGEMENT ────────────────────────────────
 router.get("/agents", async (req, res) => {
   try {

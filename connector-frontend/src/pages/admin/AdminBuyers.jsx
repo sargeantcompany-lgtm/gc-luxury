@@ -14,6 +14,17 @@ export default function AdminBuyers() {
       .finally(() => setLoading(false));
   }, []);
 
+  const handleDelete = async (id) => {
+    if (!confirm('Delete this buyer? This removes their account, brief, saved listings, and valuation requests.')) return;
+    setError('');
+    try {
+      await adminApi.deleteBuyer(id);
+      setBuyers((prev) => prev.filter((b) => b.id !== id));
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
   const handleExport = async () => {
     setExporting(true);
     setError('');
@@ -56,12 +67,15 @@ export default function AdminBuyers() {
       <div className="card" style={{ padding: 0 }}>
         {buyers.map((b) => (
           <div className="agent-row" key={b.id} style={{ flexDirection: 'column', alignItems: 'stretch', padding: '1.1rem 1.5rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
                 <div className="agent-name">{b.name}</div>
                 <div className="agent-meta">{b.email} · {b.phone}</div>
               </div>
-              <div className="agent-meta">via {b.joined_via || 'direct'}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+                <div className="agent-meta">via {b.joined_via || 'direct'}</div>
+                <button className="save-btn" onClick={() => handleDelete(b.id)}>Delete</button>
+              </div>
             </div>
             <div className="agent-meta" style={{ marginTop: '0.4rem' }}>
               {b.property_type || 'No brief set'}{b.areas ? ` · ${b.areas}` : ''} · {b.saved_count} saved
