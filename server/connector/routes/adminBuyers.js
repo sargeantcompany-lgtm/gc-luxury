@@ -107,7 +107,7 @@ router.post("/buyers/:id/assign/:listingId", async (req, res) => {
   try {
     const result = await query(
       `INSERT INTO connector_matches (listing_id, buyer_id, note) VALUES ($1, $2, $3) RETURNING *`,
-      [req.params.listingId, req.params.id, req.body.note || null]
+      [req.params.listingId, req.params.id, req.body?.note || null]
     );
     res.status(201).json({ match: result.rows[0] });
   } catch (err) {
