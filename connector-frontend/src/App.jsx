@@ -10,7 +10,6 @@ import Home from './pages/Home';
 import Agents from './pages/Agents';
 import AdminGate from './pages/admin/AdminGate';
 import AdminListings from './pages/admin/AdminListings';
-import AdminTopFive from './pages/admin/AdminTopFive';
 import AdminValuations from './pages/admin/AdminValuations';
 import AdminBuyers from './pages/admin/AdminBuyers';
 import AdminBuyerDetail from './pages/admin/AdminBuyerDetail';
@@ -50,7 +49,6 @@ export default function App() {
 
           <Route path="/admin" element={<AdminGate><AdminLayout><Navigate to="/admin/listings" replace /></AdminLayout></AdminGate>} />
           <Route path="/admin/listings" element={<AdminGate><AdminLayout><AdminListings /></AdminLayout></AdminGate>} />
-          <Route path="/admin/top-five" element={<AdminGate><AdminLayout><AdminTopFive /></AdminLayout></AdminGate>} />
           <Route path="/admin/valuations" element={<AdminGate><AdminLayout><AdminValuations /></AdminLayout></AdminGate>} />
           <Route path="/admin/buyers" element={<AdminGate><AdminLayout><AdminBuyers /></AdminLayout></AdminGate>} />
           <Route path="/admin/buyers/:id" element={<AdminGate><AdminLayout><AdminBuyerDetail /></AdminLayout></AdminGate>} />

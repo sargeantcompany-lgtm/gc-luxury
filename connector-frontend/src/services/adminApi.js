@@ -41,10 +41,6 @@ export const adminApi = {
   updateListing: (id, data) => api.put(`/listings/${id}`, data),
   deleteListing: (id) => api.delete(`/listings/${id}`),
 
-  topFive: () => api.get('/top-five'),
-  pin: (listingId) => api.post(`/top-five/${listingId}`),
-  unpin: (listingId) => api.delete(`/top-five/${listingId}`),
-
   valuations: () => api.get('/valuations'),
   fulfilValuation: (id, reportUrl) => api.post(`/valuations/${id}/fulfil`, { reportUrl }),
 
@@ -54,6 +50,9 @@ export const adminApi = {
   availableListingsForBuyer: (id) => api.get(`/buyers/${id}/available-listings`),
   assignListing: (buyerId, listingId, note) => api.post(`/buyers/${buyerId}/assign/${listingId}`, { note }),
   unassignListing: (buyerId, listingId) => api.delete(`/buyers/${buyerId}/assign/${listingId}`),
+  availableForTopFive: (buyerId) => api.get(`/buyers/${buyerId}/available-for-top-five`),
+  pinToTopFive: (buyerId, listingId) => api.post(`/buyers/${buyerId}/top-five/${listingId}`),
+  unpinFromTopFive: (buyerId, listingId) => api.delete(`/buyers/${buyerId}/top-five/${listingId}`),
   exportCsvUrl: () => `/api/connector/admin/buyers/export.csv`,
 
   agents: () => api.get('/agents'),

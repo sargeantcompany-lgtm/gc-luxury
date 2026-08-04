@@ -23,7 +23,6 @@ export const connectorApi = {
   saveBrief: (data) => api.put('/brief', data),
   topFive: () => api.get('/top-five'),
   offMarket: () => api.get('/off-market'),
-  matches: () => api.get('/matches'),
   saved: () => api.get('/saved'),
   save: (listingId) => api.post(`/save/${listingId}`),
   unsave: (listingId) => api.delete(`/save/${listingId}`),

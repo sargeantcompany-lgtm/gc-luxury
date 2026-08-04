@@ -58,13 +58,21 @@ router.delete("/buyers/:id", async (req, res) => {
   }
 });
 
-// ─── SINGLE BUYER DETAIL (brief + assigned matches) ────────────
+// ─── SINGLE BUYER DETAIL (brief + top five + off-market matches) ─
 router.get("/buyers/:id", async (req, res) => {
   try {
     const buyerResult = await query("SELECT id, name, phone, email, joined_via, joined_at FROM buyers WHERE id = $1", [req.params.id]);
     if (!buyerResult.rows.length) return res.status(404).json({ error: "Buyer not found" });
 
     const briefResult = await query("SELECT * FROM buyer_briefs WHERE buyer_id = $1", [req.params.id]);
+
+    const topFiveResult = await query(
+      `SELECT l.*, t.id AS pin_id, t.pinned_at
+       FROM top_five t JOIN listings l ON l.id = t.listing_id
+       WHERE t.buyer_id = $1 ORDER BY t.pinned_at DESC`,
+      [req.params.id]
+    );
+
     const matchesResult = await query(
       `SELECT l.*, cm.id AS match_id, cm.note, cm.assigned_at
        FROM connector_matches cm
@@ -77,6 +85,7 @@ router.get("/buyers/:id", async (req, res) => {
     res.json({
       buyer: buyerResult.rows[0],
       brief: briefResult.rows[0] || null,
+      topFive: topFiveResult.rows,
       matches: matchesResult.rows,
     });
   } catch (err) {
@@ -84,13 +93,12 @@ router.get("/buyers/:id", async (req, res) => {
   }
 });
 
-// ─── OFF-MARKET LISTINGS NOT YET ASSIGNED TO THIS BUYER ────────
+// ─── POOL LISTINGS NOT YET IN THIS BUYER'S OFF-MARKET LIST ─────
 router.get("/buyers/:id/available-listings", async (req, res) => {
   try {
     const result = await query(
       `SELECT l.* FROM listings l
-       WHERE l.type = 'off_market'
-       AND NOT EXISTS (
+       WHERE NOT EXISTS (
          SELECT 1 FROM connector_matches cm WHERE cm.listing_id = l.id AND cm.buyer_id = $1
        )
        ORDER BY l.created_at DESC`,
@@ -102,7 +110,7 @@ router.get("/buyers/:id/available-listings", async (req, res) => {
   }
 });
 
-// ─── ASSIGN / UNASSIGN AN EXISTING LISTING TO THIS BUYER ───────
+// ─── ASSIGN / UNASSIGN A POOL LISTING TO THIS BUYER'S OFF-MARKET ─
 router.post("/buyers/:id/assign/:listingId", async (req, res) => {
   try {
     const result = await query(
@@ -119,6 +127,53 @@ router.delete("/buyers/:id/assign/:listingId", async (req, res) => {
   try {
     await query(
       "DELETE FROM connector_matches WHERE buyer_id = $1 AND listing_id = $2",
+      [req.params.id, req.params.listingId]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── POOL LISTINGS NOT YET IN THIS BUYER'S TOP FIVE ────────────
+router.get("/buyers/:id/available-for-top-five", async (req, res) => {
+  try {
+    const result = await query(
+      `SELECT l.* FROM listings l
+       WHERE NOT EXISTS (
+         SELECT 1 FROM top_five t WHERE t.listing_id = l.id AND t.buyer_id = $1
+       )
+       ORDER BY l.created_at DESC`,
+      [req.params.id]
+    );
+    res.json({ listings: result.rows });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── PIN / UNPIN A POOL LISTING TO THIS BUYER'S TOP FIVE ───────
+router.post("/buyers/:id/top-five/:listingId", async (req, res) => {
+  try {
+    const count = await query("SELECT COUNT(*) AS total FROM top_five WHERE buyer_id = $1", [req.params.id]);
+    if (parseInt(count.rows[0].total) >= 5) {
+      return res.status(400).json({ error: "This buyer's Top 5 is already full — unpin something first" });
+    }
+    const result = await query(
+      `INSERT INTO top_five (buyer_id, listing_id, pinned_by) VALUES ($1, $2, $3)
+       ON CONFLICT (buyer_id, listing_id) DO NOTHING RETURNING *`,
+      [req.params.id, req.params.listingId, req.body?.admin || "Admin"]
+    );
+    res.status(201).json({ pin: result.rows[0] || null });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.delete("/buyers/:id/top-five/:listingId", async (req, res) => {
+  try {
+    await query(
+      "DELETE FROM top_five WHERE buyer_id = $1 AND listing_id = $2",
       [req.params.id, req.params.listingId]
     );
     res.json({ success: true });

@@ -109,11 +109,13 @@ router.put("/brief", requireBuyer, async (req, res) => {
   }
 });
 
-// ─── TOP FIVE ──────────────────────────────────────────────────
+// ─── TOP FIVE (this buyer's own, curated by admin) ──────────────
 router.get("/top-five", requireBuyer, async (req, res) => {
   try {
     const result = await query(
-      `SELECT l.* FROM top_five t JOIN listings l ON l.id = t.listing_id ORDER BY t.pinned_at DESC`
+      `SELECT l.* FROM top_five t JOIN listings l ON l.id = t.listing_id
+       WHERE t.buyer_id = $1 ORDER BY t.pinned_at DESC`,
+      [req.buyer.id]
     );
     res.json({ listings: result.rows });
   } catch (err) {
@@ -121,20 +123,8 @@ router.get("/top-five", requireBuyer, async (req, res) => {
   }
 });
 
-// ─── OFF-MARKET BROWSE ─────────────────────────────────────────
+// ─── OFF-MARKET (this buyer's own, assigned by admin) ───────────
 router.get("/off-market", requireBuyer, async (req, res) => {
-  try {
-    const result = await query(
-      `SELECT * FROM listings WHERE type = 'off_market' ORDER BY created_at DESC`
-    );
-    res.json({ listings: result.rows });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// ─── CONNECTOR MATCHES ASSIGNED TO THIS BUYER ─────────────────
-router.get("/matches", requireBuyer, async (req, res) => {
   try {
     const result = await query(
       `SELECT l.*, cm.note, cm.assigned_at FROM connector_matches cm

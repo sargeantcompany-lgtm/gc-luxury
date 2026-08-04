@@ -7,7 +7,6 @@ function parsePhotos(text) {
 
 export default function AdminListings() {
   const [listings, setListings] = useState([]);
-  const [buyers, setBuyers] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
@@ -17,15 +16,14 @@ export default function AdminListings() {
   const [matchUrl, setMatchUrl] = useState('');
   const [matchFetching, setMatchFetching] = useState(false);
   const [matchWarning, setMatchWarning] = useState('');
-  const [match, setMatch] = useState({ address: '', price_guide: '', description: '', photos: '', buyerId: '', note: '' });
+  const [match, setMatch] = useState({ address: '', price_guide: '', description: '', photos: '' });
   const [matchSaving, setMatchSaving] = useState(false);
 
   const load = async () => {
     setLoading(true);
     try {
-      const [{ listings }, { buyers }] = await Promise.all([adminApi.listings(), adminApi.buyers()]);
+      const { listings } = await adminApi.listings();
       setListings(listings);
-      setBuyers(buyers);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -83,7 +81,7 @@ export default function AdminListings() {
         source_url: matchUrl || null,
         photos: parsePhotos(match.photos),
       });
-      setMatch({ address: '', price_guide: '', description: '', photos: '', buyerId: '', note: '' });
+      setMatch({ address: '', price_guide: '', description: '', photos: '' });
       setMatchUrl('');
       setMatchWarning('');
       await load();
@@ -95,7 +93,7 @@ export default function AdminListings() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Delete this listing? This also removes it from Top 5 and any saved lists.')) return;
+    if (!confirm('Delete this listing? This removes it from every buyer it\'s pinned or assigned to.')) return;
     try {
       await adminApi.deleteListing(id);
       await load();
@@ -107,6 +105,11 @@ export default function AdminListings() {
   return (
     <div className="page">
       <h1 className="page-title">Listings</h1>
+      <p className="page-sub">
+        This is the central pool. Add properties here, then go to each buyer's
+        page to pin them to that buyer's Top 5 or add them to that buyer's
+        Off-Market list.
+      </p>
       {error && <p className="msg error">{error}</p>}
 
       <h2 style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>Add Off-Market Listing</h2>
@@ -129,12 +132,12 @@ export default function AdminListings() {
             <textarea rows="2" value={offMarket.photos} onChange={(e) => setOffMarket({ ...offMarket, photos: e.target.value })} />
           </div>
           <button className="btn" type="submit" disabled={offMarketSaving}>
-            {offMarketSaving ? 'Saving…' : 'Add Off-Market Listing'}
+            {offMarketSaving ? 'Saving…' : 'Add to Pool'}
           </button>
         </form>
       </div>
 
-      <h2 style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>Add Connector Match</h2>
+      <h2 style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>Add via Listing Link</h2>
       <div className="card" style={{ marginBottom: '2rem' }}>
         <div className="field">
           <label>Listing URL (realestate.com.au / domain.com.au)</label>
@@ -164,24 +167,13 @@ export default function AdminListings() {
             <label>Photo URLs (one per line)</label>
             <textarea rows="2" value={match.photos} onChange={(e) => setMatch({ ...match, photos: e.target.value })} />
           </div>
-          <div className="field">
-            <label>Assign to Buyer</label>
-            <select value={match.buyerId} onChange={(e) => setMatch({ ...match, buyerId: e.target.value })} required>
-              <option value="">Select a buyer...</option>
-              {buyers.map((b) => <option key={b.id} value={b.id}>{b.name} ({b.email})</option>)}
-            </select>
-          </div>
-          <div className="field">
-            <label>Note</label>
-            <textarea rows="2" value={match.note} onChange={(e) => setMatch({ ...match, note: e.target.value })} placeholder="Why this fits them" />
-          </div>
           <button className="btn" type="submit" disabled={matchSaving}>
-            {matchSaving ? 'Saving…' : 'Save & Assign'}
+            {matchSaving ? 'Saving…' : 'Add to Pool'}
           </button>
         </form>
       </div>
 
-      <h2 style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>All Listings</h2>
+      <h2 style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>All Listings ({listings.length})</h2>
       {loading && <p className="loading">Loading…</p>}
       <div className="listing-grid">
         {listings.map((l) => (
@@ -190,9 +182,7 @@ export default function AdminListings() {
               <div className="listing-address">{l.address}</div>
               <div className="listing-price">{l.price_guide}</div>
               <p className="agent-meta">
-                {l.type === 'off_market' ? 'Off-Market' : 'Connector Match'}
-                {l.is_pinned && ' · Pinned to Top 5'}
-                {l.connector_match_buyer_name && ` · Assigned to ${l.connector_match_buyer_name}`}
+                Pinned for {l.pinned_count} buyer{l.pinned_count === '1' ? '' : 's'} · Assigned to {l.assigned_count} buyer{l.assigned_count === '1' ? '' : 's'}
               </p>
               <div className="listing-actions" style={{ marginTop: '0.8rem' }}>
                 <button className="save-btn" onClick={() => handleDelete(l.id)}>Delete</button>

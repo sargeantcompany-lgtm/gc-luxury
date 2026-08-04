@@ -14,7 +14,6 @@ export default function AdminLayout({ children }) {
         </Link>
         <nav className="nav-links">
           <Link to="/admin/listings" className={isActive('/admin/listings') ? 'active' : ''}>Listings</Link>
-          <Link to="/admin/top-five" className={isActive('/admin/top-five') ? 'active' : ''}>Top 5</Link>
           <Link to="/admin/valuations" className={isActive('/admin/valuations') ? 'active' : ''}>Valuations</Link>
           <Link to="/admin/buyers" className={isActive('/admin/buyers') ? 'active' : ''}>Buyers</Link>
           <Link to="/admin/agents" className={isActive('/admin/agents') ? 'active' : ''}>Agents</Link>

@@ -15,7 +15,6 @@ const activityRouter = require("./crm/routes/activity");
 const settingsRouter = require("./crm/routes/settings");
 const connectorBuyerRouter = require("./connector/routes/buyer");
 const connectorAdminListingsRouter = require("./connector/routes/adminListings");
-const connectorAdminTopFiveRouter = require("./connector/routes/adminTopFive");
 const connectorAdminValuationsRouter = require("./connector/routes/adminValuations");
 const connectorAdminBuyersRouter = require("./connector/routes/adminBuyers");
 
@@ -62,7 +61,6 @@ app.use("/api/settings", settingsRouter);
 // The Connector API
 app.use("/api/connector", connectorBuyerRouter);
 app.use("/api/connector/admin", connectorAdminListingsRouter);
-app.use("/api/connector/admin", connectorAdminTopFiveRouter);
 app.use("/api/connector/admin", connectorAdminValuationsRouter);
 app.use("/api/connector/admin", connectorAdminBuyersRouter);
 

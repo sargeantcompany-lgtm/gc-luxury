@@ -6,19 +6,18 @@ const { fetchListingPreview } = require("../ogFetch");
 
 router.use(requireAdmin);
 
-// ─── LIST all listings (with pin + assignment info) ───────────
+// ─── LIST all listings in the pool (with assignment counts) ───
 router.get("/listings", async (req, res) => {
   try {
     const result = await query(`
       SELECT l.*,
-        (t.id IS NOT NULL) AS is_pinned,
-        cm.buyer_id AS connector_match_buyer_id,
-        b.name AS connector_match_buyer_name,
-        cm.note AS connector_match_note
+        COALESCE(pins.pin_count, 0) AS pinned_count,
+        COALESCE(matches.match_count, 0) AS assigned_count
       FROM listings l
-      LEFT JOIN top_five t ON t.listing_id = l.id
-      LEFT JOIN connector_matches cm ON cm.listing_id = l.id
-      LEFT JOIN buyers b ON b.id = cm.buyer_id
+      LEFT JOIN (SELECT listing_id, COUNT(*) AS pin_count FROM top_five GROUP BY listing_id) pins
+        ON pins.listing_id = l.id
+      LEFT JOIN (SELECT listing_id, COUNT(*) AS match_count FROM connector_matches GROUP BY listing_id) matches
+        ON matches.listing_id = l.id
       ORDER BY l.created_at DESC
     `);
     res.json({ listings: result.rows });
@@ -58,11 +57,13 @@ router.post("/listings/fetch-preview", async (req, res) => {
   }
 });
 
-// ─── CREATE connector match + assign to buyer ───────────────────
+// ─── ADD a listing via URL paste (buyerId optional) ─────────────
+// With buyerId: added to the pool AND assigned straight to that buyer.
+// Without: added to the pool only, to assign later from a buyer's page.
 router.post("/listings/connector-match", async (req, res) => {
   const { address, price_guide, description, photos, source_url, buyerId, note } = req.body;
-  if (!address || !buyerId) {
-    return res.status(400).json({ error: "address and buyerId are required" });
+  if (!address) {
+    return res.status(400).json({ error: "address is required" });
   }
   try {
     const listingResult = await query(
@@ -72,13 +73,14 @@ router.post("/listings/connector-match", async (req, res) => {
     );
     const listing = listingResult.rows[0];
 
-    await query(
-      `INSERT INTO connector_matches (listing_id, buyer_id, note) VALUES ($1, $2, $3)`,
-      [listing.id, buyerId, note || null]
-    );
-
-    // Notification: no SMTP configured yet, so this is logged server-side for now.
-    console.log(`[Connector] Match assigned to buyer ${buyerId}: listing ${listing.id} (${address})`);
+    if (buyerId) {
+      await query(
+        `INSERT INTO connector_matches (listing_id, buyer_id, note) VALUES ($1, $2, $3)`,
+        [listing.id, buyerId, note || null]
+      );
+      // Notification: no SMTP configured yet, so this is logged server-side for now.
+      console.log(`[Connector] Match assigned to buyer ${buyerId}: listing ${listing.id} (${address})`);
+    }
 
     res.status(201).json({ listing });
   } catch (err) {

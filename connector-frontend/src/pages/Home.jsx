@@ -5,7 +5,6 @@ import ListingCard from '../components/ListingCard';
 const TABS = [
   { key: 'top-five', label: 'Top 5' },
   { key: 'off-market', label: 'Off-Market' },
-  { key: 'matches', label: 'For You' },
   { key: 'saved', label: 'Saved' },
 ];
 
@@ -44,7 +43,6 @@ export default function Home() {
       const fetcher = {
         'top-five': connectorApi.topFive,
         'off-market': connectorApi.offMarket,
-        'matches': connectorApi.matches,
         'saved': connectorApi.saved,
       }[key];
       const { listings } = await fetcher();
@@ -116,8 +114,7 @@ export default function Home() {
       {!loading && !error && listings.length === 0 && (
         <div className="empty-state">
           {tab === 'top-five' && "Nothing pinned to your Top 5 yet — check back soon."}
-          {tab === 'off-market' && "No off-market listings available right now."}
-          {tab === 'matches' && "No matches assigned to you yet."}
+          {tab === 'off-market' && "No off-market properties assigned to you yet."}
           {tab === 'saved' && "You haven't saved anything yet."}
         </div>
       )}

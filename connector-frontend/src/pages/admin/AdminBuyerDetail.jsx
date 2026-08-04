@@ -15,8 +15,10 @@ export default function AdminBuyerDetail() {
   const { id } = useParams();
   const [buyer, setBuyer] = useState(null);
   const [brief, setBrief] = useState(null);
+  const [topFive, setTopFive] = useState([]);
   const [matches, setMatches] = useState([]);
-  const [available, setAvailable] = useState([]);
+  const [availableOffMarket, setAvailableOffMarket] = useState([]);
+  const [availableTopFive, setAvailableTopFive] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -30,14 +32,17 @@ export default function AdminBuyerDetail() {
     setLoading(true);
     setError('');
     try {
-      const [detail, avail] = await Promise.all([
+      const [detail, availOffMarket, availTop5] = await Promise.all([
         adminApi.buyer(id),
         adminApi.availableListingsForBuyer(id),
+        adminApi.availableForTopFive(id),
       ]);
       setBuyer(detail.buyer);
       setBrief(detail.brief);
+      setTopFive(detail.topFive);
       setMatches(detail.matches);
-      setAvailable(avail.listings);
+      setAvailableOffMarket(availOffMarket.listings);
+      setAvailableTopFive(availTop5.listings);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -61,6 +66,26 @@ export default function AdminBuyerDetail() {
     setError('');
     try {
       await adminApi.unassignListing(id, listingId);
+      await load();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handlePin = async (listingId) => {
+    setError('');
+    try {
+      await adminApi.pinToTopFive(id, listingId);
+      await load();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleUnpin = async (listingId) => {
+    setError('');
+    try {
+      await adminApi.unpinFromTopFive(id, listingId);
       await load();
     } catch (err) {
       setError(err.message);
@@ -138,40 +163,75 @@ export default function AdminBuyerDetail() {
         )}
       </div>
 
-      <h2 style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>Assigned Properties</h2>
-      <div className="listing-grid" style={{ marginBottom: '2rem' }}>
+      <h2 style={{ fontSize: '1.1rem', marginBottom: '0.4rem' }}>{buyer.name}'s Top 5 ({topFive.length}/5)</h2>
+      <p className="page-sub" style={{ marginBottom: '1rem' }}>Their home screen highlights — separate from their Off-Market list below.</p>
+      <div className="listing-grid" style={{ marginBottom: '1.5rem' }}>
+        {topFive.length === 0 && <div className="empty-state">Nothing pinned yet.</div>}
+        {topFive.map((l) => (
+          <div className="listing-card" key={l.pin_id}>
+            <div className="listing-body">
+              <div className="listing-address">{l.address}</div>
+              <div className="listing-price">{l.price_guide}</div>
+              <div className="listing-actions" style={{ marginTop: '0.8rem' }}>
+                <button className="save-btn saved" onClick={() => handleUnpin(l.id)}>Unpin from Top 5</button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      {topFive.length < 5 && (
+        <>
+          <p className="agent-meta" style={{ marginBottom: '0.8rem' }}>Pin from the pool:</p>
+          <div className="listing-grid" style={{ marginBottom: '2.5rem' }}>
+            {availableTopFive.length === 0 && <div className="empty-state">No pool listings available — add one on the Listings page.</div>}
+            {availableTopFive.map((l) => (
+              <div className="listing-card" key={l.id}>
+                <div className="listing-body">
+                  <div className="listing-address">{l.address}</div>
+                  <div className="listing-price">{l.price_guide}</div>
+                  <div className="listing-actions" style={{ marginTop: '0.8rem' }}>
+                    <button className="save-btn" onClick={() => handlePin(l.id)}>Pin to Top 5</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      <h2 style={{ fontSize: '1.1rem', marginBottom: '0.4rem' }}>{buyer.name}'s Off-Market List</h2>
+      <p className="page-sub" style={{ marginBottom: '1rem' }}>The full browsable list they see beyond their Top 5.</p>
+      <div className="listing-grid" style={{ marginBottom: '1.5rem' }}>
         {matches.length === 0 && <div className="empty-state">Nothing assigned to this buyer yet.</div>}
         {matches.map((l) => (
           <div className="listing-card" key={l.match_id}>
             <div className="listing-body">
               <div className="listing-address">{l.address}</div>
               <div className="listing-price">{l.price_guide}</div>
-              <p className="agent-meta">{l.type === 'off_market' ? 'Off-Market' : 'Connector Match'}</p>
               <div className="listing-actions" style={{ marginTop: '0.8rem' }}>
-                <button className="save-btn" onClick={() => handleUnassign(l.id)}>Unassign</button>
+                <button className="save-btn" onClick={() => handleUnassign(l.id)}>Remove</button>
               </div>
             </div>
           </div>
         ))}
       </div>
-
-      <h2 style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>Assign an Off-Market Listing</h2>
+      <p className="agent-meta" style={{ marginBottom: '0.8rem' }}>Add from the pool:</p>
       <div className="listing-grid" style={{ marginBottom: '2rem' }}>
-        {available.length === 0 && <div className="empty-state">No unassigned off-market listings — add one on the Listings page.</div>}
-        {available.map((l) => (
+        {availableOffMarket.length === 0 && <div className="empty-state">No unassigned pool listings — add one on the Listings page.</div>}
+        {availableOffMarket.map((l) => (
           <div className="listing-card" key={l.id}>
             <div className="listing-body">
               <div className="listing-address">{l.address}</div>
               <div className="listing-price">{l.price_guide}</div>
               <div className="listing-actions" style={{ marginTop: '0.8rem' }}>
-                <button className="save-btn" onClick={() => handleAssign(l.id)}>Assign to {buyer.name}</button>
+                <button className="save-btn" onClick={() => handleAssign(l.id)}>Add to Off-Market List</button>
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      <h2 style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>Add New Connector Match</h2>
+      <h2 style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>Add New Property (goes to the pool + this buyer)</h2>
       <div className="card">
         <div className="field">
           <label>Listing URL (realestate.com.au / domain.com.au)</label>
@@ -206,7 +266,7 @@ export default function AdminBuyerDetail() {
             <textarea rows="2" value={newMatch.note} onChange={(e) => setNewMatch({ ...newMatch, note: e.target.value })} placeholder={`Why this fits ${buyer.name}`} />
           </div>
           <button className="btn" type="submit" disabled={savingMatch}>
-            {savingMatch ? 'Saving…' : `Save & Assign to ${buyer.name}`}
+            {savingMatch ? 'Saving…' : `Save & Add to ${buyer.name}'s Off-Market List`}
           </button>
         </form>
       </div>

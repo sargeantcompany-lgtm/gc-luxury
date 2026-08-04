@@ -210,12 +210,21 @@ CREATE TABLE IF NOT EXISTS listings (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Top Five is per-buyer: each buyer has their own curated set of up to 5.
 CREATE TABLE IF NOT EXISTS top_five (
     id SERIAL PRIMARY KEY,
-    listing_id INTEGER NOT NULL REFERENCES listings(id) ON DELETE CASCADE UNIQUE,
+    buyer_id INTEGER NOT NULL REFERENCES buyers(id) ON DELETE CASCADE,
+    listing_id INTEGER NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
     pinned_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    pinned_by VARCHAR(200)
+    pinned_by VARCHAR(200),
+    UNIQUE(buyer_id, listing_id)
 );
+
+-- Migration: top_five used to be global (one shared list); make it per-buyer.
+ALTER TABLE top_five ADD COLUMN IF NOT EXISTS buyer_id INTEGER REFERENCES buyers(id) ON DELETE CASCADE;
+ALTER TABLE top_five DROP CONSTRAINT IF EXISTS top_five_listing_id_key;
+ALTER TABLE top_five DROP CONSTRAINT IF EXISTS top_five_buyer_listing_unique;
+ALTER TABLE top_five ADD CONSTRAINT top_five_buyer_listing_unique UNIQUE (buyer_id, listing_id);
 
 CREATE TABLE IF NOT EXISTS saved_listings (
     id SERIAL PRIMARY KEY,
@@ -256,4 +265,5 @@ CREATE INDEX IF NOT EXISTS idx_buyer_sessions_buyer ON buyer_sessions(buyer_id);
 CREATE INDEX IF NOT EXISTS idx_listings_type ON listings(type);
 CREATE INDEX IF NOT EXISTS idx_saved_listings_buyer ON saved_listings(buyer_id);
 CREATE INDEX IF NOT EXISTS idx_connector_matches_buyer ON connector_matches(buyer_id);
+CREATE INDEX IF NOT EXISTS idx_top_five_buyer ON top_five(buyer_id);
 CREATE INDEX IF NOT EXISTS idx_valuation_requests_status ON valuation_requests(status);
