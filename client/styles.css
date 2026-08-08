@@ -298,6 +298,18 @@ h1 em, h2 em {
   border-top: 1px solid var(--line);
 }
 
+.staff-link {
+  color: var(--muted);
+  font-size: 0.75rem;
+  opacity: 0.6;
+  text-decoration: none;
+}
+
+.staff-link:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
 @keyframes rise {
   from { opacity: 0; transform: translateY(14px); }
   to { opacity: 1; transform: translateY(0); }

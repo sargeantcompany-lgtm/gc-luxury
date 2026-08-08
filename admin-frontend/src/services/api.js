@@ -1,8 +1,16 @@
 import axios from 'axios';
 
+const ADMIN_KEY_STORAGE = 'crm_admin_key';
+
 const api = axios.create({
   baseURL: '/api',
   timeout: 30000,
+});
+
+api.interceptors.request.use((config) => {
+  const key = localStorage.getItem(ADMIN_KEY_STORAGE);
+  if (key) config.headers['x-admin-key'] = key;
+  return config;
 });
 
 api.interceptors.response.use(
@@ -12,6 +20,18 @@ api.interceptors.response.use(
     return Promise.reject(new Error(msg));
   }
 );
+
+export function getAdminKey() {
+  return localStorage.getItem(ADMIN_KEY_STORAGE) || '';
+}
+
+export function setAdminKey(key) {
+  localStorage.setItem(ADMIN_KEY_STORAGE, key);
+}
+
+export function clearAdminKey() {
+  localStorage.removeItem(ADMIN_KEY_STORAGE);
+}
 
 // ── Brands ──────────────────────────────────────────────────────
 export const brandsApi = {

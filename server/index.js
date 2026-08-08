@@ -13,6 +13,7 @@ const campaignsRouter = require("./crm/routes/campaigns");
 const templatesRouter = require("./crm/routes/templates");
 const activityRouter = require("./crm/routes/activity");
 const settingsRouter = require("./crm/routes/settings");
+const { requireAdmin: requireCrmAdmin } = require("./crm/adminAuth");
 const connectorBuyerRouter = require("./connector/routes/buyer");
 const connectorAdminListingsRouter = require("./connector/routes/adminListings");
 const connectorAdminValuationsRouter = require("./connector/routes/adminValuations");
@@ -50,13 +51,13 @@ if (fs.existsSync(CONNECTOR_DIST)) {
   app.use("/connector", express.static(CONNECTOR_DIST));
 }
 
-// CRM API
-app.use("/api/brands", brandsRouter);
-app.use("/api/contacts", contactsRouter);
-app.use("/api/campaigns", campaignsRouter);
-app.use("/api/templates", templatesRouter);
-app.use("/api/activity", activityRouter);
-app.use("/api/settings", settingsRouter);
+// CRM API (key-gated — see server/crm/adminAuth.js)
+app.use("/api/brands", requireCrmAdmin, brandsRouter);
+app.use("/api/contacts", requireCrmAdmin, contactsRouter);
+app.use("/api/campaigns", requireCrmAdmin, campaignsRouter);
+app.use("/api/templates", requireCrmAdmin, templatesRouter);
+app.use("/api/activity", requireCrmAdmin, activityRouter);
+app.use("/api/settings", requireCrmAdmin, settingsRouter);
 
 // The Connector API
 app.use("/api/connector", connectorBuyerRouter);

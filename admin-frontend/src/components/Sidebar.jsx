@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import { clearAdminKey } from '../services/api';
 
 const icons = {
   dashboard: (
@@ -114,6 +115,12 @@ export default function Sidebar() {
 
       <div className="sidebar-footer">
         Outreach HQ v1.0
+        <button
+          onClick={() => { clearAdminKey(); window.location.reload(); }}
+          style={{ display: 'block', marginTop: 8, background: 'none', border: 'none', color: 'inherit', opacity: 0.7, cursor: 'pointer', padding: 0, font: 'inherit' }}
+        >
+          Lock
+        </button>
       </div>
     </aside>
   );
