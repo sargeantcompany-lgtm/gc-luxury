@@ -16,7 +16,7 @@ export default function AdminGate({ children }) {
       await brandsApi.list();
       setUnlocked(true);
     } catch (err) {
-      setError('Invalid admin key');
+      setError('Invalid password');
       setAdminKey('');
     } finally {
       setChecking(false);
@@ -28,10 +28,10 @@ export default function AdminGate({ children }) {
   return (
     <div style={{ maxWidth: 360, margin: '80px auto', padding: '0 16px' }}>
       <h1 style={{ fontSize: 20, marginBottom: 4 }}>Outreach HQ</h1>
-      <p style={{ color: 'var(--muted, #667085)', marginBottom: 20 }}>Enter the admin key to continue.</p>
+      <p style={{ color: 'var(--muted, #667085)', marginBottom: 20 }}>Enter the password to continue.</p>
       <form onSubmit={handleSubmit} className="card" style={{ padding: 20 }}>
         <div className="field" style={{ marginBottom: 12 }}>
-          <label htmlFor="adminKey">Admin Key</label>
+          <label htmlFor="adminKey">Password</label>
           <input
             id="adminKey"
             type="password"
