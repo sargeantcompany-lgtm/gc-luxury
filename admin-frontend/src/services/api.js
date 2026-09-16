@@ -93,6 +93,15 @@ export const templatesApi = {
   delete: (id) => api.delete(`/templates/${id}`),
 };
 
+// ── GC Luxury Listings ───────────────────────────────────────────
+export const gcListingsApi = {
+  list: (params) => api.get('/gc-listings', { params }),
+  get: (id) => api.get(`/gc-listings/${id}`),
+  create: (data) => api.post('/gc-listings', data),
+  update: (id, data) => api.put(`/gc-listings/${id}`, data),
+  delete: (id) => api.delete(`/gc-listings/${id}`),
+};
+
 // ── Activity ─────────────────────────────────────────────────────
 export const activityApi = {
   list: (params) => api.get('/activity', { params }),

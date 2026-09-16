@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Listings | GC Luxury</title>
+<meta name="description" content="Current off-market and pre-market luxury property listings on the Gold Coast, $3M–$35M." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+
+<header class="site-header">
+  <a href="/" class="wordmark">GC Luxury</a>
+  <div class="nav-group">
+    <a href="/listings.html" class="nav-link">Listings</a>
+    <a href="/connector" class="nav-link">GC Luxury Connector</a>
+    <a href="/#enquire" class="nav-cta">Enquire</a>
+  </div>
+</header>
+
+<main class="listings-hero">
+  <div class="listings-hero-inner">
+    <h1>Current <em>Listings</em></h1>
+    <p class="listings-hero-sub">
+      A selection of off-market and pre-market opportunities. Don't see what
+      you're after? <a href="/#enquire">Register your interest</a> and we'll
+      reach out when a match comes up.
+    </p>
+  </div>
+</main>
+
+<section class="listings-section">
+  <div id="listings-grid" class="listings-grid"></div>
+  <div id="listings-empty" class="listings-empty" style="display:none;">
+    No current listings — check back soon, or <a href="/#enquire">register your interest</a> to be notified.
+  </div>
+</section>
+
+<footer class="site-footer">
+  <p>&copy; <span id="year"></span> GC Luxury. Private access to the Gold Coast's $3M–$35M property market. All enquiries strictly confidential.</p>
+  <p><a href="/admin" class="staff-link">Staff Login</a></p>
+</footer>
+
+<script src="/listings.js"></script>
+<script>document.getElementById("year").textContent = new Date().getFullYear();</script>
+</body>
+</html>

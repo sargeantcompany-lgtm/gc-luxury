@@ -267,3 +267,24 @@ CREATE INDEX IF NOT EXISTS idx_saved_listings_buyer ON saved_listings(buyer_id);
 CREATE INDEX IF NOT EXISTS idx_connector_matches_buyer ON connector_matches(buyer_id);
 CREATE INDEX IF NOT EXISTS idx_top_five_buyer ON top_five(buyer_id);
 CREATE INDEX IF NOT EXISTS idx_valuation_requests_status ON valuation_requests(status);
+
+-- ============================================
+-- GC Luxury public listings page (client/listings.html)
+-- Separate from the `listings` table above, which belongs to The Connector's
+-- buyer-matching system - this one is admin-managed content for the public
+-- marketing site, not tied to buyers.
+-- ============================================
+CREATE TABLE IF NOT EXISTS gc_listings (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(300) NOT NULL,
+    suburb VARCHAR(150),
+    price_guide VARCHAR(100),
+    description TEXT,
+    photos JSONB DEFAULT '[]',
+    status VARCHAR(20) NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'under_offer', 'sold', 'archived')),
+    display_order INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_gc_listings_status ON gc_listings(status);

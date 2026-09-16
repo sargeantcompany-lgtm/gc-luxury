@@ -40,6 +40,12 @@ const icons = {
       <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
     </svg>
   ),
+  listings: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+      <polyline points="9 22 9 12 15 12 15 22"/>
+    </svg>
+  ),
   settings: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <circle cx="12" cy="12" r="3"/>
@@ -48,14 +54,30 @@ const icons = {
   ),
 };
 
-const navItems = [
-  { to: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
-  { to: '/contacts', label: 'Contacts', icon: 'contacts' },
-  { to: '/pipeline', label: 'Pipeline', icon: 'pipeline' },
-  { to: '/campaigns', label: 'Campaigns', icon: 'campaigns' },
-  { to: '/templates', label: 'Templates', icon: 'templates' },
-  { to: '/activity', label: 'Activity Log', icon: 'activity' },
-  { to: '/settings', label: 'Settings', icon: 'settings' },
+const navSections = [
+  {
+    title: 'Main',
+    items: [
+      { to: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
+      { to: '/contacts', label: 'Contacts', icon: 'contacts' },
+      { to: '/pipeline', label: 'Pipeline', icon: 'pipeline' },
+    ],
+  },
+  {
+    title: 'Outreach',
+    items: [
+      { to: '/campaigns', label: 'Campaigns', icon: 'campaigns' },
+      { to: '/templates', label: 'Templates', icon: 'templates' },
+      { to: '/gc-listings', label: 'GC Listings', icon: 'listings' },
+    ],
+  },
+  {
+    title: 'System',
+    items: [
+      { to: '/activity', label: 'Activity Log', icon: 'activity' },
+      { to: '/settings', label: 'Settings', icon: 'settings' },
+    ],
+  },
 ];
 
 export default function Sidebar() {
@@ -70,47 +92,21 @@ export default function Sidebar() {
       </div>
 
       <nav className="sidebar-nav">
-        <div className="sidebar-section">
-          <div className="sidebar-section-title">Main</div>
-          {navItems.slice(0, 3).map(item => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
-            >
-              {icons[item.icon]}
-              {item.label}
-            </NavLink>
-          ))}
-        </div>
-
-        <div className="sidebar-section" style={{ marginTop: '12px' }}>
-          <div className="sidebar-section-title">Outreach</div>
-          {navItems.slice(3, 5).map(item => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
-            >
-              {icons[item.icon]}
-              {item.label}
-            </NavLink>
-          ))}
-        </div>
-
-        <div className="sidebar-section" style={{ marginTop: '12px' }}>
-          <div className="sidebar-section-title">System</div>
-          {navItems.slice(5).map(item => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
-            >
-              {icons[item.icon]}
-              {item.label}
-            </NavLink>
-          ))}
-        </div>
+        {navSections.map((section, i) => (
+          <div className="sidebar-section" style={i > 0 ? { marginTop: '12px' } : undefined} key={section.title}>
+            <div className="sidebar-section-title">{section.title}</div>
+            {section.items.map(item => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
+              >
+                {icons[item.icon]}
+                {item.label}
+              </NavLink>
+            ))}
+          </div>
+        ))}
       </nav>
 
       <div className="sidebar-footer">
