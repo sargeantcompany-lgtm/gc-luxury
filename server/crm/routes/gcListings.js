@@ -36,13 +36,13 @@ router.get('/:id', async (req, res) => {
 
 // POST create listing - admin only
 router.post('/', requireAdmin, async (req, res) => {
-  const { title, suburb, price_guide, description, photos, status, display_order } = req.body;
+  const { title, suburb, price_guide, description, photos, video_url, status, display_order } = req.body;
   if (!title) return res.status(400).json({ error: 'title is required' });
   try {
     const result = await db.query(
-      `INSERT INTO gc_listings (title, suburb, price_guide, description, photos, status, display_order)
-       VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
-      [title, suburb || null, price_guide || null, description || null, JSON.stringify(photos || []), status || 'active', display_order || 0]
+      `INSERT INTO gc_listings (title, suburb, price_guide, description, photos, video_url, status, display_order)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
+      [title, suburb || null, price_guide || null, description || null, JSON.stringify(photos || []), video_url || null, status || 'active', display_order || 0]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -52,12 +52,12 @@ router.post('/', requireAdmin, async (req, res) => {
 
 // PUT update listing - admin only
 router.put('/:id', requireAdmin, async (req, res) => {
-  const { title, suburb, price_guide, description, photos, status, display_order } = req.body;
+  const { title, suburb, price_guide, description, photos, video_url, status, display_order } = req.body;
   try {
     const result = await db.query(
-      `UPDATE gc_listings SET title=$1, suburb=$2, price_guide=$3, description=$4, photos=$5, status=$6, display_order=$7, updated_at=NOW()
-       WHERE id=$8 RETURNING *`,
-      [title, suburb || null, price_guide || null, description || null, JSON.stringify(photos || []), status || 'active', display_order || 0, req.params.id]
+      `UPDATE gc_listings SET title=$1, suburb=$2, price_guide=$3, description=$4, photos=$5, video_url=$6, status=$7, display_order=$8, updated_at=NOW()
+       WHERE id=$9 RETURNING *`,
+      [title, suburb || null, price_guide || null, description || null, JSON.stringify(photos || []), video_url || null, status || 'active', display_order || 0, req.params.id]
     );
     if (!result.rows.length) return res.status(404).json({ error: 'Listing not found' });
     res.json(result.rows[0]);

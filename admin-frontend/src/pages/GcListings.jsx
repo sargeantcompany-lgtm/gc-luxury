@@ -5,7 +5,7 @@ import Modal from '../components/Modal';
 
 const emptyForm = {
   title: '', suburb: '', price_guide: '', description: '',
-  photos: '', status: 'active', display_order: 0,
+  photos: '', video_url: '', status: 'active', display_order: 0,
 };
 
 const STATUS_LABELS = {
@@ -22,6 +22,7 @@ function toForm(listing) {
     price_guide: listing.price_guide || '',
     description: listing.description || '',
     photos: Array.isArray(listing.photos) ? listing.photos.join('\n') : '',
+    video_url: listing.video_url || '',
     status: listing.status,
     display_order: listing.display_order || 0,
   };
@@ -206,6 +207,14 @@ export default function GcListings() {
               <span style={{ marginLeft: 8, fontSize: 11, color: 'var(--text-muted)', fontWeight: 400 }}>One per line - first one is used as the card image</span>
             </label>
             <textarea className="form-textarea" style={{ minHeight: 80 }} value={form.photos} onChange={(e) => setForm((p) => ({ ...p, photos: e.target.value }))} placeholder="https://..." />
+          </div>
+
+          <div className="form-group mt-3">
+            <label className="form-label">
+              Video URL
+              <span style={{ marginLeft: 8, fontSize: 11, color: 'var(--text-muted)', fontWeight: 400 }}>Optional - a YouTube/Vimeo link or a direct video file URL</span>
+            </label>
+            <input className="form-input" value={form.video_url} onChange={(e) => setForm((p) => ({ ...p, video_url: e.target.value }))} placeholder="https://youtube.com/watch?v=... or https://.../video.mp4" />
           </div>
 
           <div className="form-group mt-3">

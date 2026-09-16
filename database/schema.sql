@@ -288,3 +288,7 @@ CREATE TABLE IF NOT EXISTS gc_listings (
 );
 
 CREATE INDEX IF NOT EXISTS idx_gc_listings_status ON gc_listings(status);
+
+-- Migration: optional video for a listing - paste a YouTube/Vimeo link or a
+-- direct video file URL (no upload UI, hosted elsewhere).
+ALTER TABLE gc_listings ADD COLUMN IF NOT EXISTS video_url TEXT;

@@ -7,12 +7,44 @@ function statusLabel(status) {
   return "Available";
 }
 
-function listingCard(listing) {
+function videoEmbedUrl(url) {
+  try {
+    const u = new URL(url);
+    if (u.hostname.includes("youtube.com")) {
+      const id = u.searchParams.get("v");
+      return id ? `https://www.youtube.com/embed/${id}` : null;
+    }
+    if (u.hostname === "youtu.be") {
+      return `https://www.youtube.com/embed/${u.pathname.slice(1)}`;
+    }
+    if (u.hostname.includes("vimeo.com")) {
+      const id = u.pathname.split("/").filter(Boolean)[0];
+      return id ? `https://player.vimeo.com/video/${id}` : null;
+    }
+  } catch {
+    return null;
+  }
+  return null; // not a known embed host - treated as a direct video file instead
+}
+
+function listingMedia(listing) {
+  if (listing.video_url) {
+    const embedUrl = videoEmbedUrl(listing.video_url);
+    if (embedUrl) {
+      return `<iframe class="listing-card-video" src="${embedUrl}" title="${listing.title}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+    }
+    return `<video class="listing-card-video" src="${listing.video_url}" controls></video>`;
+  }
   const photo = Array.isArray(listing.photos) && listing.photos[0] ? listing.photos[0] : null;
+  if (photo) return `<img src="${photo}" alt="${listing.title}" class="listing-card-photo">`;
+  return `<div class="listing-card-photo listing-card-photo--empty"></div>`;
+}
+
+function listingCard(listing) {
   const card = document.createElement("article");
   card.className = "listing-card";
   card.innerHTML = `
-    ${photo ? `<img src="${photo}" alt="${listing.title}" class="listing-card-photo">` : `<div class="listing-card-photo listing-card-photo--empty"></div>`}
+    ${listingMedia(listing)}
     <div class="listing-card-body">
       <span class="listing-status listing-status--${listing.status}">${statusLabel(listing.status)}</span>
       <div class="listing-suburb">${listing.suburb || "Gold Coast"}</div>
