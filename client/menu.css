@@ -1,6 +1,5 @@
-/* Site-wide right-hand menu, injected by /menu.js on every public page.
-   Desktop: always-visible panel on the right. Narrow screens: a "Menu"
-   button that slides the same panel in from the right. */
+/* Site-wide menu, injected by /menu.js on every public page, always open.
+   Wider screens: a panel on the right. Phones: a bar across the top. */
 @import url("https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&display=swap");
 
 :root {
@@ -92,13 +91,8 @@
   color: #fff;
 }
 
-.side-toggle,
-.side-scrim {
-  display: none;
-}
-
-/* Desktop: panel always visible, page content shifts left of it. */
-@media (min-width: 1000px) {
+/* Wider screens: panel always open on the right; content sits left of it. */
+@media (min-width: 760px) {
   body.has-side-menu {
     padding-right: var(--side-w);
   }
@@ -107,39 +101,58 @@
   }
 }
 
-/* Narrow screens: slide-in panel. */
-@media (max-width: 999px) {
+@media (min-width: 760px) and (max-width: 999px) {
+  :root {
+    --side-w: 210px;
+  }
   .side-menu {
-    transform: translateX(100%);
-    transition: transform 0.3s ease;
-    box-shadow: -20px 0 60px rgba(0, 0, 0, 0.4);
-    padding-top: 76px; /* clear the Close button */
+    padding-left: 22px;
+    padding-right: 22px;
   }
-  body.side-open .side-menu {
-    transform: none;
+}
+
+/* Phones: the same menu, open as a bar across the top that scrolls sideways. */
+@media (max-width: 759px) {
+  .side-menu {
+    bottom: auto;
+    left: 0;
+    width: auto;
+    flex-direction: row;
+    align-items: center;
+    padding: 0 0 0 16px;
+    border-left: 0;
+    border-bottom: 1px solid #222;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
   }
-  .side-toggle {
-    display: block;
-    position: fixed;
-    top: 16px;
-    right: 16px;
-    z-index: 50;
-    padding: 10px 16px;
-    border: 1px solid #333;
-    background: #0E0E0E;
-    color: #fff;
-    font-family: "Jost", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  .side-menu::-webkit-scrollbar {
+    display: none;
+  }
+  .side-brand,
+  .side-contact {
+    display: none;
+  }
+  .side-links {
+    flex-direction: row;
+  }
+  .side-links a {
+    padding: 15px 14px;
+    border-bottom: 0;
+    white-space: nowrap;
     font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.24em;
-    text-transform: uppercase;
-    cursor: pointer;
   }
-  body.side-open .side-scrim {
-    display: block;
-    position: fixed;
-    inset: 0;
-    z-index: 35;
-    background: rgba(0, 0, 0, 0.45);
+  .side-links a:hover,
+  .side-links a[aria-current="page"] {
+    padding-left: 14px;
+  }
+  .side-links a[aria-current="page"] {
+    box-shadow: inset 0 -2px 0 #FFE512;
+  }
+  body.has-side-menu {
+    padding-top: 46px;
+  }
+  body.has-side-menu .nav {
+    top: 46px;
   }
 }

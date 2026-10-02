@@ -34,14 +34,23 @@
   <div class="scroll-cue">Scroll</div>
 </header>
 
-<!-- VIDEO: replace the placeholder text inside .video-frame with an <iframe> (YouTube/Vimeo embed) or a <video> tag once the video is supplied. -->
-<section class="video video--home" id="video">
-  <div class="wrap reveal">
-    <div class="video-frame">Video coming soon</div>
+<section class="props" id="listings">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">For Sale</p>
+        <h2>Listings</h2>
+      </div>
+      <a class="text-link" href="/listings.html">View all listings</a>
+    </div>
+    <!-- Managed in the CRM: GC Listings, Type = Listing. Rendered by /listings.js. -->
+    <div class="props-grid" data-listing-type="listing" data-limit="6" data-empty="#listings-empty"></div>
+    <p id="listings-empty" class="props-empty" hidden>
+      New listings are coming soon — <a href="/contact.html">register your interest</a> to hear about them first.
+    </p>
   </div>
 </section>
 
-<!-- Managed in the CRM: GC Listings, Type = Off-Market. Rendered by /listings.js. -->
 <section class="props props--dark" id="off-market">
   <div class="wrap">
     <div class="section-head">
@@ -51,24 +60,11 @@
       </div>
       <a class="text-link" href="/contact.html">Register for off-market access</a>
     </div>
+    <!-- Managed in the CRM: GC Listings, Type = Off-Market. -->
     <div class="props-grid" data-listing-type="off_market" data-empty="#off-market-empty"></div>
     <p id="off-market-empty" class="props-empty" hidden>
       New off-market properties are coming soon — <a href="/contact.html">register your interest</a> to hear about them first.
     </p>
-  </div>
-</section>
-
-<section class="journal" id="blog">
-  <div class="wrap">
-    <div class="section-head">
-      <div>
-        <p class="eyebrow">The Blog</p>
-        <h2>Latest from the blog</h2>
-      </div>
-      <a class="text-link" href="/blog.html">All articles</a>
-    </div>
-    <div id="blog-teaser-grid" class="journal-grid"></div>
-    <p id="blog-teaser-empty" class="props-empty" hidden>The first articles are on their way — check back soon.</p>
   </div>
 </section>
 
@@ -83,7 +79,6 @@
 
 <script src="/menu.js"></script>
 <script src="/adam.js"></script>
-<script src="/blog.js"></script>
 <script src="/listings.js"></script>
 </body>
 </html>

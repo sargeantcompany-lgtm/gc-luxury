@@ -1,16 +1,17 @@
-// Site-wide right-hand menu (styles in /menu.css). Every public page loads
-// this, so the menu is edited in one place.
+// Site-wide menu (styles in /menu.css), always shown open: a panel on the
+// right on wider screens, a scrollable bar across the top on phones. Every
+// public page loads this, so the menu is edited in one place.
 (function () {
   const LINKS = [
     ["Home", "/"],
-    ["About Adam", "/about.html"],
-    ["Off-Market", "/#off-market"],
     ["Listings", "/listings.html"],
+    ["Off-Market", "/#off-market"],
+    ["Bio", "/about.html"],
+    ["How to Sell", "/how-to-sell.html"],
     ["Blog", "/blog.html"],
-    ["Pre-List Kit", "/pre-list-kit.html"],
     ["Make an Offer", "/adam/offer"],
     ["GC Luxury Connector", "/connector"],
-    ["Contact", "/contact.html"],
+    ["Enquiry", "/contact.html"],
   ];
 
   const here = location.pathname === "/index.html" ? "/" : location.pathname;
@@ -22,7 +23,6 @@
 
   const menu = document.createElement("aside");
   menu.className = "side-menu";
-  menu.id = "side-menu";
   menu.setAttribute("aria-label", "Site menu");
   menu.innerHTML = `
     <a class="side-brand" href="/">Adam Sargeant<small>GC Luxury &middot; Ray White</small></a>
@@ -37,27 +37,10 @@
     </div>
   `;
 
-  const toggle = document.createElement("button");
-  toggle.type = "button";
-  toggle.className = "side-toggle";
-  toggle.textContent = "Menu";
-  toggle.setAttribute("aria-controls", "side-menu");
-  toggle.setAttribute("aria-expanded", "false");
-
-  const scrim = document.createElement("div");
-  scrim.className = "side-scrim";
-
-  function setOpen(open) {
-    document.body.classList.toggle("side-open", open);
-    toggle.setAttribute("aria-expanded", String(open));
-    toggle.textContent = open ? "Close" : "Menu";
-  }
-
-  toggle.addEventListener("click", () => setOpen(!document.body.classList.contains("side-open")));
-  scrim.addEventListener("click", () => setOpen(false));
-  menu.addEventListener("click", (e) => { if (e.target.closest("a")) setOpen(false); });
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape") setOpen(false); });
-
   document.body.classList.add("has-side-menu");
-  document.body.append(menu, scrim, toggle);
+  document.body.prepend(menu);
+
+  // On the phone bar, scroll the current page's link into view.
+  const current = menu.querySelector('[aria-current="page"]');
+  if (current) current.scrollIntoView({ block: "nearest", inline: "center" });
 })();
