@@ -1,136 +1,485 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>GC Luxury — Off-Market &amp; Pre-Market Properties $3M–$35M</title>
-<meta name="description" content="GC Luxury — Early access to off-market and pre-market waterfront, acreage and penthouse properties on the Gold Coast, $3M–$35M." />
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="/styles.css" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Adam Sargeant | GC Luxury — Prestige &amp; Luxury Property, Gold Coast</title>
+<meta name="description" content="Adam Sargeant, Ray White — prestige and luxury property specialist across the Gold Coast's waterfront, canal front and most tightly held addresses.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --black:#0E0E0E;
+    --ink:#1A1A1A;
+    --grey:#6E6E6E;
+    --soft:#F5F4F1;
+    --line:#E3E1DC;
+    --white:#FFFFFF;
+    --accent:#FFE512; /* Ray White yellow — used sparingly, as a hairline accent */
+    --display:"Jost",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    --body:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    --pad:clamp(20px,5vw,72px);
+    --section:clamp(80px,12vw,160px);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  html,body{margin:0;padding:0;}
+  body{font-family:var(--body);font-weight:300;color:var(--ink);background:var(--white);line-height:1.7;-webkit-font-smoothing:antialiased;}
+  img{max-width:100%;display:block;}
+  a{color:inherit;}
+
+  .eyebrow{
+    font-family:var(--display);font-size:12px;font-weight:500;
+    letter-spacing:.28em;text-transform:uppercase;color:var(--grey);margin:0 0 28px;
+  }
+  .eyebrow::before{content:"";display:inline-block;width:28px;height:1px;background:currentColor;vertical-align:middle;margin-right:14px;}
+  .statement{
+    font-family:var(--display);font-weight:300;
+    font-size:clamp(28px,4.2vw,56px);line-height:1.2;letter-spacing:-.01em;margin:0;
+  }
+  .btn{
+    display:inline-block;font-family:var(--display);font-size:12px;font-weight:500;
+    letter-spacing:.24em;text-transform:uppercase;text-decoration:none;
+    padding:16px 30px;border:1px solid currentColor;transition:background .25s,color .25s;
+    background:none;color:inherit;cursor:pointer;
+  }
+  .btn:hover{background:var(--white);color:var(--black);}
+  .btn.dark:hover{background:var(--black);color:var(--white);}
+  .text-link{
+    font-family:var(--display);font-size:12px;font-weight:500;letter-spacing:.24em;text-transform:uppercase;
+    text-decoration:none;border-bottom:1px solid currentColor;padding-bottom:4px;
+  }
+
+  /* ---------- Nav ---------- */
+  .nav{
+    position:fixed;inset:0 0 auto 0;z-index:10;
+    display:flex;align-items:center;justify-content:space-between;gap:20px;
+    padding:22px var(--pad);color:var(--white);transition:background .3s,padding .3s,color .3s;
+  }
+  .nav.scrolled,.nav.open{background:rgba(255,255,255,.97);color:var(--ink);padding-top:14px;padding-bottom:14px;border-bottom:1px solid var(--line);}
+  .nav .mark{font-family:var(--display);font-weight:500;font-size:15px;letter-spacing:.3em;text-transform:uppercase;text-decoration:none;white-space:nowrap;}
+  .nav ul{display:flex;gap:28px;list-style:none;margin:0;padding:0;}
+  .nav ul a{font-family:var(--display);font-size:12px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;text-decoration:none;opacity:.85;white-space:nowrap;}
+  .nav ul a:hover{opacity:1;}
+  .nav-toggle{display:none;font-family:var(--display);font-size:12px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;background:none;border:0;color:inherit;cursor:pointer;padding:6px 0;}
+
+  /* ---------- Hero ---------- */
+  .hero{
+    min-height:100vh;min-height:100svh;background:var(--black);color:var(--white);
+    display:grid;grid-template-columns:1.2fr .8fr;align-items:end;gap:var(--pad);
+    padding:140px var(--pad) 90px;position:relative;overflow:hidden;
+  }
+  .hero::after{ /* soft vignette so the hero doesn't read as flat black */
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(ellipse at 75% 40%,rgba(255,255,255,.07),transparent 60%);
+  }
+  .hero-copy{position:relative;z-index:1;}
+  .hero .eyebrow{color:#9A9A9A;}
+  .hero h1{
+    font-family:var(--display);font-weight:300;text-transform:uppercase;
+    font-size:clamp(46px,9vw,132px);line-height:.92;letter-spacing:.02em;margin:0 0 34px;
+  }
+  .hero h1 span{display:block;font-weight:500;}
+  .hero .lede{font-size:clamp(16px,1.5vw,19px);max-width:520px;color:#CFCFCF;margin:0 0 40px;}
+  .hero-actions{display:flex;gap:18px;flex-wrap:wrap;align-items:center;}
+  .hero-actions .text-link{color:#CFCFCF;}
+  .hero-portrait{position:relative;z-index:1;align-self:center;}
+  .hero-portrait img{width:100%;max-width:420px;margin-left:auto;aspect-ratio:4/5;object-fit:cover;object-position:50% 30%;filter:grayscale(.15);}
+  .hero-portrait figcaption{
+    margin-top:14px;text-align:right;font-family:var(--display);font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:#8A8A8A;
+  }
+  .scroll-cue{
+    position:absolute;left:var(--pad);bottom:30px;z-index:1;
+    font-family:var(--display);font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:#7A7A7A;
+  }
+
+  /* ---------- Sections ---------- */
+  section{padding:var(--section) var(--pad);}
+  .wrap{max-width:1200px;margin:0 auto;}
+  .intro .statement{max-width:1000px;}
+  .intro .statement em{font-style:normal;border-bottom:2px solid var(--accent);}
+
+  .story{background:var(--soft);}
+  .story .wrap{display:grid;grid-template-columns:1fr 1fr;gap:clamp(40px,7vw,110px);align-items:center;}
+  .story h2,.giving h2,.contact h2,.section-head h2,.kit h2{
+    font-family:var(--display);font-weight:400;text-transform:uppercase;letter-spacing:.06em;
+    font-size:clamp(26px,3vw,40px);line-height:1.15;margin:0 0 28px;
+  }
+  .story p{margin:0 0 20px;font-size:16px;color:#3A3A3A;}
+  .story .year{font-family:var(--display);font-weight:300;font-size:clamp(90px,14vw,190px);line-height:.85;color:var(--ink);letter-spacing:-.02em;}
+  .story .year-cap{font-family:var(--display);font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--grey);margin-top:18px;max-width:280px;}
+
+  /* Stats — the "Advantage" block */
+  .stats{background:var(--black);color:var(--white);}
+  .stats .eyebrow{color:#9A9A9A;}
+  .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid #2A2A2A;}
+  .stat{padding:44px 28px 0 0;}
+  .stat + .stat{padding-left:28px;border-left:1px solid #2A2A2A;}
+  .stat .num{font-family:var(--display);font-weight:300;font-size:clamp(44px,5.5vw,76px);line-height:1;}
+  .stat .label{margin-top:16px;font-size:14px;color:#A8A8A8;max-width:220px;}
+
+  /* Pillars — four-column like the reference's service grid */
+  .pillars-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-top:1px solid var(--line);margin-top:60px;}
+  .pillar{padding:40px 30px 10px 0;}
+  .pillar + .pillar{padding-left:30px;border-left:1px solid var(--line);}
+  .pillar .n{font-family:var(--display);font-size:12px;letter-spacing:.24em;color:var(--grey);}
+  .pillar h3{font-family:var(--display);font-weight:500;font-size:18px;letter-spacing:.14em;text-transform:uppercase;margin:18px 0 14px;}
+  .pillar p{margin:0;font-size:15px;color:#4A4A4A;}
+
+  /* Video */
+  .video{padding-top:0;}
+  .video-frame{
+    position:relative;aspect-ratio:16/9;background:var(--black);color:#8A8A8A;
+    display:flex;align-items:center;justify-content:center;text-align:center;
+    font-family:var(--display);font-size:12px;letter-spacing:.24em;text-transform:uppercase;
+  }
+  .video-frame iframe,.video-frame video{position:absolute;inset:0;width:100%;height:100%;border:0;}
+
+  /* Names — the "Selected Press" row */
+  .names{border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+  .names ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:18px 54px;}
+  .names li{font-family:var(--display);font-weight:400;font-size:clamp(20px,2.4vw,32px);letter-spacing:.04em;text-transform:uppercase;color:var(--ink);}
+  .names li small{display:block;font-size:11px;letter-spacing:.2em;color:var(--grey);margin-top:4px;}
+
+  .giving .wrap{display:grid;grid-template-columns:.9fr 1.1fr;gap:clamp(40px,7vw,110px);}
+  .giving p{margin:0;font-size:clamp(17px,1.6vw,21px);line-height:1.65;color:#3A3A3A;}
+
+  /* Pre-List Kit */
+  .kit{background:var(--soft);}
+  .kit .wrap{display:grid;grid-template-columns:minmax(0,300px) 1fr;gap:clamp(40px,7vw,110px);align-items:center;}
+  .kit-cover img{width:100%;box-shadow:0 24px 60px rgba(0,0,0,.18);transition:transform .3s;}
+  .kit-cover:hover img{transform:translateY(-4px) rotate(-1deg);}
+  .kit p{margin:0 0 36px;font-size:16px;color:#3A3A3A;max-width:520px;}
+
+  /* Journal — cards are built by /blog.js (shared with the Journal pages) */
+  .section-head{display:flex;justify-content:space-between;align-items:baseline;gap:20px;flex-wrap:wrap;}
+  .journal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:36px;margin-top:20px;}
+  .listing-card{display:block;text-decoration:none;color:inherit;border-top:1px solid var(--line);padding-top:24px;}
+  .listing-card-photo{width:100%;aspect-ratio:3/2;object-fit:cover;margin-bottom:20px;}
+  .listing-card-photo--empty{background:var(--soft);}
+  .listing-suburb{font-family:var(--display);font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--grey);}
+  .listing-title{font-family:var(--display);font-weight:400;font-size:22px;letter-spacing:.02em;margin:10px 0 12px;line-height:1.3;}
+  .listing-desc{margin:0;font-size:15px;color:#4A4A4A;}
+  .blog-read-more{display:inline-block;margin-top:16px;font-family:var(--display);font-size:11px;font-weight:500;letter-spacing:.24em;text-transform:uppercase;border-bottom:1px solid currentColor;padding-bottom:3px;}
+  .listing-card:hover .listing-title{text-decoration:underline;text-decoration-color:var(--accent);text-underline-offset:6px;}
+
+  /* Contact + register-interest form (posts to /api/enquiries -> CRM) */
+  .contact{background:var(--black);color:var(--white);text-align:center;}
+  .contact .eyebrow{color:#9A9A9A;}
+  .contact .eyebrow::before{display:none;}
+  .contact h2{font-size:clamp(34px,5.5vw,76px);font-weight:300;letter-spacing:.02em;margin-bottom:44px;}
+  .contact .lines{display:flex;justify-content:center;gap:clamp(24px,5vw,70px);flex-wrap:wrap;margin-bottom:60px;}
+  .contact .lines a{font-family:var(--display);font-size:clamp(17px,1.8vw,22px);letter-spacing:.06em;text-decoration:none;color:#E5E5E5;}
+  .contact .lines a:hover{color:var(--white);}
+  .enquiry-form{max-width:720px;margin:0 auto;text-align:left;}
+  .form-intro{text-align:center;color:#A8A8A8;font-size:15px;max-width:560px;margin:0 auto 36px;}
+  .field-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 24px;}
+  .field{display:flex;flex-direction:column;margin-bottom:22px;}
+  .field-span{grid-column:1/-1;}
+  .field label{font-family:var(--display);font-size:11px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:#9A9A9A;margin-bottom:10px;}
+  .field input,.field select,.field textarea{
+    background:transparent;border:0;border-bottom:1px solid #3A3A3A;color:var(--white);
+    font-family:var(--body);font-size:16px;font-weight:300;padding:8px 0 10px;border-radius:0;resize:vertical;
+  }
+  .field select{appearance:none;cursor:pointer;}
+  .field select option{color:var(--ink);}
+  .field input:focus,.field select:focus,.field textarea:focus{outline:none;border-bottom-color:var(--accent);}
+  .submit-row{text-align:center;margin-top:16px;}
+  .form-status{min-height:1.5em;margin:22px 0 0;text-align:center;font-size:15px;}
+  .form-status.success{color:var(--accent);}
+  .form-status.error{color:#E58A7B;}
+
+  footer{
+    background:var(--black);color:#8A8A8A;border-top:1px solid #222;
+    padding:36px var(--pad);display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;
+    font-size:12px;letter-spacing:.08em;
+  }
+  footer img{width:54px;height:54px;}
+  footer .left{display:flex;align-items:center;gap:18px;}
+  footer a{color:#8A8A8A;text-decoration:none;}
+  footer a:hover{color:var(--white);}
+
+  /* Fade-up on scroll */
+  .reveal{opacity:0;transform:translateY(24px);transition:opacity .9s ease,transform .9s ease;}
+  .reveal.in{opacity:1;transform:none;}
+  @media (prefers-reduced-motion:reduce){ .reveal{opacity:1;transform:none;transition:none;} html{scroll-behavior:auto;} }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width:1100px){
+    .nav-toggle{display:block;}
+    .nav ul{
+      display:none;position:absolute;top:100%;left:0;right:0;flex-direction:column;gap:0;
+      background:rgba(255,255,255,.98);color:var(--ink);border-bottom:1px solid var(--line);padding:8px var(--pad) 18px;
+    }
+    .nav.open ul{display:flex;}
+    .nav ul a{display:block;padding:12px 0;}
+  }
+  @media (max-width:900px){
+    .hero{grid-template-columns:1fr;align-items:start;padding-top:120px;}
+    .hero-portrait{order:-1;}
+    .hero-portrait img{max-width:260px;margin:0;}
+    .hero-portrait figcaption{text-align:left;}
+    .scroll-cue{display:none;}
+    .story .wrap,.giving .wrap,.kit .wrap{grid-template-columns:1fr;}
+    .kit-cover{max-width:240px;}
+    .stats-grid,.pillars-grid{grid-template-columns:1fr 1fr;}
+    .stat:nth-child(3),.pillar:nth-child(3){padding-left:0;border-left:0;}
+    .stat{padding-bottom:36px;}
+  }
+  @media (max-width:560px){
+    .stats-grid,.pillars-grid,.field-grid{grid-template-columns:1fr;}
+    .stat + .stat,.pillar + .pillar{padding-left:0;border-left:0;border-top:1px solid #2A2A2A;}
+    .pillar + .pillar{border-top-color:var(--line);}
+    .stat{padding-top:32px;}
+    .nav .mark{font-size:13px;letter-spacing:.22em;}
+  }
+</style>
 </head>
 <body>
 
-<header class="site-header">
-  <a href="#" class="wordmark">GC Luxury</a>
-  <div class="nav-group">
-    <a href="/listings.html" class="nav-link">Listings</a>
-    <a href="/blog.html" class="nav-link">Journal</a>
-    <a href="/pre-list-kit.html" class="nav-link">Selling?</a>
-    <a href="/adam/" class="nav-link">Meet Adam</a>
-    <a href="/connector" class="nav-link">GC Luxury Connector</a>
-    <a href="#enquire" class="nav-cta">Enquire</a>
+<nav class="nav" id="nav">
+  <a class="mark" href="#top">Adam Sargeant</a>
+  <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-links">Menu</button>
+  <ul id="nav-links">
+    <li><a href="#story">Story</a></li>
+    <li><a href="#approach">Approach</a></li>
+    <li><a href="/listings.html">Listings</a></li>
+    <li><a href="/blog.html">Journal</a></li>
+    <li><a href="/pre-list-kit.html">Pre-List Kit</a></li>
+    <li><a href="/connector">Connector</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<header class="hero" id="top">
+  <div class="hero-copy">
+    <p class="eyebrow">Ray White &nbsp;·&nbsp; Gold Coast</p>
+    <h1>Adam<span>Sargeant</span></h1>
+    <p class="lede">Prestige &amp; luxury property specialist across the Gold Coast's waterfront, canal front and most tightly held addresses.</p>
+    <div class="hero-actions">
+      <a class="btn" href="#contact">Request an appraisal</a>
+      <a class="text-link" href="tel:0407739919">0407 739 919</a>
+    </div>
   </div>
+  <figure class="hero-portrait" style="margin:0;">
+    <img src="/adam/adam-sargeant.jpg" alt="Adam Sargeant">
+    <figcaption>Ray White Malan + Co</figcaption>
+  </figure>
+  <div class="scroll-cue">Scroll</div>
 </header>
 
-<main class="hero">
-  <div class="hero-inner">
-    <h1>GC Luxury</h1>
-    <div class="hero-sub">
-      <p>
-        If you're looking for luxury property on the Gold Coast and can't
-        find it on our Instagram page, please complete the form below and
-        we'll update you with new listings as they become available.
-      </p>
-    </div>
-    <a href="#enquire" class="hero-cta">Register Your Interest</a>
+<section class="intro">
+  <div class="wrap reveal">
+    <p class="eyebrow">The Difference</p>
+    <p class="statement">Some agents know the Gold Coast waterfront. Adam Sargeant was <em>born into it.</em></p>
   </div>
-</main>
-
-<section class="journal-section" id="journal" hidden>
-  <div class="journal-header">
-    <h2 class="section-heading">From the <em>Journal</em></h2>
-    <a href="/blog.html" class="journal-all">All articles &rarr;</a>
-  </div>
-  <div id="journal-grid" class="listings-grid"></div>
 </section>
 
-<section class="seller-callout">
-  <a href="/pre-list-kit.html" class="seller-callout-cover">
-    <img src="/pre-list-kit/page-01.jpg" alt="Pre-List Kit cover" loading="lazy" />
-  </a>
-  <div class="seller-callout-body">
-    <div class="listing-suburb">Thinking of selling?</div>
-    <h2>The <em>Pre-List</em> Kit</h2>
-    <p>
-      How we take prestige Gold Coast property to market — marketing
-      strategy, private treaty vs auction, and preparing your home for sale.
+<section class="story" id="story">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="year">1847</div>
+      <div class="year-cap">Thomas Ainsworth arrives on the NSW North Coast as a shipwright</div>
+    </div>
+    <div class="reveal">
+      <p class="eyebrow">The Story</p>
+      <h2>The water has always been in the blood</h2>
+      <p>His ancestor Thomas Ainsworth arrived on the NSW North Coast in 1847 as a shipwright — navigating the same coastal rivers and waterways that defined the region's earliest trade and settlement. Lake Ainsworth near Lennox Head bears the family name to this day.</p>
+      <p>Adam has spent decades in real estate — owning and managing agencies, operating at the top of the market with an energy and relentlessness that simply doesn't quit. With close to ten years working with Ray White, he understands the systems and infrastructure behind consistently successful sales outcomes.</p>
+    </div>
+  </div>
+</section>
+
+<section class="stats">
+  <div class="wrap">
+    <p class="eyebrow reveal">The Advantage</p>
+    <div class="stats-grid reveal">
+      <div class="stat"><div class="num">$400M+</div><div class="label">in property sold</div></div>
+      <div class="stat"><div class="num">Decades</div><div class="label">in real estate, owning and managing agencies</div></div>
+      <div class="stat"><div class="num">~10 yrs</div><div class="label">working within the Ray White network</div></div>
+      <div class="stat"><div class="num">3 yrs</div><div class="label">volunteering with the Starlight Children's Foundation</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="approach" id="approach">
+  <div class="wrap">
+    <div class="reveal">
+      <p class="eyebrow">The Approach</p>
+      <p class="statement">Market knowledge, technology and relentless negotiation — so every listing performs at its peak across every channel.</p>
+    </div>
+    <div class="pillars-grid reveal">
+      <div class="pillar"><div class="n">01</div><h3>Appraise</h3><p>A clear, evidence-based view of where your property sits in today's market — delivered straight to your phone.</p></div>
+      <div class="pillar"><div class="n">02</div><h3>Prepare</h3><p>A campaign built around your home and your timing, with a transparent process and cost breakdown.</p></div>
+      <div class="pillar"><div class="n">03</div><h3>Market</h3><p>A technology background that puts your listing in front of the right buyers across every digital channel.</p></div>
+      <div class="pillar"><div class="n">04</div><h3>Negotiate</h3><p>Energy and persistence at the negotiating table, backed by the systems of the Ray White network.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- VIDEO: replace the placeholder text inside .video-frame with an <iframe> (YouTube/Vimeo embed) or a <video> tag once the video is supplied. -->
+<section class="video">
+  <div class="wrap reveal">
+    <div class="video-frame">Video coming soon</div>
+  </div>
+</section>
+
+<section class="kit" id="selling">
+  <div class="wrap">
+    <a class="kit-cover reveal" href="/pre-list-kit.html">
+      <img src="/pre-list-kit/page-01.jpg" alt="Pre-List Kit cover" loading="lazy">
+    </a>
+    <div class="reveal">
+      <p class="eyebrow">Thinking of Selling?</p>
+      <h2>The Pre-List Kit</h2>
+      <p>How we take prestige Gold Coast property to market — marketing strategy, private treaty vs auction, and preparing your home for sale. Flip through it page by page.</p>
+      <a class="btn dark" href="/pre-list-kit.html">Flip through the kit</a>
+    </div>
+  </div>
+</section>
+
+<section class="names">
+  <div class="wrap reveal">
+    <p class="eyebrow">Hosted &amp; Worked Alongside</p>
+    <ul>
+      <li>Arnold Schwarzenegger</li>
+      <li>Richard Branson</li>
+      <li>Gary Vee</li>
+      <li>Josh &amp; Matt Altman<small>Million Dollar Listing LA</small></li>
+      <li>Georges St-Pierre</li>
+      <li>Eric Thomas</li>
+      <li>Mark Bouris</li>
+    </ul>
+  </div>
+</section>
+
+<section class="giving" id="giving">
+  <div class="wrap">
+    <div class="reveal">
+      <p class="eyebrow">Beyond the Commission</p>
+      <h2>In this for more than a sale</h2>
+    </div>
+    <div class="reveal">
+      <p>Three years volunteering with the Starlight Children's Foundation, supporting refugee housing and directing real estate resources toward the rescue of children caught in trafficking — when Adam says he's in this for more than a commission, the record backs it up.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Hidden until at least one Journal post is published (see /blog.js). -->
+<section class="journal" id="journal" hidden>
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">The Journal</p>
+        <h2>Latest insights</h2>
+      </div>
+      <a class="text-link" href="/blog.html">All articles</a>
+    </div>
+    <div id="journal-grid" class="journal-grid"></div>
+  </div>
+</section>
+
+<section class="contact" id="contact">
+  <div class="wrap reveal">
+    <p class="eyebrow">Let's Talk</p>
+    <h2>Thinking of selling?</h2>
+    <div class="lines">
+      <a href="tel:0407739919">0407 739 919</a>
+      <a href="mailto:adam.sargeant@raywhite.com">adam.sargeant@raywhite.com</a>
+    </div>
+
+    <p class="form-intro">
+      Request an appraisal, or tell us what you're looking for and we'll be in
+      touch as off-market and pre-market properties become available. Your
+      details are kept strictly confidential.
     </p>
-    <a href="/pre-list-kit.html" class="hero-cta">Flip Through the Kit</a>
+
+    <form id="enquiry-form" class="enquiry-form" novalidate>
+      <div class="field-grid">
+        <div class="field">
+          <label for="fullName">Full Name</label>
+          <input type="text" id="fullName" name="fullName" autocomplete="name" required>
+        </div>
+        <div class="field">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" autocomplete="email" required>
+        </div>
+        <div class="field">
+          <label for="phone">Phone</label>
+          <input type="tel" id="phone" name="phone" autocomplete="tel" required>
+        </div>
+        <div class="field">
+          <label for="propertyType">Property Type</label>
+          <select id="propertyType" name="propertyType">
+            <option value="">Select a type...</option>
+            <option value="Waterfront property">Waterfront property</option>
+            <option value="Acreage estate">Acreage estate</option>
+            <option value="Penthouse / Sub-penthouse">Penthouse / Sub-penthouse</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="priceRange">Price Range</label>
+          <select id="priceRange" name="priceRange">
+            <option value="">Select a range...</option>
+            <option value="$3M - $5M">$3M – $5M</option>
+            <option value="$5M - $10M">$5M – $10M</option>
+            <option value="$10M - $20M">$10M – $20M</option>
+            <option value="$20M - $35M">$20M – $35M</option>
+            <option value="Prefer not to say">Prefer not to say</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="locations">Location(s)</label>
+          <input type="text" id="locations" name="locations" placeholder="e.g. Sovereign Islands">
+        </div>
+        <div class="field field-span">
+          <label for="message">Message</label>
+          <textarea id="message" name="message" rows="3" placeholder="Selling, buying, or an appraisal on your address..."></textarea>
+        </div>
+      </div>
+      <div class="submit-row">
+        <button type="submit" class="btn submit-btn">Send Enquiry</button>
+      </div>
+      <p id="form-status" class="form-status" role="status" aria-live="polite"></p>
+    </form>
   </div>
 </section>
 
-<section class="enquiry-section" id="enquire">
-  <h2 class="section-heading">Register Your Interest</h2>
-  <p class="section-sub">
-    Fill in your details below, including the property type and locations
-    you're after. Your information is kept private and is never shared with
-    buyers or sellers before a transaction takes place.
-  </p>
-
-  <form id="enquiry-form" class="enquiry-form" novalidate>
-    <div class="field-grid">
-      <div class="field">
-        <label for="fullName">Full Name</label>
-        <input type="text" id="fullName" name="fullName" autocomplete="name" required />
-      </div>
-
-      <div class="field">
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email" autocomplete="email" required />
-      </div>
-
-      <div class="field">
-        <label for="phone">Phone</label>
-        <input type="tel" id="phone" name="phone" autocomplete="tel" required />
-      </div>
-
-      <div class="field">
-        <label for="propertyType">Property Type</label>
-        <select id="propertyType" name="propertyType">
-          <option value="">Select a type...</option>
-          <option value="Waterfront property">Waterfront property</option>
-          <option value="Acreage estate">Acreage estate</option>
-          <option value="Penthouse / Sub-penthouse">Penthouse / Sub-penthouse</option>
-          <option value="Other">Other</option>
-        </select>
-      </div>
-
-      <div class="field">
-        <label for="priceRange">Price Range</label>
-        <select id="priceRange" name="priceRange">
-          <option value="">Select a range...</option>
-          <option value="$3M - $5M">$3M – $5M</option>
-          <option value="$5M - $10M">$5M – $10M</option>
-          <option value="$10M - $20M">$10M – $20M</option>
-          <option value="$20M - $35M">$20M – $35M</option>
-          <option value="Prefer not to say">Prefer not to say</option>
-        </select>
-      </div>
-
-      <div class="field field-span">
-        <label for="locations">Preferred Location(s)</label>
-        <input type="text" id="locations" name="locations" placeholder="e.g. Broadbeach, Surfers Paradise" />
-      </div>
-    </div>
-
-    <div class="field">
-      <label for="message">Message</label>
-      <textarea id="message" name="message" rows="4" placeholder="Tell us what you're looking for..."></textarea>
-    </div>
-
-    <button type="submit" class="submit-btn">Register Your Interest</button>
-
-    <p id="form-status" class="form-status" role="status" aria-live="polite"></p>
-  </form>
-</section>
-
-<footer class="site-footer">
-  <p>&copy; <span id="year"></span> GC Luxury. Private access to the Gold Coast's $3M–$35M property market. All enquiries strictly confidential.</p>
-  <p><a href="/admin" class="staff-link">Staff Login</a></p>
+<footer>
+  <div class="left">
+    <img src="/adam/ray-white-logo.png" alt="Ray White">
+    <div>Adam Sargeant &nbsp;·&nbsp; Ray White Malan + Co &nbsp;·&nbsp; GC Luxury</div>
+  </div>
+  <div>&copy; <span id="year"></span> GC Luxury &nbsp;·&nbsp; <a href="/adam/admin">Appraisals &amp; Offers</a> &nbsp;·&nbsp; <a href="/admin">Staff Login</a></div>
 </footer>
 
+<script>
+  const nav = document.getElementById('nav');
+  const toggle = document.getElementById('nav-toggle');
+  const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > window.innerHeight * 0.6);
+  window.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+
+  toggle.addEventListener('click', () => {
+    const open = nav.classList.toggle('open');
+    toggle.setAttribute('aria-expanded', open);
+  });
+  document.querySelectorAll('#nav-links a').forEach(a => a.addEventListener('click', () => {
+    nav.classList.remove('open');
+    toggle.setAttribute('aria-expanded', 'false');
+  }));
+
+  if ('IntersectionObserver' in window){
+    const io = new IntersectionObserver(entries => entries.forEach(e => {
+      if (e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+    }), {threshold:.15});
+    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+  } else {
+    document.querySelectorAll('.reveal').forEach(el => el.classList.add('in'));
+  }
+</script>
 <script src="/app.js"></script>
 <script src="/blog.js"></script>
 </body>

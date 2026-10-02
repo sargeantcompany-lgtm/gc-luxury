@@ -39,10 +39,11 @@ if (!isProd) {
 }
 app.use(morgan(isProd ? "combined" : "dev"));
 
-// Adam Sargeant's appraisal / offer / off-market site, under /adam. Mounted
-// before the body parsers because it reads raw request bodies itself.
+// Adam Sargeant's appraisal / offer / off-market tools, under /adam. His intro
+// page is the site homepage (client/index.html), so /adam itself redirects
+// there. Mounted before the body parsers because it reads raw bodies itself.
 app.use("/adam", (req, res) => {
-  if (req.originalUrl === "/adam") return res.redirect(301, "/adam/");
+  if (req.path === "/" || req.path === "/index.html") return res.redirect(301, "/");
   handleAgent(req, res);
 });
 
