@@ -8,6 +8,7 @@ import Pipeline from './pages/Pipeline';
 import Campaigns from './pages/Campaigns';
 import Templates from './pages/Templates';
 import GcListings from './pages/GcListings';
+import GcBlog from './pages/GcBlog';
 import ActivityLog from './pages/ActivityLog';
 import Settings from './pages/Settings';
 
@@ -24,6 +25,7 @@ export default function App() {
             <Route path="campaigns" element={<Campaigns />} />
             <Route path="templates" element={<Templates />} />
             <Route path="gc-listings" element={<GcListings />} />
+            <Route path="gc-blog" element={<GcBlog />} />
             <Route path="activity" element={<ActivityLog />} />
             <Route path="settings" element={<Settings />} />
           </Route>

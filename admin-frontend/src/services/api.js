@@ -102,6 +102,14 @@ export const gcListingsApi = {
   delete: (id) => api.delete(`/gc-listings/${id}`),
 };
 
+// ── GC Luxury Blog ───────────────────────────────────────────────
+export const gcBlogApi = {
+  list: () => api.get('/gc-blog/all'),
+  create: (data) => api.post('/gc-blog', data),
+  update: (id, data) => api.put(`/gc-blog/${id}`, data),
+  delete: (id) => api.delete(`/gc-blog/${id}`),
+};
+
 // ── Activity ─────────────────────────────────────────────────────
 export const activityApi = {
   list: (params) => api.get('/activity', { params }),

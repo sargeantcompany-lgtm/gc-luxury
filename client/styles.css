@@ -462,3 +462,237 @@ h1 em, h2 em {
 .listings-empty a:hover {
   text-decoration: underline;
 }
+
+/* --- Homepage journal teaser + seller callout --- */
+.journal-section {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 2rem;
+}
+
+.journal-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.journal-header .section-heading {
+  margin-bottom: 0;
+}
+
+.journal-all {
+  color: var(--gold);
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.journal-all:hover {
+  text-decoration: underline;
+}
+
+.seller-callout {
+  max-width: 1100px;
+  margin: 3rem auto 0;
+  padding: 0 1.5rem;
+  display: grid;
+  grid-template-columns: minmax(0, 280px) 1fr;
+  gap: 3rem;
+  align-items: center;
+}
+
+.seller-callout-cover img {
+  width: 100%;
+  display: block;
+  border-radius: 4px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  transition: transform 0.25s ease;
+}
+
+.seller-callout-cover:hover img {
+  transform: translateY(-4px) rotate(-1deg);
+}
+
+.seller-callout-body h2 {
+  font-size: clamp(1.6rem, 3.2vw, 2.2rem);
+  margin-bottom: 1rem;
+}
+
+.seller-callout-body p {
+  color: var(--muted);
+  max-width: 480px;
+  margin: 0 0 2rem;
+}
+
+/* --- Blog --- */
+.blog-card {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.blog-card:hover {
+  border-color: var(--gold-soft);
+  transform: translateY(-2px);
+}
+
+.blog-read-more {
+  display: inline-block;
+  margin-top: 0.9rem;
+  color: var(--gold);
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.post-section {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 6rem;
+}
+
+.post-back {
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+
+.post-back:hover {
+  color: var(--gold);
+}
+
+.post-meta {
+  margin-top: 2rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.post-title {
+  font-size: clamp(2rem, 4.5vw, 2.8rem);
+  line-height: 1.2;
+  margin: 0.6rem 0 2rem;
+}
+
+.post-cover {
+  width: 100%;
+  border-radius: 8px;
+  display: block;
+  margin-bottom: 2.5rem;
+}
+
+.post-body {
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: #d8d4cc;
+}
+
+.post-body h2 {
+  font-size: 1.5rem;
+  color: var(--ivory);
+  margin: 2.5rem 0 1rem;
+}
+
+.post-body p {
+  margin: 0 0 1.4rem;
+}
+
+/* --- Pre-List Kit flipbook --- */
+.flipbook-section {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 1rem 1.5rem 6rem;
+  text-align: center;
+}
+
+.flipbook-stage {
+  /* Two A4 pages side by side (1190 x 842 at full size), shrunk so the whole
+     spread fits in the viewport height. */
+  max-width: min(1190px, calc((100vh - 140px) * 1.413));
+  margin: 0 auto;
+}
+
+.flipbook {
+  margin: 0 auto;
+}
+
+.flipbook-page {
+  background: #F5F2EC;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.flipbook-page img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+}
+
+.flipbook-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.flipbook-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 1px solid var(--gold-soft);
+  background: transparent;
+  color: var(--ivory);
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.flipbook-btn:hover {
+  border-color: var(--gold);
+  background: rgba(201, 162, 75, 0.08);
+}
+
+.flipbook-count {
+  min-width: 4.5rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.flipbook-hint {
+  color: var(--muted);
+  font-size: 0.8rem;
+  opacity: 0.7;
+  margin: 0.8rem 0 2.5rem;
+}
+
+@media (max-width: 760px) {
+  .site-header {
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .nav-group {
+    flex-wrap: wrap;
+    gap: 0.6rem 1.1rem;
+  }
+  .seller-callout {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    text-align: center;
+  }
+  .seller-callout-cover {
+    max-width: 220px;
+    margin: 0 auto;
+  }
+  .seller-callout-body p {
+    margin-left: auto;
+    margin-right: auto;
+  }
+}

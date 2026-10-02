@@ -69,6 +69,7 @@ const navSections = [
       { to: '/campaigns', label: 'Campaigns', icon: 'campaigns' },
       { to: '/templates', label: 'Templates', icon: 'templates' },
       { to: '/gc-listings', label: 'GC Listings', icon: 'listings' },
+      { to: '/gc-blog', label: 'GC Blog', icon: 'templates' },
     ],
   },
   {

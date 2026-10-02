@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Listings | GC Luxury</title>
-<meta name="description" content="Current off-market and pre-market luxury property listings on the Gold Coast, $3M–$35M." />
+<title>Pre-List Kit | GC Luxury</title>
+<meta name="description" content="Selling a prestige Gold Coast property? Flip through Adam Sargeant's Pre-List Kit — marketing strategy, sale methods and how to prepare your home." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -25,19 +25,26 @@
 
 <main class="listings-hero">
   <div class="listings-hero-inner">
-    <h1>Current <em>Listings</em></h1>
+    <h1>The <em>Pre-List</em> Kit</h1>
     <p class="listings-hero-sub">
-      A selection of off-market and pre-market opportunities. Don't see what
-      you're after? <a href="/#enquire">Register your interest</a> and we'll
-      reach out when a match comes up.
+      Thinking of selling? Flip through how we take prestige Gold Coast
+      property to market — strategy, sale method and preparation.
     </p>
   </div>
 </main>
 
-<section class="listings-section">
-  <div id="listings-grid" class="listings-grid"></div>
-  <div id="listings-empty" class="listings-empty" style="display:none;">
-    No current listings — check back soon, or <a href="/#enquire">register your interest</a> to be notified.
+<section class="flipbook-section">
+  <div class="flipbook-stage">
+    <div id="flipbook" class="flipbook"></div>
+  </div>
+  <div class="flipbook-controls">
+    <button type="button" id="flip-prev" class="flipbook-btn" aria-label="Previous page">&larr;</button>
+    <span id="flip-count" class="flipbook-count"></span>
+    <button type="button" id="flip-next" class="flipbook-btn" aria-label="Next page">&rarr;</button>
+  </div>
+  <p class="flipbook-hint">Click or drag a page corner to turn &middot; arrow keys work too</p>
+  <div class="flipbook-cta">
+    <a href="/#enquire" class="hero-cta">Book an Appraisal</a>
   </div>
 </section>
 
@@ -46,7 +53,8 @@
   <p><a href="/admin" class="staff-link">Staff Login</a></p>
 </footer>
 
-<script src="/listings.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
+<script src="/pre-list-kit.js"></script>
 <script>document.getElementById("year").textContent = new Date().getFullYear();</script>
 </body>
 </html>

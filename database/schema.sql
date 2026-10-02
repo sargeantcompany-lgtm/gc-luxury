@@ -292,3 +292,22 @@ CREATE INDEX IF NOT EXISTS idx_gc_listings_status ON gc_listings(status);
 -- Migration: optional video for a listing - paste a YouTube/Vimeo link or a
 -- direct video file URL (no upload UI, hosted elsewhere).
 ALTER TABLE gc_listings ADD COLUMN IF NOT EXISTS video_url TEXT;
+
+-- ============================================
+-- GC Luxury blog / journal (client/blog.html, client/post.html)
+-- Admin-managed from the CRM. Only 'published' posts are publicly readable.
+-- ============================================
+CREATE TABLE IF NOT EXISTS gc_blog_posts (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(300) NOT NULL,
+    slug VARCHAR(300) NOT NULL UNIQUE,
+    excerpt TEXT,
+    cover_image TEXT,
+    body TEXT,
+    status VARCHAR(20) NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'published')),
+    published_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_gc_blog_posts_status ON gc_blog_posts(status, published_at DESC);
