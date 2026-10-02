@@ -5,12 +5,11 @@
   const LINKS = [
     ["Home", "/"],
     ["Listings", "/listings.html"],
-    ["Off-Market", "/#off-market"],
+    ["Off-Market", "/off-market.html"],
     ["Bio", "/about.html"],
     ["How to Sell", "/how-to-sell.html"],
     ["Blog", "/blog.html"],
     ["Make an Offer", "/adam/offer"],
-    ["GC Luxury Connector", "/connector"],
     ["Enquiry", "/contact.html"],
   ];
 
