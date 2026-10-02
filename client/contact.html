@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contact | Adam Sargeant — GC Luxury</title>
+<meta name="description" content="Request an appraisal or register your interest in off-market and pre-market Gold Coast property, $3M–$35M.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/adam.css">
+<link rel="stylesheet" href="/menu.css">
+</head>
+<body>
+
+<nav class="nav" id="nav">
+  <a class="mark" href="/">Adam Sargeant</a>
+</nav>
+
+<section class="gc-intro page-top">
+  <div class="wrap reveal">
+    <p class="eyebrow">GC Luxury</p>
+    <h2>Off-market &amp; pre-market property, $3M–$35M</h2>
+    <p>
+      If you're looking for luxury property on the Gold Coast and can't
+      find it on our Instagram page, please complete the form below and
+      we'll update you with new listings as they become available.
+    </p>
+  </div>
+</section>
+
+<section class="contact" id="contact">
+  <div class="wrap">
+    <p class="eyebrow">Let's Talk</p>
+    <h2>Thinking of selling?</h2>
+    <div class="lines">
+      <a href="tel:0407739919">0407 739 919</a>
+      <a href="mailto:adam.sargeant@raywhite.com">adam.sargeant@raywhite.com</a>
+    </div>
+
+    <h3 class="form-heading">Register Your Interest</h3>
+    <p class="form-intro">
+      Request an appraisal, or fill in your details below, including the
+      property type and locations you're after. Your information is kept
+      private and is never shared with buyers or sellers before a transaction
+      takes place.
+    </p>
+
+    <!-- Posts to /api/enquiries (handled by /app.js) and lands in the CRM. -->
+    <form id="enquiry-form" class="enquiry-form" novalidate>
+      <div class="field-grid">
+        <div class="field">
+          <label for="fullName">Full Name</label>
+          <input type="text" id="fullName" name="fullName" autocomplete="name" required>
+        </div>
+        <div class="field">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" autocomplete="email" required>
+        </div>
+        <div class="field">
+          <label for="phone">Phone</label>
+          <input type="tel" id="phone" name="phone" autocomplete="tel" required>
+        </div>
+        <div class="field">
+          <label for="propertyType">Property Type</label>
+          <select id="propertyType" name="propertyType">
+            <option value="">Select a type...</option>
+            <option value="Waterfront property">Waterfront property</option>
+            <option value="Acreage estate">Acreage estate</option>
+            <option value="Penthouse / Sub-penthouse">Penthouse / Sub-penthouse</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="priceRange">Price Range</label>
+          <select id="priceRange" name="priceRange">
+            <option value="">Select a range...</option>
+            <option value="$3M - $5M">$3M – $5M</option>
+            <option value="$5M - $10M">$5M – $10M</option>
+            <option value="$10M - $20M">$10M – $20M</option>
+            <option value="$20M - $35M">$20M – $35M</option>
+            <option value="Prefer not to say">Prefer not to say</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="locations">Location(s)</label>
+          <input type="text" id="locations" name="locations" placeholder="e.g. Sovereign Islands">
+        </div>
+        <div class="field field-span">
+          <label for="message">Message</label>
+          <textarea id="message" name="message" rows="3" placeholder="Selling, buying, or an appraisal on your address..."></textarea>
+        </div>
+      </div>
+      <div class="submit-row">
+        <button type="submit" class="btn submit-btn">Send Enquiry</button>
+      </div>
+      <p id="form-status" class="form-status" role="status" aria-live="polite"></p>
+    </form>
+  </div>
+</section>
+
+<footer>
+  <div class="left">
+    <img src="/adam/ray-white-logo.png" alt="Ray White">
+    <div>Adam Sargeant &nbsp;·&nbsp; Ray White Malan + Co &nbsp;·&nbsp; GC Luxury</div>
+  </div>
+  <div>&copy; <span id="year"></span> GC Luxury &nbsp;·&nbsp; <a href="/adam/admin">Appraisals &amp; Offers</a> &nbsp;·&nbsp; <a href="/admin">Staff Login</a></div>
+  <div class="footer-note">Private access to the Gold Coast's $3M–$35M property market. All enquiries strictly confidential.</div>
+</footer>
+
+<script src="/menu.js"></script>
+<script src="/adam.js"></script>
+<script src="/app.js"></script>
+</body>
+</html>

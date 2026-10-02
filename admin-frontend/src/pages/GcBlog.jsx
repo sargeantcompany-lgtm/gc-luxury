@@ -113,7 +113,7 @@ export default function GcBlog() {
           <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-muted)' }}>Loading posts...</div>
         ) : visible.length === 0 ? (
           <div className="empty-state card card-body" style={{ padding: 30 }}>
-            <p>No posts yet — publish one to have it appear on the public site's Journal.</p>
+            <p>No posts yet — publish one to have it appear on the public site's Blog.</p>
           </div>
         ) : (
           visible.map((post) => (

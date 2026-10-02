@@ -68,13 +68,13 @@ async function initBlogIndex() {
   }
 }
 
-// Homepage teaser - the whole section stays hidden if there's nothing published.
+// Homepage teaser - shows a "coming soon" note when nothing is published yet.
 async function initBlogTeaser() {
-  const section = document.getElementById("journal");
+  const empty = document.getElementById("blog-teaser-empty");
   try {
-    if (await renderPostList(document.getElementById("journal-grid"), 3)) section.hidden = false;
+    if (!(await renderPostList(document.getElementById("blog-teaser-grid"), 3))) empty.hidden = false;
   } catch {
-    // leave hidden
+    empty.hidden = false;
   }
 }
 
@@ -94,10 +94,10 @@ async function initPost() {
       <div class="post-body">${renderBody(post.body)}</div>
     `;
   } catch {
-    article.innerHTML = `<p class="listings-empty">This article couldn't be found. <a href="/blog.html">Back to the Journal</a></p>`;
+    article.innerHTML = `<p class="listings-empty">This article couldn't be found. <a href="/blog.html">Back to the Blog</a></p>`;
   }
 }
 
 if (document.getElementById("blog-grid")) initBlogIndex();
-if (document.getElementById("journal-grid")) initBlogTeaser();
+if (document.getElementById("blog-teaser-grid")) initBlogTeaser();
 if (document.getElementById("post")) initPost();

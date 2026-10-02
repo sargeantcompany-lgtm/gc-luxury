@@ -9,18 +9,12 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="/styles.css" />
+<link rel="stylesheet" href="/menu.css" />
 </head>
 <body>
 
 <header class="site-header">
-  <a href="/" class="wordmark">GC Luxury</a>
-  <div class="nav-group">
-    <a href="/listings.html" class="nav-link">Listings</a>
-    <a href="/blog.html" class="nav-link">Journal</a>
-    <a href="/pre-list-kit.html" class="nav-link">Selling?</a>
-    <a href="/connector" class="nav-link">GC Luxury Connector</a>
-    <a href="/#contact" class="nav-cta">Enquire</a>
-  </div>
+  <a href="/" class="wordmark">Adam Sargeant</a>
 </header>
 
 <main class="listings-hero">
@@ -28,7 +22,7 @@
     <h1>Current <em>Listings</em></h1>
     <p class="listings-hero-sub">
       A selection of off-market and pre-market opportunities. Don't see what
-      you're after? <a href="/#contact">Register your interest</a> and we'll
+      you're after? <a href="/contact.html">Register your interest</a> and we'll
       reach out when a match comes up.
     </p>
   </div>
@@ -43,7 +37,7 @@
   <h2 class="listings-group-heading">Current <em>Listings</em></h2>
   <div class="listings-grid" data-listing-type="listing" data-empty="#listings-empty"></div>
   <div id="listings-empty" class="listings-empty" style="display:none;">
-    No current listings — check back soon, or <a href="/#contact">register your interest</a> to be notified.
+    No current listings — check back soon, or <a href="/contact.html">register your interest</a> to be notified.
   </div>
 </section>
 
@@ -54,5 +48,6 @@
 
 <script src="/listings.js"></script>
 <script>document.getElementById("year").textContent = new Date().getFullYear();</script>
+<script src="/menu.js"></script>
 </body>
 </html>

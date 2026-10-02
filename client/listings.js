@@ -65,7 +65,7 @@ function listingCard(listing) {
       <h3 class="listing-title">${escapeHtml(listing.title)}</h3>
       <div class="listing-price">${escapeHtml(listing.price_guide || "Price on application")}</div>
       ${listing.description ? `<p class="listing-desc">${escapeHtml(listing.description)}</p>` : ""}
-      ${listing.status !== "sold" ? `<a class="listing-enquire" href="/#contact">${enquireText} &rarr;</a>` : ""}
+      ${listing.status !== "sold" ? `<a class="listing-enquire" href="/contact.html">${enquireText} &rarr;</a>` : ""}
     </div>
   `;
   return card;
