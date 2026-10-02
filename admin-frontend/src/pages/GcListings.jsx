@@ -5,7 +5,12 @@ import Modal from '../components/Modal';
 
 const emptyForm = {
   title: '', suburb: '', price_guide: '', description: '',
-  photos: '', video_url: '', status: 'active', display_order: 0,
+  photos: '', video_url: '', status: 'active', display_order: 0, listing_type: 'listing',
+};
+
+const TYPE_LABELS = {
+  listing: 'Listing',
+  off_market: 'Off-Market',
 };
 
 const STATUS_LABELS = {
@@ -25,6 +30,7 @@ function toForm(listing) {
     video_url: listing.video_url || '',
     status: listing.status,
     display_order: listing.display_order || 0,
+    listing_type: listing.listing_type || 'listing',
   };
 }
 
@@ -41,6 +47,7 @@ export default function GcListings() {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editListing, setEditListing] = useState(null);
   const [form, setForm] = useState(emptyForm);
@@ -51,6 +58,7 @@ export default function GcListings() {
     try {
       const params = {};
       if (statusFilter) params.status = statusFilter;
+      if (typeFilter) params.type = typeFilter;
       const data = await gcListingsApi.list(params);
       setListings(data);
     } catch (err) {
@@ -58,7 +66,7 @@ export default function GcListings() {
     } finally {
       setLoading(false);
     }
-  }, [statusFilter]);
+  }, [statusFilter, typeFilter]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -113,7 +121,14 @@ export default function GcListings() {
       </div>
 
       <div className="page-content">
-        <div className="toolbar mb-4">
+        <div className="toolbar mb-4" style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {['', 'listing', 'off_market'].map((t) => (
+              <button key={t || 'all-types'} className={`chip ${typeFilter === t ? 'active' : ''}`} onClick={() => setTypeFilter(t)}>
+                {t === '' ? 'All types' : TYPE_LABELS[t]}
+              </button>
+            ))}
+          </div>
           <div style={{ display: 'flex', gap: 6 }}>
             {['', 'active', 'under_offer', 'sold', 'archived'].map((s) => (
               <button key={s} className={`chip ${statusFilter === s ? 'active' : ''}`} onClick={() => setStatusFilter(s)}>
@@ -136,6 +151,7 @@ export default function GcListings() {
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                     <span style={{ fontWeight: 600, fontSize: 14 }}>{listing.title}</span>
+                    <span className="badge">{TYPE_LABELS[listing.listing_type] || 'Listing'}</span>
                     <span className="badge">{STATUS_LABELS[listing.status]}</span>
                   </div>
                   <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 4 }}>
@@ -173,7 +189,19 @@ export default function GcListings() {
         }
       >
         <div>
-          <div className="grid-2">
+          <div className="form-group">
+            <label className="form-label">
+              Type
+              <span style={{ marginLeft: 8, fontSize: 11, color: 'var(--text-muted)', fontWeight: 400 }}>Off-Market properties show in their own section on the website - use the title/suburb to say only as much as you want public</span>
+            </label>
+            <select className="form-select" style={{ maxWidth: 240 }} value={form.listing_type} onChange={(e) => setForm((p) => ({ ...p, listing_type: e.target.value }))}>
+              {Object.entries(TYPE_LABELS).map(([value, label]) => (
+                <option key={value} value={value}>{label}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="grid-2 mt-3">
             <div className="form-group">
               <label className="form-label">Title *</label>
               <input className="form-input" value={form.title} onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))} placeholder="e.g. 5-bed waterfront, Sovereign Islands" required />

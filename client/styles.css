@@ -696,3 +696,26 @@ h1 em, h2 em {
     margin-right: auto;
   }
 }
+
+/* Listings page groups (Off-Market / Current Listings) */
+.listings-group-heading {
+  font-size: clamp(1.4rem, 2.6vw, 1.8rem);
+  margin-bottom: 1.6rem;
+}
+
+.listings-section + .listings-section {
+  padding-top: 0;
+}
+
+.listing-enquire {
+  display: inline-block;
+  margin-top: 0.9rem;
+  color: var(--gold);
+  font-size: 0.82rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.listing-enquire:hover {
+  text-decoration: underline;
+}

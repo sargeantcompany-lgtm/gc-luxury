@@ -311,3 +311,7 @@ CREATE TABLE IF NOT EXISTS gc_blog_posts (
 );
 
 CREATE INDEX IF NOT EXISTS idx_gc_blog_posts_status ON gc_blog_posts(status, published_at DESC);
+
+-- Migration: listings are either normal on-market listings or off-market
+-- properties - both public, shown in separate sections on the site.
+ALTER TABLE gc_listings ADD COLUMN IF NOT EXISTS listing_type VARCHAR(20) NOT NULL DEFAULT 'listing';
