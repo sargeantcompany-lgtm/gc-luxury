@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Appraisal &amp; Proposal Builder</title>
+<style>
+  :root{
+    --gold:#FFE512;
+    --gold-dark:#E8C700;
+    --ink:#171E1A;
+    --grey:#6B6B6B;
+    --light:#F7F5F3;
+    --line:#E4E0DA;
+    --white:#FFFFFF;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--light);
+    color:var(--ink);
+    line-height:1.5;
+  }
+  a{color:var(--ink);}
+  img{max-width:100%;}
+
+  /* ---------- Layout shells ---------- */
+  #builder{max-width:920px;margin:0 auto;padding:20px 16px 80px;}
+  #clientViewWrap{max-width:760px;margin:0 auto;padding:0 0 60px;}
+  .hidden{display:none !important;}
+
+  /* ---------- Builder chrome ---------- */
+  .builder-header{padding:18px 4px 24px;}
+  .builder-header h1{font-size:22px;margin:0 0 4px;}
+  .builder-header p{margin:0;color:var(--grey);font-size:14px;}
+
+  .card{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:18px;
+    margin-bottom:18px;
+  }
+  .card h2{
+    font-size:16px;
+    margin:0 0 14px;
+    padding-bottom:10px;
+    border-bottom:2px solid var(--gold);
+    color:var(--ink);
+  }
+  .card-toggle{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    width:100%;background:none;border:none;
+    padding:0 0 10px;margin:0 0 14px;
+    border-bottom:2px solid var(--gold);
+    cursor:pointer;font-family:inherit;text-align:left;
+  }
+  .card-toggle h2{margin:0;padding:0;border:none;}
+  .card-toggle .chevron{font-size:16px;color:var(--grey);transition:transform .15s;flex-shrink:0;}
+  .card-toggle.open .chevron{transform:rotate(180deg);}
+  .field{margin-bottom:12px;}
+  .field label{
+    display:block;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--grey);
+    margin-bottom:4px;
+    text-transform:uppercase;
+    letter-spacing:.02em;
+  }
+  .field input, .field textarea, .field select{
+    width:100%;
+    padding:10px 11px;
+    border:1px solid #CFCAC2;
+    border-radius:7px;
+    font-size:15px;
+    font-family:inherit;
+    background:#FFFDFB;
+  }
+  .field textarea{resize:vertical;min-height:64px;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+  @media(max-width:560px){ .row2,.row3{grid-template-columns:1fr;} }
+
+  .repeat-row{
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:12px;
+    margin-bottom:10px;
+    background:var(--light);
+    position:relative;
+  }
+  .repeat-row .rm-btn{
+    position:absolute; top:8px; right:8px;
+    background:none;border:none;color:var(--grey);
+    font-size:18px;cursor:pointer;line-height:1;padding:4px;
+  }
+  .repeat-row .rm-btn:hover{color:var(--ink);}
+  .add-btn{
+    display:inline-block;
+    background:var(--white);
+    border:1.5px dashed var(--gold-dark);
+    color:var(--ink);
+    font-weight:600;
+    padding:9px 14px;
+    border-radius:7px;
+    cursor:pointer;
+    font-size:14px;
+    margin-top:2px;
+  }
+  .add-btn:hover{background:#FFFBE0;}
+
+  .cal-input{cursor:pointer;background:#fff;}
+  .calendar-popover{
+    background:#fff;border:1px solid var(--line);border-radius:8px;
+    padding:12px;margin:-4px 0 14px;max-width:320px;
+  }
+  .cal-nav{display:flex;justify-content:space-between;align-items:center;font-weight:700;margin-bottom:8px;font-size:14px;}
+  .cal-nav button{background:var(--light);border:1px solid var(--line);border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:16px;}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:12.5px;}
+  .cal-dow{color:var(--grey);font-weight:600;padding:4px 0;}
+  .cal-cell{padding:6px 0;border-radius:6px;}
+  .cal-cell.valid{background:var(--light);cursor:pointer;font-weight:700;color:var(--ink);}
+  .cal-cell.valid:hover{background:var(--gold);}
+  .cal-cell.disabled{color:#ccc;}
+  .cal-close{background:none;border:none;color:var(--grey);text-decoration:underline;font-size:12px;cursor:pointer;padding:6px 0 0;}
+
+  .tier-picker{display:flex;gap:10px;margin-bottom:4px;flex-wrap:wrap;}
+  .tier-pick{
+    display:flex;align-items:center;gap:6px;
+    background:var(--light);border:1px solid var(--line);border-radius:8px;
+    padding:9px 14px;font-size:14px;font-weight:600;cursor:pointer;
+  }
+  .tier-pick input{width:auto;margin:0;}
+
+  .btn-primary{
+    background:var(--gold);
+    color:var(--ink);
+    border:none;
+    padding:15px 20px;
+    border-radius:8px;
+    font-size:16px;
+    font-weight:700;
+    cursor:pointer;
+    width:100%;
+  }
+  .btn-primary:hover{background:var(--gold-dark);}
+  .btn-secondary{
+    background:var(--white);
+    color:var(--ink);
+    border:1.5px solid var(--gold-dark);
+    padding:12px 16px;
+    border-radius:8px;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+  }
+
+  #shareBox{
+    background:#fff;
+    border:2px solid var(--gold);
+    border-radius:10px;
+    padding:16px;
+    margin-top:18px;
+  }
+  #shareBox h3{margin:0 0 8px;font-size:15px;color:var(--ink);}
+  #shareUrl{
+    width:100%;padding:10px;border:1px solid var(--line);border-radius:6px;
+    font-size:13px;background:var(--light);margin-bottom:10px;word-break:break-all;
+  }
+  .share-actions{display:flex;gap:10px;flex-wrap:wrap;}
+  .warn{
+    background:#FFF7E6;border:1px solid #F2C94C;border-radius:8px;
+    padding:10px 12px;font-size:13px;color:#7A5B00;margin-top:10px;
+  }
+
+  /* ================= CLIENT VIEW ================= */
+  .cv-header{
+    background:var(--ink);
+    color:#fff;
+    padding:28px 20px;
+    text-align:center;
+  }
+  .cv-header .agency{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;}
+  .cv-header h1{font-size:20px;margin:0 0 4px;font-weight:700;}
+  .cv-header .agent-line{font-size:13px;color:#CFCFCF;}
+  .cv-logo{height:140px;width:auto;display:block;margin:0 auto 18px;border-radius:8px;}
+  .cv-agent-row{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;margin-top:16px;}
+  .cv-avatar{width:200px;height:200px;border-radius:50%;object-fit:cover;border:4px solid var(--gold);}
+  .cv-body{padding:22px 18px;}
+  .cv-greeting{font-size:15px;margin-bottom:18px;}
+  .cv-section{margin-bottom:30px;}
+  .cv-badge{
+    display:inline-flex;align-items:center;gap:8px;
+    background:var(--gold);color:var(--ink);
+    font-size:12px;font-weight:700;letter-spacing:.06em;
+    padding:5px 12px;border-radius:20px;text-transform:uppercase;
+    margin-bottom:10px;
+  }
+  .cv-section h2{font-size:19px;margin:0 0 12px;color:var(--ink);}
+  .cv-section-toggle{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    width:100%;background:none;border:none;padding:0;margin:0;
+    cursor:pointer;font-family:inherit;text-align:left;
+  }
+  .cv-section-toggle h2{margin:0;}
+  .cv-chevron{font-size:18px;color:var(--grey);transition:transform .15s;flex-shrink:0;}
+  .cv-section-toggle.open .cv-chevron{transform:rotate(180deg);}
+  .cv-section p{font-size:15px;color:#333;margin:0 0 12px;}
+  .cv-price-box{
+    background:linear-gradient(135deg,#FFFBE0,#FFF);
+    border:1px solid #F5E9A6;
+    border-radius:10px;
+    padding:18px;
+    margin-bottom:16px;
+  }
+  .clients-box{
+    background:#fff;border:1px solid var(--line);border-radius:10px;
+    padding:14px;margin:14px 0;
+  }
+  .clients-box h4{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--grey);margin:0 0 10px;}
+  .client-chips{display:flex;flex-wrap:wrap;gap:7px;}
+  .client-chips span{
+    background:var(--light);border:1px solid var(--line);border-radius:18px;
+    padding:5px 11px;font-size:12.5px;font-weight:600;color:var(--ink);
+  }
+  .impact-box{
+    background:linear-gradient(135deg,#FFFBE0,#FFF);border:1px solid #F5E9A6;
+    border-radius:10px;padding:14px;margin:14px 0;
+  }
+  .impact-box h4{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--grey);margin:0 0 8px;}
+  .impact-box p{margin:0;}
+  .cv-link-btn{
+    display:block;text-align:center;
+    background:var(--gold);color:var(--ink) !important;
+    font-weight:700;text-decoration:none;
+    padding:13px 16px;border-radius:8px;
+    margin-top:2px;
+  }
+  .cv-link-btn:hover{background:var(--gold-dark);}
+
+  .cv-toggle-btn{
+    background:none;border:none;padding:10px 0 0;
+    color:var(--grey);text-decoration:underline;
+    font-size:13px;cursor:pointer;font-family:inherit;
+  }
+  .method-row{display:flex;gap:10px;flex-wrap:wrap;margin:4px 0 12px;}
+  .cv-method-btn{
+    display:inline-block;background:var(--light);
+    border:1.5px solid var(--gold-dark);color:var(--ink) !important;
+    font-weight:700;font-size:13.5px;font-family:inherit;
+    padding:10px 16px;border-radius:22px;cursor:pointer;
+    text-decoration:none;
+  }
+  .cv-method-btn:hover{background:var(--gold);}
+  .payment-options{
+    background:var(--light);border:1px solid var(--line);border-radius:8px;
+    padding:12px 14px;margin-top:8px;
+  }
+  .po-row{display:flex;justify-content:space-between;font-size:14px;padding:5px 0;}
+  .po-row small{color:var(--grey);}
+
+  .stat-strip-label{
+    font-size:12px;text-transform:uppercase;letter-spacing:.08em;
+    color:var(--grey);margin:4px 0 14px;
+  }
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px 16px;margin-bottom:22px;}
+  .stat-tile .stat-num{
+    font-family:Georgia,'Times New Roman',serif;
+    font-size:26px;color:var(--ink);line-height:1.1;
+  }
+  .stat-tile .stat-label{font-size:12.5px;color:var(--grey);margin-top:5px;line-height:1.35;}
+
+  table.cv-table{width:100%;border-collapse:collapse;font-size:13.5px;margin-bottom:6px;}
+  table.cv-table thead th{
+    background:var(--ink);color:#fff;text-align:left;
+    padding:9px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.03em;
+  }
+  table.cv-table tbody td{padding:9px 10px;border-bottom:1px solid var(--line);}
+  table.cv-table tbody tr:nth-child(even){background:var(--light);}
+  table.cv-table td.num{font-weight:700;color:var(--ink);}
+
+  @media (max-width:600px){
+    table.cv-table thead{display:none;}
+    table.cv-table, table.cv-table tbody, table.cv-table tr, table.cv-table td{display:block;width:100%;}
+    table.cv-table tr{
+      border:1px solid var(--line);border-radius:8px;margin-bottom:10px;
+      padding:8px 10px;background:#fff;
+    }
+    table.cv-table tbody tr:nth-child(even){background:#fff;}
+    table.cv-table td{border:none;padding:4px 0;display:flex;justify-content:space-between;gap:10px;}
+    table.cv-table td::before{content:attr(data-label);font-weight:700;color:var(--grey);font-size:11.5px;text-transform:uppercase;}
+    table.cv-table td[data-label=""]{display:none;}
+  }
+
+  .timeline{list-style:none;margin:0;padding:0;}
+  .timeline li{
+    display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);
+  }
+  .timeline li:last-child{border-bottom:none;}
+  .timeline .t-when{
+    flex:0 0 92px;font-weight:700;color:var(--ink);font-size:13px;
+  }
+  .timeline .t-what{font-size:14px;color:#333;}
+
+  ul.cv-bullets{margin:0;padding-left:0;list-style:none;}
+  ul.cv-bullets li{
+    padding:6px 0 6px 24px;position:relative;font-size:14.5px;color:#333;
+  }
+  ul.cv-bullets li::before{
+    content:"";position:absolute;left:0;top:14px;width:9px;height:9px;
+    background:var(--gold-dark);border-radius:50%;
+  }
+
+  .cv-total-row td{font-weight:800;font-size:15px;background:var(--ink) !important;color:#fff !important;}
+  .cv-total-row td::before{color:#ddd !important;}
+
+  .cv-footer{
+    background:var(--ink);color:#ccc;padding:24px 18px;text-align:center;font-size:12px;
+  }
+  .cv-footer .agent-name{color:#fff;font-weight:700;font-size:15px;margin-bottom:4px;}
+  .cv-cta{
+    display:block;text-align:center;background:var(--gold);color:var(--ink) !important;
+    text-decoration:none;font-weight:700;padding:14px;border-radius:8px;margin:18px 0;
+  }
+  .cv-cta:hover{background:var(--gold-dark);}
+  .cv-disclaimer{font-size:11px;color:var(--grey);border-top:1px solid var(--line);padding-top:14px;margin-top:10px;}
+
+  .print-note{text-align:center;font-size:12px;color:var(--grey);padding:10px 0 0;}
+  @media print{ .print-note, .cv-cta{display:none;} }
+</style>
+</head>
+<body>
+
+<!-- =================================================================== -->
+<!-- BUILDER VIEW -->
+<!-- =================================================================== -->
+<div id="builder">
+  <div class="builder-header">
+    <h1>Appraisal &amp; Proposal Builder</h1>
+    <p>Fill this in once per property, then generate a mobile-friendly link you can text straight to your client. Each generated appraisal is saved so you can find it again below.</p>
+  </div>
+
+  <div class="card">
+    <button type="button" class="card-toggle" onclick="toggleSection('savedAppraisalsBody', this)">
+      <h2>Saved Appraisals</h2>
+      <span class="chevron">▾</span>
+    </button>
+    <div id="savedAppraisalsBody" class="hidden">
+      <div id="savedAppraisalsList" style="font-size:13.5px;color:var(--grey);">Loading…</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Your Details</h2>
+    <div class="row2">
+      <div class="field"><label>Agent Name</label><input id="agentName" value="Adam Sargeant"></div>
+      <div class="field"><label>Office / Agency</label><input id="agentAgency" value="Ray White Broadbeach"></div>
+    </div>
+    <div class="row3">
+      <div class="field"><label>Phone</label><input id="agentPhone" value="0407 739 919"></div>
+      <div class="field"><label>Email</label><input id="agentEmail" value="adam.sargeant@raywhite.com"></div>
+      <div class="field"><label>Licence No.</label><input id="agentLicence" value="[Licence No.]"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Client &amp; Property</h2>
+    <div class="row2">
+      <div class="field"><label>Owner Name</label><input id="clientName" value="" placeholder="Property Owner"></div>
+      <div class="field"><label>Property Address</label><input id="propAddress" value="" placeholder="5 Rowes Court, Bundall QLD 4217"></div>
+    </div>
+    <div class="row3">
+      <div class="field"><label>Land Area</label><input id="propLand" value="" placeholder="850m² (Lot 201, RP125160)"></div>
+      <div class="field"><label>Floor Area</label><input id="propFloor" value="" placeholder="316m²"></div>
+      <div class="field"><label>Configuration</label><input id="propConfig" value="" placeholder="5 bed | 3 bath | 4 car"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Introduction</h2>
+    <div class="field">
+      <label>Opening paragraph</label>
+      <textarea id="introPara">Thank you for the opportunity to prepare this Appraisal &amp; Proposal for your home. It has been prepared to provide you with a clear, evidence-based view of your property's position in the current market, together with a proposal for how we would take it to market on your behalf, should you choose to sell. This document has been structured to answer four key questions:</textarea>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>1. Market Appraisal</h2>
+    <div class="field">
+      <label>Full Appraisal Report Link (Ignite)</label>
+      <input id="igniteLink" value="" placeholder="https://ignite.realestate.com.au/...">
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>2. Recommended Process</h2>
+    <div class="field">
+      <label>Strategy paragraph</label>
+      <textarea id="processPara">Based on current market conditions, we recommend a campaign built on the Ray White approach: generating genuine competition among buyers through a clearly defined timeline, wide-reaching marketing exposure, and structured pricing feedback throughout the campaign.</textarea>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>Campaign Start Date (Monday)</label>
+        <input type="text" id="campaignStart" class="cal-input" readonly placeholder="Select a Monday" onclick="openCalendar('campaignStart', 1)">
+      </div>
+      <div class="field">
+        <label>Auction Date (Thursday)</label>
+        <input type="text" id="auctionDate" class="cal-input" readonly placeholder="Select a Thursday" onclick="openCalendar('auctionDate', 4)">
+      </div>
+    </div>
+    <div id="calendarPopover" class="calendar-popover hidden"></div>
+
+    <div class="field">
+      <label>Staging Quote Link (optional)</label>
+      <input id="stagingQuoteLink" value="" placeholder="Leave blank unless staging is quoted for this property">
+    </div>
+
+    <label style="font-size:12.5px;font-weight:600;color:var(--grey);text-transform:uppercase;">Campaign Timeline</label>
+    <div id="timelineRows"></div>
+    <button type="button" class="add-btn" onclick="addTimelineRow()">+ Add timeline step</button>
+    <p style="font-size:12.5px;color:var(--grey);margin:10px 0 0;">Clients also get a click-to-expand explainer covering Private Treaty vs Auction — fixed content, nothing to fill in here.</p>
+  </div>
+
+  <div class="card">
+    <h2>3. Investment &amp; Cost Breakdown</h2>
+    <div class="field">
+      <label>Introductory line</label>
+      <textarea id="costsIntro" style="min-height:40px;">The table below sets out the full marketing investment for your campaign and what each item covers.</textarea>
+    </div>
+
+    <label style="font-size:12.5px;font-weight:600;color:var(--grey);text-transform:uppercase;">Marketing Package</label>
+    <div class="tier-picker">
+      <label class="tier-pick"><input type="radio" name="costTier" value="Silver" onchange="applyTier('Silver')"> Silver</label>
+      <label class="tier-pick"><input type="radio" name="costTier" value="Gold" onchange="applyTier('Gold')" checked> Gold</label>
+      <label class="tier-pick"><input type="radio" name="costTier" value="Platinum" onchange="applyTier('Platinum')"> Platinum</label>
+    </div>
+    <p style="font-size:12.5px;color:var(--grey);margin:6px 0 12px;">Picks the tier's line items from the Malan + Co marketing schedule below. You can still edit/add/remove rows after selecting.</p>
+
+    <div id="costRows"></div>
+    <button type="button" class="add-btn" onclick="addCostRow()">+ Add cost item</button>
+
+    <div class="field" style="margin-top:14px;">
+      <label>Commission Rate</label>
+      <input id="commissionRate" value="2.75%" style="max-width:140px;">
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>4. Why Choose Myself &amp; My Team</h2>
+    <div class="field">
+      <label>Intro line (optional)</label>
+      <textarea id="whyPara" style="min-height:40px;">Selling your home is one of the biggest decisions you'll make — here's what you can expect working with us.</textarea>
+    </div>
+    <div id="whyRows"></div>
+    <button type="button" class="add-btn" onclick="addWhyRow()">+ Add reason</button>
+  </div>
+
+  <div class="card">
+    <h2>5. Summary</h2>
+    <div class="field">
+      <label>Summary paragraph</label>
+      <textarea id="summaryPara">In summary, this proposal sets out our recommended process, marketing investment and the team behind your campaign. We're confident this approach will achieve the best possible outcome for your sale, and we look forward to the opportunity to bring it to life together.</textarea>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Closing</h2>
+    <div class="field">
+      <label>Closing paragraph / call to action</label>
+      <textarea id="closingPara">I'd welcome the opportunity to meet with you to walk through this Appraisal &amp; Proposal in detail and discuss next steps. Please get in touch at your convenience.</textarea>
+    </div>
+  </div>
+
+  <button class="btn-primary" onclick="generate()">Generate Appraisal &amp; Get Shareable Link</button>
+
+  <div id="shareBox" class="hidden">
+    <h3>✓ Ready to send</h3>
+    <p style="font-size:13px;color:var(--grey);margin:0 0 8px;">Copy this link and text it to your client — it opens straight to the finished Appraisal &amp; Proposal, formatted for their phone.</p>
+    <input id="shareUrl" readonly>
+    <div class="share-actions">
+      <button class="btn-secondary" onclick="copyLink()">Copy Link</button>
+      <button class="btn-secondary" onclick="previewLink()">Preview It</button>
+    </div>
+    <div class="warn">This link only works once the page itself is hosted online at a real web address. If you're viewing this file locally, ask to have it published first — then regenerate the link from that address.</div>
+  </div>
+</div>
+
+<!-- =================================================================== -->
+<!-- CLIENT VIEW (populated by JS) -->
+<!-- =================================================================== -->
+<div id="clientViewWrap" class="hidden"></div>
+
+<script>
+/* ---------------- Repeating row templates ---------------- */
+function rowShell(inner){
+  const div = document.createElement('div');
+  div.className = 'repeat-row';
+  div.innerHTML = '<button type="button" class="rm-btn" onclick="this.parentElement.remove()">✕</button>' + inner;
+  return div;
+}
+
+/* ---------------- Monday/Thursday calendar picker ---------------- */
+function isoFromDate(d){
+  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function dateFromISO(iso){
+  const [y,m,d] = iso.split('-').map(Number);
+  return new Date(y, m-1, d);
+}
+function formatDatePretty(iso){
+  return dateFromISO(iso).toLocaleDateString('en-AU', {weekday:'short', day:'numeric', month:'short', year:'numeric'});
+}
+
+const calState = { fieldId:null, weekday:1, viewDate:new Date() };
+
+function openCalendar(fieldId, weekday){
+  calState.fieldId = fieldId;
+  calState.weekday = weekday;
+  const iso = document.getElementById(fieldId).dataset.iso;
+  calState.viewDate = iso ? dateFromISO(iso) : new Date();
+  renderCalendar();
+  document.getElementById('calendarPopover').classList.remove('hidden');
+}
+function closeCalendar(){
+  document.getElementById('calendarPopover').classList.add('hidden');
+}
+function calNav(delta){
+  calState.viewDate = new Date(calState.viewDate.getFullYear(), calState.viewDate.getMonth()+delta, 1);
+  renderCalendar();
+}
+function renderCalendar(){
+  const { viewDate, weekday } = calState;
+  const year = viewDate.getFullYear(), month = viewDate.getMonth();
+  const first = new Date(year, month, 1);
+  const startWeekday = first.getDay();
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const monthName = viewDate.toLocaleDateString('en-AU', {month:'long', year:'numeric'});
+  const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  let cells = '';
+  for(let i=0;i<startWeekday;i++) cells += '<div class="cal-cell empty"></div>';
+  for(let d=1; d<=daysInMonth; d++){
+    const dt = new Date(year, month, d);
+    const isValid = dt.getDay() === weekday;
+    const iso = isoFromDate(dt);
+    cells += `<div class="cal-cell ${isValid?'valid':'disabled'}" ${isValid?`onclick="pickCalendarDate('${iso}')"`:''}>${d}</div>`;
+  }
+  document.getElementById('calendarPopover').innerHTML = `
+    <div class="cal-nav">
+      <button type="button" onclick="calNav(-1)">‹</button>
+      <span>${monthName}</span>
+      <button type="button" onclick="calNav(1)">›</button>
+    </div>
+    <div class="cal-grid">
+      ${dayNames.map(d=>`<div class="cal-dow">${d}</div>`).join('')}
+      ${cells}
+    </div>
+    <button type="button" class="cal-close" onclick="closeCalendar()">Close</button>
+  `;
+}
+function pickCalendarDate(iso){
+  const input = document.getElementById(calState.fieldId);
+  input.value = formatDatePretty(iso);
+  input.dataset.iso = iso;
+  if (calState.fieldId === 'campaignStart'){
+    const auctionInput = document.getElementById('auctionDate');
+    if (!auctionInput.dataset.manual){
+      const start = dateFromISO(iso);
+      const suggested = new Date(start.getFullYear(), start.getMonth(), start.getDate()+24);
+      const isoSuggested = isoFromDate(suggested);
+      auctionInput.value = formatDatePretty(isoSuggested);
+      auctionInput.dataset.iso = isoSuggested;
+    }
+  } else if (calState.fieldId === 'auctionDate'){
+    input.dataset.manual = '1';
+  }
+  closeCalendar();
+}
+
+function addTimelineRow(v={}){
+  document.getElementById('timelineRows').appendChild(rowShell(`
+    <div class="row2">
+      <div class="field"><label>Timing</label><input class="tl-when" value="${v.when||''}" placeholder="Week 1"></div>
+      <div class="field"><label>What happens</label><input class="tl-what" value="${v.what||''}" placeholder="Photography, styling &amp; campaign prep"></div>
+    </div>
+  `));
+}
+function addCostRow(v={}){
+  document.getElementById('costRows').appendChild(rowShell(`
+    <div class="row3">
+      <div class="field"><label>Item</label><input class="cost-item" value="${v.item||''}"></div>
+      <div class="field"><label>Description</label><input class="cost-desc" value="${v.desc||''}"></div>
+      <div class="field"><label>Amount</label><input class="cost-amount" value="${v.amount||''}" placeholder="$1,200"></div>
+    </div>
+  `));
+}
+function addWhyRow(v=''){
+  document.getElementById('whyRows').appendChild(rowShell(`
+    <div class="field"><label>Reason</label><input class="why-text" value="${v}" placeholder="e.g. #1 selling office in the precinct, 2025–26"></div>
+  `));
+}
+
+/* ---------------- Malan + Co marketing schedule presets ---------------- */
+const TIERS = {
+  Silver: [
+    {item:'Signboard 6x4 / 8x4', desc:'General marketing', amount:'$250'},
+    {item:'Professional Day Photography, Drone Images & Floor Plan', desc:'Video included for Silver', amount:'$500'},
+    {item:"Seller's Disclosure — House & Land", desc:'Statutory disclosure documentation', amount:'$990'},
+    {item:"1,000 Just Listed DL's", desc:'Letterbox drop', amount:'$500'},
+    {item:'Just Listed SMS & E-Newsletter', desc:'Sent to high net wealth database', amount:'$100'},
+    {item:'Sundry Marketing', desc:'In-house printing, open home prep, social media marketing', amount:'$200'},
+    {item:'realestate.com.au Premiere+', desc:'Online listing upgrade', amount:'$2,859'},
+    {item:'Domain Platinum', desc:'Online listing upgrade', amount:'$1,569'},
+    {item:'Auctioneer Fee', desc:'Online/onsite auction', amount:'$705'},
+  ],
+  Gold: [
+    {item:'Signboard 6x4 / 8x4', desc:'General marketing', amount:'$300'},
+    {item:'Professional Day Photography, Drone Images & Floor Plan', desc:'Sunset/sunrise photo & video included', amount:'$950'},
+    {item:"Seller's Disclosure — House & Land", desc:'Statutory disclosure documentation', amount:'$990'},
+    {item:"1,000 Just Listed DL's", desc:'Letterbox drop', amount:'$500'},
+    {item:'Just Listed SMS & E-Newsletter', desc:'Sent to high net wealth database', amount:'$150'},
+    {item:'Sundry Marketing', desc:'In-house printing, open home prep, social media marketing', amount:'$300'},
+    {item:'realestate.com.au Premiere+', desc:'Online listing upgrade', amount:'$2,859'},
+    {item:'Domain Platinum', desc:'Online listing upgrade', amount:'$1,569'},
+    {item:'Auctioneer Fee', desc:'Online/onsite auction', amount:'$705'},
+    {item:'Gold Coast Bulletin Campaign', desc:'Full page print — 1 week', amount:'$920'},
+  ],
+  Platinum: [
+    {item:'Signboard 6x4 / 8x4', desc:'General marketing', amount:'$300'},
+    {item:'Professional Day Photography, Drone Images & Floor Plan', desc:'Sunset/sunrise photo & video included', amount:'$1,370'},
+    {item:"Seller's Disclosure — House & Land", desc:'Statutory disclosure documentation', amount:'$990'},
+    {item:"1,000 Just Listed DL's", desc:'Letterbox drop', amount:'$500'},
+    {item:'Just Listed SMS & E-Newsletter', desc:'Sent to high net wealth database', amount:'$150'},
+    {item:'Sundry Marketing', desc:'In-house printing, open home prep, social media marketing', amount:'$500'},
+    {item:'realestate.com.au Premiere+', desc:'Online listing upgrade', amount:'$2,859'},
+    {item:'Domain Platinum', desc:'Online listing upgrade', amount:'$1,569'},
+    {item:'Auctioneer Fee', desc:'Online/onsite auction', amount:'$770'},
+    {item:'Gold Coast Bulletin Campaign', desc:'Full page print — 2 weeks', amount:'$1,840'},
+  ],
+};
+function applyTier(tier){
+  document.getElementById('costRows').innerHTML = '';
+  TIERS[tier].forEach(addCostRow);
+}
+
+/* ---------------- Seed defaults ---------------- */
+[
+  {when:'Week 1', what:'Presentation works, professional photography, styling &amp; campaign preparation'},
+  {when:'Week 2–5', what:'Campaign live — buyer inspections, enquiry management, weekly pricing feedback'},
+  {when:'Week 6', what:'Offers negotiated / auction day — creating competition between buyers'},
+  {when:'Week 6–8', what:'Contract to settlement'},
+].forEach(addTimelineRow);
+
+applyTier('Gold');
+
+['Local specialist — dedicated to the luxury precinct', 'Ray White\'s process-driven system creates genuine buyer competition', 'Proven track record of results above market expectations', 'Hands-on management from appraisal through to settlement'].forEach(addWhyRow);
+
+/* ---------------- Collect + Generate ---------------- */
+function collect(){
+  const val = id => document.getElementById(id).value.trim();
+  return {
+    agent:{ name:val('agentName'), agency:val('agentAgency'), phone:val('agentPhone'), email:val('agentEmail'), licence:val('agentLicence') },
+    client:{ name:val('clientName'), address:val('propAddress') },
+    property:{ land:val('propLand'), floor:val('propFloor'), config:val('propConfig') },
+    intro: val('introPara'),
+    price:{ igniteLink:val('igniteLink') },
+    process:{
+      para: val('processPara'),
+      startDate: document.getElementById('campaignStart').dataset.iso || '',
+      auctionDate: document.getElementById('auctionDate').dataset.iso || '',
+      stagingQuoteLink: val('stagingQuoteLink'),
+      timeline: Array.from(document.querySelectorAll('#timelineRows .repeat-row')).map(r=>({
+        when:r.querySelector('.tl-when').value, what:r.querySelector('.tl-what').value
+      }))
+    },
+    costs:{
+      intro: val('costsIntro'),
+      tier: (document.querySelector('input[name="costTier"]:checked') || {}).value || '',
+      items: Array.from(document.querySelectorAll('#costRows .repeat-row')).map(r=>({
+        item:r.querySelector('.cost-item').value, desc:r.querySelector('.cost-desc').value, amount:r.querySelector('.cost-amount').value
+      })),
+      commissionRate: val('commissionRate')
+    },
+    why:{
+      para: val('whyPara'),
+      bullets: Array.from(document.querySelectorAll('#whyRows .repeat-row')).map(r=>r.querySelector('.why-text').value)
+    },
+    summary: val('summaryPara'),
+    closing: val('closingPara')
+  };
+}
+
+function esc(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function toggleDisclosure(id, btn){
+  const el = document.getElementById(id);
+  el.classList.toggle('hidden');
+  const open = !el.classList.contains('hidden');
+  btn.textContent = btn.textContent.replace(/[▾▴]/, open ? '▴' : '▾');
+}
+function toggleSection(id, btn){
+  document.getElementById(id).classList.toggle('hidden');
+  btn.classList.toggle('open');
+}
+
+function moneyToNumber(s){
+  const n = parseFloat((s||'').replace(/[^0-9.]/g,''));
+  return isNaN(n) ? 0 : n;
+}
+
+function renderClientView(data){
+  const initials = (data.agent.name||'').split(' ').map(w=>w[0]||'').join('').toUpperCase();
+  let costTotal = data.costs.items.reduce((sum,c)=>sum+moneyToNumber(c.amount),0);
+  const payLaterTotal = Math.round(costTotal*1.069*100)/100;
+
+  const timelineItems = data.process.timeline.filter(t=>t.what).map(t=>`
+    <li><span class="t-when">${esc(t.when)}</span><span class="t-what">${esc(t.what)}</span></li>`).join('');
+
+  const costRows = data.costs.items.filter(c=>c.item).map(c=>`
+    <tr>
+      <td data-label="Item">${esc(c.item)}</td>
+      <td data-label="Details">${esc(c.desc)}</td>
+      <td data-label="Amount" class="num">${esc(c.amount)}</td>
+    </tr>`).join('');
+
+  const whyItems = data.why.bullets.filter(Boolean).map(w=>`<li>${esc(w)}</li>`).join('');
+
+  return `
+    <div class="cv-header">
+      <img src="/adam/ray-white-logo.png" alt="Ray White" class="cv-logo">
+      <div class="agency">${esc(data.agent.agency)}</div>
+      <h1>Appraisal &amp; Proposal</h1>
+      <div class="agent-line">${esc(data.client.address)}${data.property.config ? ' · ' + esc(data.property.config) : ''}</div>
+      <div class="cv-agent-row">
+        <img src="/adam/adam-sargeant.jpg" alt="${esc(data.agent.name)}" class="cv-avatar">
+        <span class="agent-line">Prepared by ${esc(data.agent.name)}</span>
+      </div>
+    </div>
+    <div class="cv-body">
+      <p class="cv-greeting">Dear ${esc(data.client.name)},</p>
+      <p style="font-size:14.5px;color:#333;">${esc(data.intro)}</p>
+      <ul class="cv-bullets" style="margin-bottom:8px;">
+        <li>Your property's current market position, with a full appraisal report</li>
+        <li>The recommended process to take it to market</li>
+        <li>The investment required, with a full breakdown</li>
+        <li>Why choose myself and my team</li>
+      </ul>
+
+      <div class="cv-section">
+        <span class="cv-badge">01 · Price &amp; Market</span>
+        <h2>Market Appraisal</h2>
+        <div class="cv-price-box">
+          <p style="margin:0;">This is a sales estimate based on recent sales — our job is to bring you the best the market has to offer through proven strategies. Full comparable sales and valuation detail live in the linked report.</p>
+        </div>
+        ${data.price.igniteLink ? `<a class="cv-link-btn" href="${esc(data.price.igniteLink)}" target="_blank" rel="noopener">View Full Appraisal Report ↗</a>` : ''}
+      </div>
+
+      <div class="cv-section">
+        <span class="cv-badge">02 · Process</span>
+        <button type="button" class="cv-section-toggle" onclick="toggleSection('bodyProcess', this)">
+          <h2>Our Recommended Strategy</h2>
+          <span class="cv-chevron">▾</span>
+        </button>
+        <div id="bodyProcess" class="hidden">
+        ${data.process.startDate || data.process.auctionDate ? `<div class="cv-price-box" style="margin-bottom:16px;">
+          ${data.process.startDate ? `<div class="po-row"><span>Campaign Launch</span><span>${esc(formatDatePretty(data.process.startDate))}</span></div>` : ''}
+          ${data.process.auctionDate ? `<div class="po-row"><span>Auction Day</span><span>${esc(formatDatePretty(data.process.auctionDate))}</span></div>` : ''}
+        </div>` : ''}
+        <p>${esc(data.process.para)}</p>
+        ${timelineItems ? `<ul class="timeline">${timelineItems}</ul>` : ''}
+
+        <p class="stat-strip-label" style="margin-top:18px;">How We'll Sell Your Home</p>
+        <div class="method-row">
+          <button type="button" class="cv-method-btn" onclick="toggleDisclosure('methodPrivateTreaty', this)">Private Treaty ▾</button>
+          <button type="button" class="cv-method-btn" onclick="toggleDisclosure('methodAuction', this)">Auction ▾</button>
+        </div>
+        <div id="methodPrivateTreaty" class="payment-options hidden">
+          <p style="margin:0 0 10px;">This strategy effectively balances the desire for a quick sale with the goal of maximising buyer interest and offers.</p>
+          <p style="margin:0 0 6px;font-weight:600;">Private treaty is recommended for properties:</p>
+          <ul class="cv-bullets" style="margin-bottom:10px;">
+            <li>Where time of sale is not an issue</li>
+            <li>Where the client is most comfortable with a clear price</li>
+            <li>Where marketing budgets are small — marketing with a price</li>
+            <li>Buyers usually spend 10–15% more than they intend, so we don't want to lose them before they view the home</li>
+          </ul>
+          <p style="margin:0 0 6px;font-weight:600;">Pricing considerations:</p>
+          <ul class="cv-bullets" style="margin:0;">
+            <li>Many owners add 10–15% on top to avoid "underselling," but this can hinder enquiries</li>
+            <li>Overcoming the 20–30% gap between the advertised price and the likely buyer's price takes the skill of our agents</li>
+            <li>Price the property too high and we can miss our buyers</li>
+          </ul>
+        </div>
+
+        <div id="methodAuction" class="payment-options hidden">
+          <p style="margin:0 0 10px;">Auctions are highly focused marketing campaigns designed to expose your property to the maximum number of buyers, maximise your sale price and minimise the number of days your property is on the market.</p>
+          <p style="margin:0 0 10px;">Auctions combine a strong marketing campaign with open days that show commitment. On auction day, eager buyers gather, fostering competitive bidding without price barriers, ensuring a definitive sale under the hammer if the reserve price is met. A set date encourages buyers to act quickly, while a skilled auctioneer — backed by over 110 years of experience — facilitates the negotiation. You retain the right to set the reserve price, protecting your interests.</p>
+          <p style="margin:0 0 6px;font-weight:600;">Auction is recommended for sellers who:</p>
+          <ul class="cv-bullets" style="margin-bottom:10px;">
+            <li>Are keen to compress the time it takes to finalise a sale</li>
+            <li>Want to attract all possible buyers, regardless of their original budget</li>
+            <li>Are willing to create time pressure for buyers to increase competition</li>
+          </ul>
+          <p style="margin:0 0 6px;font-weight:600;">Why auction creates competition:</p>
+          <ul class="cv-bullets" style="margin:0;">
+            <li>Your property is put up for sale on a specified date, preceded by a high-impact marketing campaign and selected open days — showing your commitment to selling</li>
+            <li>Auctions are a well-established, proven practice for selling real estate</li>
+            <li>Potential buyers are in one place at one time with a strong desire to purchase on the day</li>
+            <li>Competitive bidding means there is no price barrier</li>
+            <li>A definite, unconditional sale is made under the hammer, assuming the reserve price is reached</li>
+            <li>A set sale date encourages potential buyers to act quickly</li>
+            <li>The auctioneer is a professional negotiator with extensive training, backed by a brand with over 110 years of experience</li>
+            <li>You have the right to set the reserve price</li>
+          </ul>
+        </div>
+
+        ${data.process.stagingQuoteLink ? `<a class="cv-link-btn" href="${esc(data.process.stagingQuoteLink)}" target="_blank" rel="noopener" style="margin-top:16px;">View Staging Quote ↗</a>` : ''}
+        </div>
+      </div>
+
+      <div class="cv-section">
+        <span class="cv-badge">03 · Investment</span>
+        <button type="button" class="cv-section-toggle" onclick="toggleSection('bodyInvestment', this)">
+          <h2>Cost Breakdown</h2>
+          <span class="cv-chevron">▾</span>
+        </button>
+        <div id="bodyInvestment" class="hidden">
+        ${data.costs.tier ? `<p style="font-size:12.5px;color:var(--grey);margin:0 0 8px;text-transform:uppercase;letter-spacing:.04em;">Recommended Package: ${esc(data.costs.tier)}</p>` : ''}
+        <p>${esc(data.costs.intro)}</p>
+        ${costRows ? `<table class="cv-table"><thead><tr><th>Item</th><th>Details</th><th>Amount</th></tr></thead><tbody>${costRows}
+          <tr class="cv-total-row"><td data-label="Total">Total Investment</td><td data-label=""></td><td data-label="Amount" class="num">$${costTotal.toLocaleString()}</td></tr>
+        </tbody></table>
+        <button type="button" class="cv-toggle-btn" onclick="document.getElementById('paymentOptions').classList.toggle('hidden')">View payment options ▾</button>
+        <div id="paymentOptions" class="payment-options hidden">
+          <div class="po-row"><span>Pay Now</span><span>$${costTotal.toLocaleString()}</span></div>
+          <div class="po-row"><span>Pay Later <small>(+6.9% flat fee)</small></span><span>$${payLaterTotal.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div>
+        </div>` : ''}
+        ${data.costs.commissionRate ? `<p style="font-size:12.5px;color:var(--grey);margin:14px 0 0;">Agency commission: <strong style="color:var(--ink);">${esc(data.costs.commissionRate)}</strong> of the sale price, payable on settlement — separate from the marketing investment above.</p>` : ''}
+        </div>
+      </div>
+
+      <div class="cv-section">
+        <span class="cv-badge">04 · Why Us</span>
+        <h2>Why Choose ${esc(data.agent.name)} &amp; Team</h2>
+        <p>${esc(data.why.para)}</p>
+
+        <p>In today's market, the agency you choose matters more than ever. Under $3 million, Ray White is the clear market leader, giving your campaign the backing of a proven track record and a scale no boutique agency can match. Above $3 million, it's our buyer pool that sets us apart — we have, by far, the largest number of buyers actively looking to upgrade, thanks to our national network of Ray White franchises across every other part of Australia. These are buyers already known to us through a Ray White office elsewhere in the country, referred directly into our network — often before they've even started looking locally.</p>
+
+        <p class="stat-strip-label">Ray White Malan + Co — By The Numbers (Past 12 Months)</p>
+        <div class="stat-grid">
+          <div class="stat-tile"><div class="stat-num">1,200</div><div class="stat-label">Families helped</div></div>
+          <div class="stat-tile"><div class="stat-num">510</div><div class="stat-label">Google reviews, with a 4.6 star rating</div></div>
+          <div class="stat-tile"><div class="stat-num">12,905</div><div class="stat-label">Buyers met in a 12 month period</div></div>
+          <div class="stat-tile"><div class="stat-num">$859m</div><div class="stat-label">Dollar value sold in a 12 month period</div></div>
+          <div class="stat-tile"><div class="stat-num">584</div><div class="stat-label">Properties sold in a 12 month period</div></div>
+          <div class="stat-tile"><div class="stat-num">16,675</div><div class="stat-label">Property enquiries received over a 12 month period</div></div>
+        </div>
+
+        ${whyItems ? `<ul class="cv-bullets">${whyItems}</ul>` : ''}
+        <button type="button" class="cv-method-btn" onclick="toggleDisclosure('bioExpand', this)">Read Adam's Full Story ▾</button>
+        <div id="bioExpand" class="payment-options hidden">
+          <p style="margin:0 0 10px;font-weight:600;">Some agents know the Gold Coast waterfront. Adam Sargeant was born into it.</p>
+          <p style="margin:0 0 10px;">His ancestor Thomas Ainsworth arrived on the NSW North Coast in 1847 as a shipwright — navigating the same coastal rivers and waterways that defined the region's earliest trade and settlement. Lake Ainsworth near Lennox Head bears the family name to this day. The water has always been in the blood.</p>
+          <p style="margin:0 0 10px;">Adam has spent decades in real estate — owning and managing agencies, operating at the top of the market with an energy and relentlessness that simply doesn't quit. With close to ten years working with Ray White, he understands the systems and infrastructure behind consistently successful sales outcomes, and brings a background in technology that ensures every listing performs at its peak across every digital channel.</p>
+          <p style="margin:0 0 10px;">Over the course of his career Adam has been trusted to host and work alongside some of the most recognised names on the planet.</p>
+          <div class="clients-box">
+            <h4>Hosted &amp; Worked Alongside</h4>
+            <div class="client-chips">
+              <span>Arnold Schwarzenegger</span>
+              <span>Richard Branson</span>
+              <span>Gary Vee</span>
+              <span>Josh &amp; Matt Altman — Million Dollar Listing LA</span>
+              <span>George Saint-Pierre</span>
+              <span>Eric Thomas</span>
+              <span>Mark Bouris</span>
+            </div>
+          </div>
+          <div class="impact-box">
+            <h4>Beyond the Commission</h4>
+            <p>Three years volunteering with the Starlight Children's Foundation, supporting refugee housing and directing real estate resources toward the rescue of children caught in trafficking — when Adam says he's in this for more than a commission, the record backs it up.</p>
+          </div>
+          <p style="margin:10px 0 0;">He has now joined the team at Ray White Malan + Co, specialising in prestige and luxury property across the Gold Coast's most tightly held addresses — waterfront, canal front and everything the top end of this market has to offer.</p>
+        </div>
+      </div>
+
+      ${data.summary ? `<div class="cv-section">
+        <span class="cv-badge">05 · Summary</span>
+        <h2>Summary</h2>
+        <p>${esc(data.summary)}</p>
+      </div>` : ''}
+
+      <p style="font-size:14.5px;">${esc(data.closing)}</p>
+      <a class="cv-cta" href="tel:${esc(data.agent.phone)}">Call ${esc(data.agent.name)} — ${esc(data.agent.phone)}</a>
+      <p class="print-note">Tip: use your phone's Share/Print menu to save this as a PDF.</p>
+    </div>
+    <div class="cv-footer">
+      <div class="agent-name">${esc(data.agent.name)}</div>
+      <div>${esc(data.agent.agency)} · ${esc(data.agent.licence)}</div>
+      <div>${esc(data.agent.phone)} · ${esc(data.agent.email)}</div>
+      <div class="cv-disclaimer">This Appraisal &amp; Proposal is an estimate of value and a marketing proposal only. It does not constitute a formal valuation for lending, taxation, insurance, or legal purposes.</div>
+    </div>
+  `;
+}
+
+/* ---------------- Encode / decode for shareable link ---------------- */
+function encodeData(obj){
+  const json = JSON.stringify(obj);
+  const bytes = new TextEncoder().encode(json);
+  let binary = '';
+  bytes.forEach(b => binary += String.fromCharCode(b));
+  return btoa(binary).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+function decodeData(str){
+  let b64 = str.replace(/-/g,'+').replace(/_/g,'/');
+  while (b64.length % 4) b64 += '=';
+  const binary = atob(b64);
+  const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
+
+async function generate(){
+  const data = collect();
+  const btn = document.querySelector('.btn-primary');
+  const originalLabel = btn.textContent;
+  btn.textContent = 'Generating…';
+  btn.disabled = true;
+  try{
+    const res = await fetch('/adam/api/appraisals', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error('save failed');
+    const { id } = await res.json();
+    document.getElementById('shareUrl').value = location.origin + '/adam/a/' + id;
+  }catch(e){
+    console.error('Could not save appraisal — falling back to a self-contained link', e);
+    const encoded = encodeData(data);
+    document.getElementById('shareUrl').value = location.origin + location.pathname + '?d=' + encoded;
+  }
+  btn.textContent = originalLabel;
+  btn.disabled = false;
+  document.getElementById('shareBox').classList.remove('hidden');
+  document.getElementById('shareBox').scrollIntoView({behavior:'smooth', block:'center'});
+  loadSavedAppraisals();
+}
+function copyLink(){
+  const input = document.getElementById('shareUrl');
+  input.select(); input.setSelectionRange(0, 99999);
+  navigator.clipboard && navigator.clipboard.writeText(input.value).catch(()=>document.execCommand('copy'));
+}
+function previewLink(){
+  window.open(document.getElementById('shareUrl').value, '_blank');
+}
+
+function showClientView(data){
+  document.getElementById('builder').classList.add('hidden');
+  const wrap = document.getElementById('clientViewWrap');
+  wrap.classList.remove('hidden');
+  wrap.innerHTML = renderClientView(data);
+  document.title = 'Appraisal & Proposal – ' + (data.client.address || '');
+}
+
+function showClientViewNotFound(){
+  document.getElementById('builder').classList.add('hidden');
+  const wrap = document.getElementById('clientViewWrap');
+  wrap.classList.remove('hidden');
+  wrap.innerHTML = '<div style="padding:70px 24px;text-align:center;color:#555;max-width:400px;margin:0 auto;">' +
+    '<h2 style="color:#222;font-size:20px;margin:0 0 10px;">Appraisal not found</h2>' +
+    '<p style="font-size:14px;">This link may be out of date. Please contact your agent for an updated Appraisal &amp; Proposal.</p></div>';
+}
+
+function loadSavedAppraisals(){
+  const el = document.getElementById('savedAppraisalsList');
+  if (!el) return;
+  fetch('/adam/api/appraisals').then(r => {
+    if (r.status === 401) throw new Error('login');
+    return r.json();
+  }).then(list => {
+    if (!list.length){
+      el.innerHTML = '<p style="margin:0;font-size:13.5px;color:var(--grey);">No appraisals saved yet — generate one below and it\'ll show up here.</p>';
+      return;
+    }
+    el.innerHTML = list.map(a => {
+      const date = new Date(a.createdAt).toLocaleDateString('en-AU', {day:'numeric', month:'short', year:'numeric'});
+      const url = location.origin + '/adam/a/' + a.id;
+      return `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);">
+        <div>
+          <div style="font-weight:600;color:var(--ink);font-size:14px;">${esc(a.address || '(no address)')}</div>
+          <div style="font-size:12px;color:var(--grey);">${esc(a.clientName||'')}${a.clientName?' · ':''}${date}</div>
+        </div>
+        <a href="${url}" target="_blank" style="font-size:13px;font-weight:700;color:var(--ink);white-space:nowrap;text-decoration:none;">Open ↗</a>
+      </div>`;
+    }).join('');
+  }).catch(err => {
+    el.innerHTML = err.message === 'login'
+      ? '<p style="margin:0;font-size:13.5px;color:var(--grey);"><a href="/adam/admin">Log in to the admin page</a> to see your saved appraisals.</p>'
+      : '<p style="margin:0;font-size:13.5px;color:var(--grey);">Could not load saved appraisals.</p>';
+  });
+}
+
+/* ---------------- Boot: client-view mode if /a/:id or ?d= present ---------------- */
+(function boot(){
+  const pathMatch = location.pathname.match(/^\/adam\/a\/([a-z0-9-]+)$/i);
+  if (pathMatch){
+    fetch('/adam/api/appraisals/' + pathMatch[1])
+      .then(res => { if (!res.ok) throw new Error('not found'); return res.json(); })
+      .then(showClientView)
+      .catch(showClientViewNotFound);
+    return;
+  }
+  const params = new URLSearchParams(location.search);
+  if (params.has('d')){
+    try{
+      showClientView(decodeData(params.get('d')));
+    }catch(e){
+      console.error('Could not read appraisal link', e);
+    }
+    return;
+  }
+  loadSavedAppraisals();
+})();
+
+document.addEventListener('click', function(e){
+  const pop = document.getElementById('calendarPopover');
+  if (!pop || pop.classList.contains('hidden')) return;
+  if (pop.contains(e.target) || e.target.classList.contains('cal-input')) return;
+  pop.classList.add('hidden');
+});
+</script>
+</body>
+</html>

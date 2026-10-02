@@ -3,3 +3,4 @@ admin-frontend/dist/
 connector-frontend/dist/
 .env
 .claude/
+agent/data/

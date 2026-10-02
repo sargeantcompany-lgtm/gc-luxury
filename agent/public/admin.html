@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Admin — Adam Sargeant</title>
+<style>
+  :root{
+    --gold:#FFE512;
+    --gold-dark:#E8C700;
+    --ink:#171E1A;
+    --grey:#6B6B6B;
+    --light:#F7F5F3;
+    --line:#E4E0DA;
+    --white:#FFFFFF;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--light);
+    color:var(--ink);
+    line-height:1.5;
+  }
+  a{color:var(--ink);}
+  .hidden{display:none !important;}
+
+  .top{
+    background:var(--ink);color:#fff;
+    padding:16px 20px;
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+  }
+  .top .brand{font-weight:800;font-size:16px;}
+  .top .brand span{color:var(--gold);font-size:11px;letter-spacing:.14em;text-transform:uppercase;display:block;font-weight:600;}
+  .top-actions{display:flex;gap:10px;align-items:center;}
+  .top-actions a,.top-actions button{
+    font:inherit;font-size:13px;font-weight:700;
+    color:var(--ink);background:var(--gold);border:0;border-radius:6px;
+    padding:8px 12px;text-decoration:none;cursor:pointer;
+  }
+  .top-actions button.ghost{background:transparent;color:#ccc;border:1px solid #444;}
+
+  #wrap{max-width:960px;margin:0 auto;padding:20px 16px 60px;}
+
+  .tabs{display:flex;gap:4px;border-bottom:2px solid var(--line);margin-bottom:18px;}
+  .tab{
+    font:inherit;font-size:14px;font-weight:700;
+    background:none;border:0;padding:10px 16px;cursor:pointer;color:var(--grey);
+    border-bottom:3px solid transparent;margin-bottom:-2px;
+  }
+  .tab.active{color:var(--ink);border-bottom-color:var(--gold-dark);}
+  .tab .count{
+    display:inline-block;min-width:20px;padding:1px 7px;margin-left:6px;
+    border-radius:10px;background:var(--line);font-size:12px;color:var(--ink);
+  }
+  .tab.active .count{background:var(--gold);}
+
+  .toolbar{display:flex;gap:10px;margin-bottom:14px;}
+  .toolbar input{
+    flex:1;font:inherit;font-size:14px;padding:10px 12px;
+    border:1px solid var(--line);border-radius:8px;background:#fff;
+  }
+
+  .card{background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;}
+  table{width:100%;border-collapse:collapse;font-size:14px;}
+  th{
+    text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--grey);font-weight:700;padding:12px 14px;border-bottom:1px solid var(--line);background:#FBFAF8;
+  }
+  td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  tr:last-child td{border-bottom:0;}
+  .addr{font-weight:700;}
+  .sub{font-size:12px;color:var(--grey);}
+  .when{white-space:nowrap;}
+  .actions{white-space:nowrap;text-align:right;}
+  .actions a,.actions button{
+    font:inherit;font-size:12.5px;font-weight:700;
+    background:none;border:1.5px solid var(--gold-dark);border-radius:6px;
+    padding:5px 10px;cursor:pointer;text-decoration:none;color:var(--ink);margin-left:4px;
+  }
+  .actions a:hover,.actions button:hover{background:var(--gold);}
+  .actions button.del,.offer-body button.del{border-color:#E4B4AE;color:#B42318;}
+  .actions button.del:hover,.offer-body button.del:hover{background:#FEF3F2;}
+  .offer-body button.del{font:inherit;font-size:12.5px;font-weight:700;background:none;border:1.5px solid #E4B4AE;border-radius:6px;padding:5px 10px;cursor:pointer;margin-top:14px;}
+
+  .empty{padding:40px 20px;text-align:center;color:var(--grey);font-size:14px;}
+
+  /* Offers tab */
+  .section-title{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--grey);margin:26px 0 10px;}
+  .section-title:first-child{margin-top:0;}
+  .link-form{display:flex;gap:8px;padding:12px;flex-wrap:wrap;}
+  .link-form input{flex:1 1 220px;font:inherit;font-size:14px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;}
+  .link-form input#linkAgent{flex:0 1 180px;}
+  .link-form button{font:inherit;font-size:14px;font-weight:700;background:var(--gold);border:0;border-radius:8px;padding:10px 16px;cursor:pointer;}
+  .link-form button:hover{background:var(--gold-dark);}
+  .new-link{margin-top:10px;padding:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-color:var(--gold-dark);}
+  .new-link input{flex:1 1 260px;font:inherit;font-size:13px;padding:9px 10px;border:1px solid var(--line);border-radius:6px;background:var(--light);}
+  .new-link button,.new-link a{font:inherit;font-size:13px;font-weight:700;background:var(--gold);border:0;border-radius:6px;padding:9px 14px;cursor:pointer;color:var(--ink);text-decoration:none;}
+
+  details.offer{border-bottom:1px solid var(--line);}
+  details.offer:last-child{border-bottom:0;}
+  details.offer summary{list-style:none;cursor:pointer;padding:14px;display:flex;justify-content:space-between;gap:12px;align-items:center;}
+  details.offer summary::-webkit-details-marker{display:none;}
+  details.offer summary:hover{background:#FBFAF8;}
+  details.offer .price{font-weight:800;font-size:16px;white-space:nowrap;}
+  details.offer[open] summary{background:#FBFAF8;border-bottom:1px solid var(--line);}
+  .offer-body{padding:6px 14px 16px;}
+  .offer-body dl{display:grid;grid-template-columns:190px 1fr;gap:8px 16px;margin:10px 0 0;font-size:14px;}
+  .offer-body dt{color:var(--grey);}
+  .offer-body dd{margin:0;white-space:pre-wrap;word-break:break-word;}
+  @media (max-width:640px){ .offer-body dl{grid-template-columns:1fr;gap:2px;} .offer-body dd{margin-bottom:8px;} }
+
+  /* Off-market tab */
+  .thumb{width:64px;height:48px;border-radius:6px;object-fit:cover;background:var(--line);display:block;}
+  .prop-cell{display:flex;gap:12px;align-items:center;}
+  .status{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:10px;background:var(--line);}
+  .status.available{background:#DCFAE6;color:#067647;}
+  .status.under_offer{background:#FEF0C7;color:#93370D;}
+  .status.hidden{background:#F2F4F7;color:#667085;}
+  .editor{padding:16px;margin-bottom:14px;border-color:var(--gold-dark);}
+  .editor h3{margin:0 0 12px;font-size:16px;}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+  .grid .wide{grid-column:span 2;}
+  .grid .full{grid-column:1 / -1;}
+  .editor label{display:block;font-size:12px;font-weight:700;color:var(--grey);}
+  .editor input,.editor select,.editor textarea{
+    width:100%;margin-top:4px;font:inherit;font-size:14px;padding:9px 10px;
+    border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);
+  }
+  .editor textarea{min-height:120px;resize:vertical;}
+  .photos{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px;}
+  .photo{position:relative;width:120px;}
+  .photo img{width:120px;height:90px;object-fit:cover;border-radius:6px;display:block;}
+  .photo .cover{position:absolute;top:4px;left:4px;background:var(--gold);font-size:10px;font-weight:800;padding:1px 6px;border-radius:4px;}
+  .photo .ctrl{display:flex;justify-content:space-between;margin-top:4px;}
+  .photo .ctrl button{font:inherit;font-size:12px;font-weight:700;background:#fff;border:1px solid var(--line);border-radius:5px;padding:2px 8px;cursor:pointer;}
+  .photo .ctrl button:disabled{opacity:.35;cursor:default;}
+  .add-photo{
+    width:120px;height:90px;border:2px dashed var(--line);border-radius:6px;display:flex;align-items:center;justify-content:center;
+    text-align:center;font-size:12px;font-weight:700;color:var(--grey);cursor:pointer;background:#FBFAF8;
+  }
+  .add-photo:hover{border-color:var(--gold-dark);color:var(--ink);}
+  .editor-actions{display:flex;gap:10px;margin-top:14px;align-items:center;}
+  .editor-actions button{font:inherit;font-size:14px;font-weight:700;border-radius:8px;padding:10px 16px;cursor:pointer;border:0;background:var(--gold);}
+  .editor-actions button.ghost{background:none;border:1px solid var(--line);}
+  .editor-actions .msg{font-size:13px;color:#B42318;}
+  .section-head{display:flex;justify-content:space-between;align-items:center;margin:26px 0 10px;}
+  .section-head:first-child{margin-top:0;}
+  .section-head .section-title{margin:0;}
+  .section-head button{font:inherit;font-size:13px;font-weight:700;background:var(--gold);border:0;border-radius:6px;padding:8px 12px;cursor:pointer;}
+  @media (max-width:640px){ .grid{grid-template-columns:1fr 1fr;} .grid .wide{grid-column:1 / -1;} }
+
+  /* Login */
+  .login{
+    max-width:360px;margin:80px auto;background:#fff;border:1px solid var(--line);
+    border-radius:12px;padding:28px 24px;text-align:center;
+  }
+  .login h1{font-size:20px;margin:0 0 6px;}
+  .login p{font-size:13px;color:var(--grey);margin:0 0 18px;}
+  .login input{
+    width:100%;font:inherit;font-size:15px;padding:12px;border:1px solid var(--line);
+    border-radius:8px;margin-bottom:12px;
+  }
+  .login button{
+    width:100%;font:inherit;font-size:15px;font-weight:700;padding:12px;border:0;border-radius:8px;
+    background:var(--gold);color:var(--ink);cursor:pointer;
+  }
+  .login button:hover{background:var(--gold-dark);}
+  .login .err{color:#B42318;font-size:13px;min-height:18px;margin-top:10px;}
+
+  /* Phones: table rows become stacked cards */
+  @media (max-width:640px){
+    thead{display:none;}
+    table,tbody,tr,td{display:block;width:100%;}
+    tr{padding:12px 14px;border-bottom:1px solid var(--line);}
+    td{padding:2px 0;border:0;}
+    .actions{text-align:left;margin-top:8px;}
+    .actions a,.actions button{margin:0 6px 0 0;}
+    .top .brand span{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<div id="loginView" class="hidden">
+  <form class="login" onsubmit="login(event)">
+    <h1>Admin</h1>
+    <p>Enter your password to see your appraisals.</p>
+    <input id="password" type="password" placeholder="Password" autocomplete="current-password" autofocus>
+    <button type="submit">Log in</button>
+    <div class="err" id="loginErr"></div>
+  </form>
+</div>
+
+<div id="adminView" class="hidden">
+  <div class="top">
+    <div class="brand"><span>Ray White Broadbeach</span>Adam Sargeant — Admin</div>
+    <div class="top-actions">
+      <a href="/adam/appraisal-tool.html">+ New Appraisal</a>
+      <button class="ghost" onclick="logout()">Log out</button>
+    </div>
+  </div>
+
+  <div id="wrap">
+    <div class="tabs">
+      <button class="tab active" data-tab="appraisals" onclick="showTab('appraisals')">Appraisals Sent<span class="count" id="appraisalCount">0</span></button>
+      <button class="tab" data-tab="offers" onclick="showTab('offers')">Offers<span class="count" id="offerCount">0</span></button>
+      <button class="tab" data-tab="offmarket" onclick="showTab('offmarket')">Off-Market<span class="count" id="omCount">0</span></button>
+    </div>
+
+    <section id="tab-appraisals">
+      <div class="toolbar">
+        <input id="search" type="search" placeholder="Search by address or owner…" oninput="renderAppraisals()">
+      </div>
+      <div class="card">
+        <table>
+          <thead><tr><th>Property</th><th>Sent</th><th></th></tr></thead>
+          <tbody id="appraisalRows"><tr><td colspan="3" class="empty">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="tab-offers" class="hidden">
+      <h3 class="section-title">Your offer link</h3>
+      <div class="card new-link">
+        <span style="font-size:13px;flex-basis:100%;color:var(--grey);">Send this to any buyer. They type in the property address and fill out the offer.</span>
+        <input readonly id="generalLink" onclick="this.select()">
+        <button onclick="copyLink(this, document.getElementById('generalLink').value)">Copy link</button>
+      </div>
+
+      <h3 class="section-title">Offers received</h3>
+      <div class="card" id="offerList"><div class="empty">Loading…</div></div>
+
+      <h3 class="section-title">Property-specific links <span style="text-transform:none;letter-spacing:0;font-weight:400;">(optional, address filled in for the buyer)</span></h3>
+      <form class="card link-form" onsubmit="createLink(event)">
+        <input id="linkAddress" placeholder="Property address, e.g. 8 Jindivick Street, Worongary" required>
+        <input id="linkAgent" value="Adam Sargeant" placeholder="Agent">
+        <button type="submit">Create link</button>
+      </form>
+      <div id="newLink" class="card new-link hidden"></div>
+      <div style="height:10px"></div>
+      <div class="card">
+        <table>
+          <thead><tr><th>Property</th><th>Created</th><th></th></tr></thead>
+          <tbody id="linkRows"><tr><td colspan="3" class="empty">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="tab-offmarket" class="hidden">
+      <div class="section-head">
+        <h3 class="section-title">Off-market properties</h3>
+        <button id="addListingBtn" onclick="editListing(null)">+ Add property</button>
+      </div>
+
+      <form id="editor" class="card editor hidden" onsubmit="saveListing(event)">
+        <h3 id="editorTitle">New off-market property</h3>
+        <div class="grid">
+          <label class="wide">Address *<input id="omAddress" required placeholder="e.g. 12 Sovereign Island Drive"></label>
+          <label>Suburb<input id="omSuburb" placeholder="e.g. Paradise Point"></label>
+          <label>Status
+            <select id="omStatus">
+              <option value="available">Available</option>
+              <option value="under_offer">Under offer</option>
+              <option value="sold">Sold</option>
+              <option value="hidden">Hidden (draft)</option>
+            </select>
+          </label>
+          <label class="wide">Price guide<input id="omPrice" placeholder="e.g. $4.2M – $4.5M, or Offers over $3M"></label>
+          <label>Land<input id="omLand" placeholder="e.g. 810 m²"></label>
+          <div></div>
+          <label>Beds<input id="omBeds" inputmode="numeric"></label>
+          <label>Baths<input id="omBaths" inputmode="numeric"></label>
+          <label>Cars<input id="omCars" inputmode="numeric"></label>
+          <div></div>
+          <label class="full">Description<textarea id="omDesc" placeholder="What makes it special, why it's off-market, inspection details…"></textarea></label>
+          <div class="full">
+            <label>Photos <span style="font-weight:400;">— first photo is the cover. Optional.</span></label>
+            <div class="photos" id="omPhotos"></div>
+            <input type="file" id="omFiles" accept="image/*" multiple class="hidden" onchange="uploadPhotos(this.files)">
+          </div>
+        </div>
+        <div class="editor-actions">
+          <button type="submit" id="omSave">Save property</button>
+          <button type="button" class="ghost" onclick="closeEditor()">Cancel</button>
+          <span class="msg" id="omMsg"></span>
+        </div>
+      </form>
+
+      <div class="card">
+        <table>
+          <thead><tr><th>Property</th><th>Status</th><th></th></tr></thead>
+          <tbody id="omRows"><tr><td colspan="3" class="empty">Loading…</td></tr></tbody>
+        </table>
+      </div>
+
+      <h3 class="section-title">Who can view them</h3>
+      <p class="sub" style="margin:-4px 0 10px;">Each person gets their own private link to all your off-market properties (hidden drafts excluded). Delete their access to switch the link off.</p>
+      <form class="card link-form" onsubmit="createAccess(event)">
+        <input id="accessName" placeholder="Name, e.g. John &amp; Mary Smith" required>
+        <input id="accessMobile" placeholder="Mobile (optional)" style="flex:0 1 180px;" inputmode="tel">
+        <button type="submit">Create access link</button>
+      </form>
+      <div id="newAccess" class="card new-link hidden"></div>
+      <div style="height:10px"></div>
+      <div class="card">
+        <table>
+          <thead><tr><th>Person</th><th>Last viewed</th><th></th></tr></thead>
+          <tbody id="accessRows"><tr><td colspan="3" class="empty">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+let appraisals = [];
+
+function esc(s){
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function fmtWhen(iso){
+  const d = new Date(iso);
+  if (isNaN(d)) return {date:'', time:''};
+  return {
+    date: d.toLocaleDateString('en-AU', {weekday:'short', day:'numeric', month:'short', year:'numeric'}),
+    time: d.toLocaleTimeString('en-AU', {hour:'numeric', minute:'2-digit'})
+  };
+}
+
+function showTab(name){
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  ['appraisals', 'offers', 'offmarket'].forEach(t =>
+    document.getElementById('tab-' + t).classList.toggle('hidden', name !== t));
+}
+
+function renderAppraisals(){
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  const rows = appraisals.filter(a =>
+    !q || (a.address || '').toLowerCase().includes(q) || (a.clientName || '').toLowerCase().includes(q)
+  );
+  const body = document.getElementById('appraisalRows');
+  if (!rows.length){
+    body.innerHTML = `<tr><td colspan="3" class="empty">${appraisals.length ? 'No appraisals match your search.' : 'No appraisals sent yet. <a href="/adam/appraisal-tool.html">Create your first one</a>.'}</td></tr>`;
+    return;
+  }
+  body.innerHTML = rows.map(a => {
+    const w = fmtWhen(a.createdAt);
+    const url = location.origin + '/adam/a/' + a.id;
+    return `<tr>
+      <td><div class="addr">${esc(a.address || '(no address)')}</div><div class="sub">${esc(a.clientName || '')}</div></td>
+      <td class="when">${esc(w.date)}<div class="sub">${esc(w.time)}</div></td>
+      <td class="actions">
+        <a href="${esc(url)}" target="_blank" rel="noopener">Open ↗</a>
+        <button onclick="copyLink(this, '${esc(url)}')">Copy link</button>
+        <button class="del" onclick="deleteRecord('appraisals', '${esc(a.id)}', 'Delete the appraisal for ${esc(jsStr(a.address || 'this property'))}? The link you sent the client will stop working.')">Delete</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// Escape for use inside a single-quoted JS string in an onclick attribute.
+function jsStr(s){
+  return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\r?\n/g, ' ');
+}
+
+async function deleteRecord(type, id, message){
+  if (!confirm(message + '\n\nThis cannot be undone.')) return;
+  const res = await fetch(`/adam/api/${type}/${encodeURIComponent(id)}`, {method:'DELETE'});
+  if (res.status === 401) return showLogin();
+  if (!res.ok && res.status !== 404){ alert('Could not delete — please try again.'); return; }
+  if (type === 'appraisals') loadAppraisals();
+  else if (type.startsWith('off-market')) loadOffMarket();
+  else loadOffers();
+}
+
+function copyLink(btn, url){
+  const done = () => { const t = btn.textContent; btn.textContent = 'Copied ✓'; setTimeout(() => btn.textContent = t, 1500); };
+  if (navigator.clipboard) navigator.clipboard.writeText(url).then(done).catch(() => prompt('Copy this link:', url));
+  else prompt('Copy this link:', url);
+}
+
+async function loadAppraisals(){
+  const res = await fetch('/adam/api/appraisals');
+  if (res.status === 401) return showLogin();
+  appraisals = res.ok ? await res.json() : [];
+  document.getElementById('appraisalCount').textContent = appraisals.length;
+  renderAppraisals();
+}
+
+/* ---------------- Offers ---------------- */
+let offers = [];
+let offerLinks = [];
+document.getElementById('generalLink').value = location.origin + '/adam/offer';
+
+const fmtMoney = n => (n || n === 0) ? '$' + Number(n).toLocaleString('en-AU') : '—';
+const yesNoDays = (yn, days) => yn === 'yes' ? `Yes — ${days} days` : yn === 'no' ? 'No' : '—';
+const offerUrl = id => location.origin + '/adam/offer/' + id;
+
+function renderOffers(){
+  document.getElementById('offerCount').textContent = offers.length;
+  const el = document.getElementById('offerList');
+  if (!offers.length){
+    el.innerHTML = '<div class="empty">No offers yet. Create an offer link above and send it to buyers. Their offers will show up here.</div>';
+    return;
+  }
+  el.innerHTML = offers.map(o => {
+    const w = fmtWhen(o.createdAt);
+    const settlement = o.settlement === 'other' ? o.settlementOther : o.settlement ? o.settlement + ' days' : '—';
+    const rows = [
+      ['Property', o.address],
+      ['Buyer/s full names', o.buyerNames],
+      ['Email', `<a href="mailto:${esc(o.email)}">${esc(o.email)}</a>`, true],
+      ['Mobile', `<a href="tel:${esc(o.mobile.replace(/\s/g,''))}">${esc(o.mobile)}</a>`, true],
+      ["Buyer's solicitor", o.solicitor || '—'],
+      ['Purchase price', fmtMoney(o.purchasePrice)],
+      ['Initial deposit', fmtMoney(o.initialDeposit) + ' — payable when buyer signs a Contract of Sale'],
+      ['Balance deposit', fmtMoney(o.balanceDeposit) + (o.balanceDepositPayableOn ? ' — payable on ' + o.balanceDepositPayableOn : '')],
+      ['Subject to finance', yesNoDays(o.finance, o.financeDays)],
+      ['Subject to pest & building', yesNoDays(o.pestBuilding, o.pestBuildingDays)],
+      ['Settlement', settlement],
+      ['Other terms & conditions', o.otherTerms || '—'],
+      ['Agent', o.agent],
+      ['Signed (typed name)', o.signature],
+      ['Submitted', `${w.date}, ${w.time}`],
+    ];
+    return `<details class="offer">
+      <summary>
+        <div><div class="addr">${esc(o.address)}</div><div class="sub">${esc(o.buyerNames)} · ${esc(w.date)}, ${esc(w.time)}</div></div>
+        <div class="price">${esc(fmtMoney(o.purchasePrice))}</div>
+      </summary>
+      <div class="offer-body"><dl>${rows.map(([k, v, html]) => `<dt>${esc(k)}</dt><dd>${html ? v : esc(v)}</dd>`).join('')}</dl>
+        <button class="del" onclick="deleteRecord('offers', '${esc(o.id)}', 'Delete the offer from ${esc(jsStr(o.buyerNames))} for ${esc(jsStr(o.address))}?')">Delete offer</button>
+      </div>
+    </details>`;
+  }).join('');
+}
+
+function renderLinks(){
+  const body = document.getElementById('linkRows');
+  if (!offerLinks.length){
+    body.innerHTML = '<tr><td colspan="3" class="empty">No offer links yet.</td></tr>';
+    return;
+  }
+  body.innerHTML = offerLinks.map(l => {
+    const w = fmtWhen(l.createdAt);
+    const count = offers.filter(o => o.linkId === l.id).length;
+    const url = offerUrl(l.id);
+    return `<tr>
+      <td><div class="addr">${esc(l.address)}</div><div class="sub">${esc(l.agent)} · ${count} offer${count === 1 ? '' : 's'}</div></td>
+      <td class="when">${esc(w.date)}<div class="sub">${esc(w.time)}</div></td>
+      <td class="actions">
+        <a href="${esc(url)}" target="_blank" rel="noopener">Open ↗</a>
+        <button onclick="copyLink(this, '${esc(url)}')">Copy link</button>
+        <button class="del" onclick="deleteRecord('offer-links', '${esc(l.id)}', 'Delete the offer link for ${esc(jsStr(l.address))}? Anyone you sent it to won\\'t be able to use it. Offers already received are kept.')">Delete</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function loadOffers(){
+  const [o, l] = await Promise.all([fetch('/adam/api/offers'), fetch('/adam/api/offer-links')]);
+  if (o.status === 401 || l.status === 401) return showLogin();
+  offers = o.ok ? await o.json() : [];
+  offerLinks = l.ok ? await l.json() : [];
+  renderOffers();
+  renderLinks();
+}
+
+async function createLink(e){
+  e.preventDefault();
+  const address = document.getElementById('linkAddress').value.trim();
+  const agent = document.getElementById('linkAgent').value.trim();
+  const res = await fetch('/adam/api/offer-links', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({address, agent})});
+  if (res.status === 401) return showLogin();
+  const data = await res.json().catch(() => ({}));
+  const box = document.getElementById('newLink');
+  box.classList.remove('hidden');
+  if (!res.ok){
+    box.textContent = data.error || 'Could not create the link';
+    return;
+  }
+  const url = offerUrl(data.id);
+  box.innerHTML = `<strong style="font-size:13px;">Link ready for ${esc(data.address)}:</strong>
+    <input readonly value="${esc(url)}" onclick="this.select()">
+    <button onclick="copyLink(this, '${esc(url)}')">Copy link</button>`;
+  document.getElementById('linkAddress').value = '';
+  loadOffers();
+}
+
+/* ---------------- Off-market ---------------- */
+let omListings = [];
+let omAccess = [];
+let editingId = null;   // null = new property
+let editPhotos = [];    // photo file names, in display order
+
+const STATUS_LABEL = {available:'Available', under_offer:'Under offer', sold:'Sold', hidden:'Hidden'};
+const photoUrl = name => '/adam/api/off-market/photos/' + name;
+const accessUrl = id => location.origin + '/adam/off-market/' + id;
+
+async function loadOffMarket(){
+  const [l, a] = await Promise.all([fetch('/adam/api/off-market/listings'), fetch('/adam/api/off-market/access')]);
+  if (l.status === 401 || a.status === 401) return showLogin();
+  omListings = l.ok ? await l.json() : [];
+  omAccess = a.ok ? await a.json() : [];
+  document.getElementById('omCount').textContent = omListings.length;
+  renderListings();
+  renderAccess();
+}
+
+function renderListings(){
+  const body = document.getElementById('omRows');
+  if (!omListings.length){
+    body.innerHTML = '<tr><td colspan="3" class="empty">No off-market properties yet. Click “+ Add property” to list your first one.</td></tr>';
+    return;
+  }
+  body.innerHTML = omListings.map(l => {
+    const facts = [l.beds && l.beds + ' bed', l.baths && l.baths + ' bath', l.cars && l.cars + ' car'].filter(Boolean).join(' · ');
+    return `<tr>
+      <td><div class="prop-cell">
+        ${l.photos.length ? `<img class="thumb" src="${esc(photoUrl(l.photos[0]))}" alt="">` : '<div class="thumb"></div>'}
+        <div><div class="addr">${esc(l.address)}${l.suburb ? ', ' + esc(l.suburb) : ''}</div>
+        <div class="sub">${esc([l.priceGuide, facts, l.photos.length + ' photo' + (l.photos.length === 1 ? '' : 's')].filter(Boolean).join(' · '))}</div></div>
+      </div></td>
+      <td><span class="status ${esc(l.status)}">${esc(STATUS_LABEL[l.status] || l.status)}</span></td>
+      <td class="actions">
+        <button onclick="editListing('${esc(l.id)}')">Edit</button>
+        <button class="del" onclick="deleteListing('${esc(l.id)}')">Delete</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function renderAccess(){
+  const body = document.getElementById('accessRows');
+  if (!omAccess.length){
+    body.innerHTML = '<tr><td colspan="3" class="empty">Nobody has access yet. Add a person above to get their private link.</td></tr>';
+    return;
+  }
+  body.innerHTML = omAccess.map(a => {
+    const url = accessUrl(a.id);
+    const seen = a.lastViewedAt ? fmtWhen(a.lastViewedAt) : null;
+    return `<tr>
+      <td><div class="addr">${esc(a.name)}</div><div class="sub">${esc(a.mobile || 'No mobile')}</div></td>
+      <td class="when">${seen ? `${esc(seen.date)}<div class="sub">${esc(seen.time)} · ${a.views} view${a.views === 1 ? '' : 's'}</div>` : '<span class="sub">Not opened yet</span>'}</td>
+      <td class="actions">
+        <a href="${esc(url)}" target="_blank" rel="noopener">Open ↗</a>
+        <button onclick="copyLink(this, '${esc(url)}')">Copy link</button>
+        ${a.mobile ? `<a href="${esc(smsHref(a))}">Text</a>` : ''}
+        <button class="del" onclick="deleteRecord('off-market/access', '${esc(a.id)}', 'Remove access for ${esc(jsStr(a.name))}? Their link will stop working.')">Remove access</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function smsHref(a){
+  const first = a.name.split(/[\s&]/)[0];
+  const msg = `Hi ${first}, here's private access to my current off-market properties: ${accessUrl(a.id)} — Adam`;
+  // "?&body=" works on both iOS and Android.
+  return `sms:${a.mobile.replace(/[^\d+]/g, '')}?&body=${encodeURIComponent(msg)}`;
+}
+
+async function createAccess(e){
+  e.preventDefault();
+  const name = document.getElementById('accessName').value.trim();
+  const mobile = document.getElementById('accessMobile').value.trim();
+  const res = await fetch('/adam/api/off-market/access', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name, mobile})});
+  if (res.status === 401) return showLogin();
+  const data = await res.json().catch(() => ({}));
+  const box = document.getElementById('newAccess');
+  box.classList.remove('hidden');
+  if (!res.ok){ box.textContent = data.error || 'Could not create the link'; return; }
+  const url = accessUrl(data.id);
+  box.innerHTML = `<strong style="font-size:13px;">Private link for ${esc(data.name)}:</strong>
+    <input readonly value="${esc(url)}" onclick="this.select()">
+    <button onclick="copyLink(this, '${esc(url)}')">Copy link</button>
+    ${data.mobile ? `<a href="${esc(smsHref(data))}">Text it</a>` : ''}`;
+  document.getElementById('accessName').value = '';
+  document.getElementById('accessMobile').value = '';
+  loadOffMarket();
+}
+
+function editListing(id){
+  const l = id ? omListings.find(x => x.id === id) : {};
+  editingId = id;
+  editPhotos = (l.photos || []).slice();
+  document.getElementById('editorTitle').textContent = id ? 'Edit ' + l.address : 'New off-market property';
+  const set = (el, v) => document.getElementById(el).value = v || '';
+  set('omAddress', l.address); set('omSuburb', l.suburb); set('omPrice', l.priceGuide); set('omLand', l.land);
+  set('omBeds', l.beds); set('omBaths', l.baths); set('omCars', l.cars); set('omDesc', l.description);
+  document.getElementById('omStatus').value = l.status || 'available';
+  document.getElementById('omMsg').textContent = '';
+  document.getElementById('editor').classList.remove('hidden');
+  document.getElementById('addListingBtn').classList.add('hidden');
+  renderPhotos();
+  document.getElementById('editor').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function closeEditor(){
+  document.getElementById('editor').classList.add('hidden');
+  document.getElementById('addListingBtn').classList.remove('hidden');
+}
+
+function renderPhotos(uploading){
+  const n = editPhotos.length;
+  document.getElementById('omPhotos').innerHTML = editPhotos.map((p, i) => `
+    <div class="photo">
+      <img src="${esc(photoUrl(p))}" alt="">
+      ${i === 0 ? '<span class="cover">COVER</span>' : ''}
+      <div class="ctrl">
+        <button type="button" onclick="movePhoto(${i}, -1)" ${i === 0 ? 'disabled' : ''} title="Move left">←</button>
+        <button type="button" onclick="removePhoto(${i})" title="Remove">✕</button>
+        <button type="button" onclick="movePhoto(${i}, 1)" ${i === n - 1 ? 'disabled' : ''} title="Move right">→</button>
+      </div>
+    </div>`).join('') +
+    `<div class="add-photo" onclick="document.getElementById('omFiles').click()">${uploading ? esc(uploading) : '+ Add photos'}</div>`;
+}
+
+function movePhoto(i, dir){
+  const [p] = editPhotos.splice(i, 1);
+  editPhotos.splice(i + dir, 0, p);
+  renderPhotos();
+}
+
+function removePhoto(i){
+  editPhotos.splice(i, 1);
+  renderPhotos();
+}
+
+// Shrinks phone photos (often 5–10MB) to a 2000px JPEG before upload.
+async function toJpeg(file){
+  const img = await new Promise((resolve, reject) => {
+    const el = new Image();
+    el.onload = () => resolve(el);
+    el.onerror = () => reject(new Error('Could not read ' + file.name));
+    el.src = URL.createObjectURL(file);
+  });
+  const scale = Math.min(1, 2000 / Math.max(img.naturalWidth, img.naturalHeight));
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(img.naturalWidth * scale);
+  canvas.height = Math.round(img.naturalHeight * scale);
+  canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+  URL.revokeObjectURL(img.src);
+  return new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.85));
+}
+
+async function uploadPhotos(fileList){
+  const files = Array.from(fileList);
+  document.getElementById('omFiles').value = '';
+  const msg = document.getElementById('omMsg');
+  msg.textContent = '';
+  const save = document.getElementById('omSave');
+  save.disabled = true;
+  for (let i = 0; i < files.length; i++){
+    renderPhotos(`Uploading ${i + 1} of ${files.length}…`);
+    try{
+      const blob = await toJpeg(files[i]);
+      const res = await fetch('/adam/api/off-market/photos', {method:'POST', headers:{'Content-Type':'image/jpeg'}, body:blob});
+      if (res.status === 401) return showLogin();
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      editPhotos.push(data.name);
+    }catch(err){
+      msg.textContent = `${files[i].name}: ${err.message || 'upload failed'}`;
+    }
+  }
+  save.disabled = false;
+  renderPhotos();
+}
+
+async function saveListing(e){
+  e.preventDefault();
+  const get = id => document.getElementById(id).value.trim();
+  const payload = {
+    address: get('omAddress'), suburb: get('omSuburb'), priceGuide: get('omPrice'), land: get('omLand'),
+    beds: get('omBeds'), baths: get('omBaths'), cars: get('omCars'), description: get('omDesc'),
+    status: get('omStatus'), photos: editPhotos,
+  };
+  const res = await fetch('/adam/api/off-market/listings' + (editingId ? '/' + editingId : ''), {
+    method: editingId ? 'PUT' : 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)
+  });
+  if (res.status === 401) return showLogin();
+  if (!res.ok){
+    const err = await res.json().catch(() => ({}));
+    document.getElementById('omMsg').textContent = err.error || 'Could not save — please try again.';
+    return;
+  }
+  closeEditor();
+  loadOffMarket();
+}
+
+async function deleteListing(id){
+  const l = omListings.find(x => x.id === id);
+  if (!confirm(`Delete ${l.address} and its photos?\n\nThis cannot be undone. To just take it off buyers' links, edit it and set the status to Hidden.`)) return;
+  const res = await fetch('/adam/api/off-market/listings/' + encodeURIComponent(id), {method:'DELETE'});
+  if (res.status === 401) return showLogin();
+  if (editingId === id) closeEditor();
+  loadOffMarket();
+}
+
+function showLogin(msg){
+  document.getElementById('adminView').classList.add('hidden');
+  document.getElementById('loginView').classList.remove('hidden');
+  document.getElementById('loginErr').textContent = msg || '';
+  document.getElementById('password').focus();
+}
+
+function showAdmin(){
+  document.getElementById('loginView').classList.add('hidden');
+  document.getElementById('adminView').classList.remove('hidden');
+  loadAppraisals();
+  loadOffers();
+  loadOffMarket();
+}
+
+async function login(e){
+  e.preventDefault();
+  const res = await fetch('/adam/api/admin/login', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({password: document.getElementById('password').value})
+  });
+  if (res.ok){ document.getElementById('password').value = ''; return showAdmin(); }
+  const err = await res.json().catch(() => ({}));
+  showLogin(err.error || 'Could not log in');
+}
+
+async function logout(){
+  await fetch('/adam/api/admin/logout', {method:'POST'});
+  showLogin();
+}
+
+(async function boot(){
+  const me = await fetch('/adam/api/admin/me').then(r => r.json()).catch(() => ({}));
+  if (me.admin) return showAdmin();
+  showLogin(me.configured === false ? 'Admin password not set — add ADMIN_PASSWORD to the server environment.' : '');
+})();
+</script>
+</body>
+</html>

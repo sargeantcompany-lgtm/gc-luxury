@@ -20,6 +20,7 @@ const connectorBuyerRouter = require("./connector/routes/buyer");
 const connectorAdminListingsRouter = require("./connector/routes/adminListings");
 const connectorAdminValuationsRouter = require("./connector/routes/adminValuations");
 const connectorAdminBuyersRouter = require("./connector/routes/adminBuyers");
+const handleAgent = require("./agent");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -37,6 +38,14 @@ if (!isProd) {
   }));
 }
 app.use(morgan(isProd ? "combined" : "dev"));
+
+// Adam Sargeant's appraisal / offer / off-market site, under /adam. Mounted
+// before the body parsers because it reads raw request bodies itself.
+app.use("/adam", (req, res) => {
+  if (req.originalUrl === "/adam") return res.redirect(301, "/adam/");
+  handleAgent(req, res);
+});
+
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 

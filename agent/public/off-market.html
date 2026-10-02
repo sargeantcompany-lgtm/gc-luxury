@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Private Off-Market Collection — Adam Sargeant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --black:#0E0E0E;
+    --ink:#1A1A1A;
+    --grey:#6E6E6E;
+    --soft:#F5F4F1;
+    --line:#E3E1DC;
+    --white:#FFFFFF;
+    --accent:#FFE512;
+    --display:"Jost",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    --body:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    --pad:clamp(16px,5vw,72px);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{font-family:var(--body);font-weight:300;color:var(--ink);background:var(--soft);line-height:1.7;-webkit-font-smoothing:antialiased;}
+  img{max-width:100%;display:block;}
+  a{color:inherit;}
+  .hidden{display:none !important;}
+
+  .eyebrow{
+    font-family:var(--display);font-size:12px;font-weight:500;
+    letter-spacing:.28em;text-transform:uppercase;color:#9A9A9A;margin:0 0 22px;
+  }
+  .eyebrow::before{content:"";display:inline-block;width:28px;height:1px;background:var(--accent);vertical-align:middle;margin-right:14px;}
+
+  header{background:var(--black);color:var(--white);padding:28px var(--pad) clamp(56px,8vw,96px);}
+  .mark{font-family:var(--display);font-weight:500;font-size:14px;letter-spacing:.3em;text-transform:uppercase;text-decoration:none;display:inline-block;margin-bottom:clamp(48px,8vw,90px);}
+  header h1{
+    font-family:var(--display);font-weight:300;text-transform:uppercase;
+    font-size:clamp(34px,6.5vw,84px);line-height:1;letter-spacing:.02em;margin:0 0 24px;overflow-wrap:break-word;
+  }
+  header h1 span{display:block;font-weight:500;}
+  header .lede{max-width:560px;color:#CFCFCF;font-size:clamp(15px,1.4vw,17px);margin:0;}
+  .wrap{max-width:1100px;margin:0 auto;}
+
+  main{padding:clamp(32px,6vw,72px) var(--pad);}
+  .count{font-family:var(--display);font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--grey);margin:0 0 20px;}
+
+  .listing{background:var(--white);margin-bottom:clamp(28px,4vw,48px);display:grid;grid-template-columns:1.25fr 1fr;}
+  .gallery{position:relative;background:#DDD;min-height:260px;}
+  .slides{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;height:100%;scrollbar-width:none;}
+  .slides::-webkit-scrollbar{display:none;}
+  .slides img{flex:0 0 100%;width:100%;height:100%;aspect-ratio:4/3;object-fit:cover;scroll-snap-align:start;}
+  .no-photo{height:100%;min-height:260px;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:#8A8A8A;background:#E9E7E2;}
+  .badge{position:absolute;top:16px;left:16px;font-family:var(--display);font-size:11px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;padding:6px 12px;background:var(--black);color:var(--white);}
+  .badge.available{background:var(--accent);color:var(--black);}
+  .counter{position:absolute;bottom:14px;right:14px;font-size:12px;background:rgba(0,0,0,.6);color:#fff;padding:3px 10px;border-radius:12px;}
+  .arrow{
+    position:absolute;top:50%;transform:translateY(-50%);width:42px;height:42px;border:0;border-radius:50%;
+    background:rgba(255,255,255,.9);color:var(--black);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  }
+  .arrow.prev{left:12px;} .arrow.next{right:12px;}
+  .arrow:disabled{opacity:0;pointer-events:none;}
+
+  .info{padding:clamp(24px,3.5vw,44px);display:flex;flex-direction:column;}
+  .info .suburb{font-family:var(--display);font-size:12px;font-weight:500;letter-spacing:.24em;text-transform:uppercase;color:var(--grey);margin:0 0 8px;}
+  .info h2{font-family:var(--display);font-weight:400;font-size:clamp(22px,2.4vw,30px);line-height:1.2;margin:0 0 14px;}
+  .price{font-family:var(--display);font-size:18px;font-weight:500;margin:0 0 18px;}
+  .facts{display:flex;flex-wrap:wrap;gap:6px 22px;padding:14px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-bottom:18px;font-size:14px;}
+  .facts b{font-family:var(--display);font-weight:500;font-size:17px;margin-right:4px;}
+  .desc{white-space:pre-wrap;font-size:15px;color:#3A3A3A;margin:0 0 24px;}
+  .desc.clamped{display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;overflow:hidden;}
+  .more{background:none;border:0;padding:0;margin:-14px 0 24px;font:inherit;font-size:13px;font-weight:500;text-decoration:underline;cursor:pointer;align-self:flex-start;}
+  .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:auto;}
+  .btn{
+    display:inline-block;font-family:var(--display);font-size:11px;font-weight:500;
+    letter-spacing:.2em;text-transform:uppercase;text-decoration:none;text-align:center;
+    padding:14px 20px;border:1px solid var(--ink);flex:1 1 auto;
+  }
+  .btn.solid{background:var(--black);color:var(--white);border-color:var(--black);}
+  .btn:hover{background:var(--black);color:var(--white);}
+
+  .state{background:var(--white);padding:clamp(40px,6vw,80px) clamp(20px,4vw,48px);text-align:center;}
+  .state h2{font-family:var(--display);font-weight:400;text-transform:uppercase;letter-spacing:.06em;font-size:clamp(22px,2.6vw,32px);margin:0 0 14px;}
+  .state p{color:var(--grey);max-width:480px;margin:0 auto 26px;}
+  .state .btn{flex:none;}
+
+  .contact{background:var(--black);color:var(--white);text-align:center;padding:clamp(56px,8vw,100px) var(--pad);}
+  .contact h2{font-family:var(--display);font-weight:300;text-transform:uppercase;font-size:clamp(26px,4vw,48px);letter-spacing:.02em;margin:0 0 26px;}
+  .contact .lines{display:flex;justify-content:center;gap:12px 40px;flex-wrap:wrap;}
+  .contact .lines a{font-family:var(--display);font-size:clamp(16px,1.6vw,20px);letter-spacing:.06em;text-decoration:none;color:#E5E5E5;}
+  footer{background:var(--black);color:#8A8A8A;border-top:1px solid #222;padding:28px var(--pad);font-size:12px;letter-spacing:.06em;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+  footer img{width:44px;height:44px;}
+
+  @media (max-width:820px){
+    .listing{grid-template-columns:1fr;}
+    .gallery,.slides{min-height:0;}
+    .arrow{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <a class="mark" href="/adam/">Adam Sargeant</a>
+    <p class="eyebrow">Private Off-Market Collection</p>
+    <h1>Off-Market<span id="forName">Properties</span></h1>
+    <p class="lede">These homes aren't advertised online. They're being shared privately with a small group of buyers, so please keep the details to yourself.</p>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <p class="count hidden" id="count"></p>
+    <div id="listings"></div>
+
+    <div class="state hidden" id="empty">
+      <h2>New properties coming soon</h2>
+      <p>There's nothing available off-market right now. Keep this link. New properties will show up here as soon as they're ready to share.</p>
+      <a class="btn solid" href="tel:0407739919">Call Adam — 0407 739 919</a>
+    </div>
+
+    <div class="state hidden" id="invalid">
+      <h2>This link isn't active</h2>
+      <p>Your access may have expired or been updated. Get in touch and Adam will send you a new link.</p>
+      <a class="btn solid" href="tel:0407739919">Call Adam — 0407 739 919</a>
+    </div>
+  </div>
+</main>
+
+<section class="contact">
+  <h2>Looking for something specific?</h2>
+  <div class="lines">
+    <a href="tel:0407739919">0407 739 919</a>
+    <a href="mailto:adam.sargeant@raywhite.com">adam.sargeant@raywhite.com</a>
+  </div>
+</section>
+
+<footer>
+  <img src="/adam/ray-white-logo.png" alt="Ray White">
+  <span>Adam Sargeant · Ray White · Private &amp; confidential</span>
+</footer>
+
+<script>
+const PHONE = '0407739919';
+const token = (location.pathname.match(/^\/adam\/off-market\/([a-z0-9-]+)$/i) || [])[1] || '';
+const STATUS_LABEL = {available:'Available', under_offer:'Under offer', sold:'Sold'};
+
+function esc(s){
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+const photoUrl = name => `/adam/api/off-market/photos/${name}?t=${encodeURIComponent(token)}`;
+
+function renderListing(l){
+  const where = [l.address, l.suburb].filter(Boolean).join(', ');
+  const facts = [['beds', 'Bed'], ['baths', 'Bath'], ['cars', 'Car']]
+    .filter(([k]) => l[k])
+    .map(([k, label]) => `<span><b>${esc(l[k])}</b>${label}${l[k] === '1' ? '' : 's'}</span>`);
+  if (l.land) facts.push(`<span><b>${esc(l.land)}</b>Land</span>`);
+  const sms = `sms:${PHONE}?&body=${encodeURIComponent(`Hi Adam, I'm interested in the off-market property at ${where}.`)}`;
+  const n = l.photos.length;
+
+  return `<article class="listing">
+    <div class="gallery">
+      ${n ? `<div class="slides">${l.photos.map((p, i) => `<img src="${esc(photoUrl(p))}" alt="${esc(where)} photo ${i + 1}" loading="${i ? 'lazy' : 'eager'}">`).join('')}</div>`
+          : '<div class="no-photo">Photos on request</div>'}
+      <span class="badge ${esc(l.status)}">${esc(STATUS_LABEL[l.status] || '')}</span>
+      ${n > 1 ? `<span class="counter">1 / ${n}</span>
+        <button class="arrow prev" aria-label="Previous photo" disabled>‹</button>
+        <button class="arrow next" aria-label="Next photo">›</button>` : ''}
+    </div>
+    <div class="info">
+      ${l.suburb ? `<p class="suburb">${esc(l.suburb)}</p>` : ''}
+      <h2>${esc(l.address)}</h2>
+      ${l.priceGuide ? `<p class="price">${esc(l.priceGuide)}</p>` : ''}
+      ${facts.length ? `<div class="facts">${facts.join('')}</div>` : ''}
+      ${l.description ? `<p class="desc clamped">${esc(l.description)}</p><button class="more hidden">Read more</button>` : ''}
+      <div class="actions">
+        <a class="btn solid" href="tel:${PHONE}">Call Adam</a>
+        <a class="btn" href="${esc(sms)}">Text Adam</a>
+        ${l.status !== 'sold' ? `<a class="btn" href="/adam/offer?address=${encodeURIComponent(where)}">Make an offer</a>` : ''}
+      </div>
+    </div>
+  </article>`;
+}
+
+function wireGallery(article){
+  const slides = article.querySelector('.slides');
+  const counter = article.querySelector('.counter');
+  if (!slides || !counter) return;
+  const prev = article.querySelector('.prev');
+  const next = article.querySelector('.next');
+  const total = slides.children.length;
+  const current = () => Math.round(slides.scrollLeft / slides.clientWidth);
+  slides.addEventListener('scroll', () => {
+    const i = current();
+    counter.textContent = `${i + 1} / ${total}`;
+    prev.disabled = i === 0;
+    next.disabled = i === total - 1;
+  }, {passive:true});
+  prev.onclick = () => slides.scrollBy({left:-slides.clientWidth, behavior:'smooth'});
+  next.onclick = () => slides.scrollBy({left:slides.clientWidth, behavior:'smooth'});
+}
+
+function wireReadMore(article){
+  const desc = article.querySelector('.desc');
+  const more = article.querySelector('.more');
+  if (!desc || desc.scrollHeight <= desc.clientHeight + 2) return;
+  more.classList.remove('hidden');
+  more.onclick = () => { desc.classList.remove('clamped'); more.remove(); };
+}
+
+(async function boot(){
+  let data;
+  try{
+    const res = await fetch('/adam/api/off-market/view/' + encodeURIComponent(token));
+    if (!res.ok) throw new Error('inactive');
+    data = await res.json();
+  }catch(e){
+    return document.getElementById('invalid').classList.remove('hidden');
+  }
+
+  document.getElementById('forName').textContent = 'For ' + data.name;
+  if (!data.listings.length) return document.getElementById('empty').classList.remove('hidden');
+
+  const available = data.listings.filter(l => l.status === 'available').length;
+  const count = document.getElementById('count');
+  count.textContent = `${data.listings.length} ${data.listings.length === 1 ? 'property' : 'properties'} · ${available} available`;
+  count.classList.remove('hidden');
+
+  const list = document.getElementById('listings');
+  list.innerHTML = data.listings.map(renderListing).join('');
+  list.querySelectorAll('.listing').forEach(a => { wireGallery(a); wireReadMore(a); });
+})();
+</script>
+</body>
+</html>
