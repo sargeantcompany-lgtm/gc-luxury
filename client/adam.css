@@ -359,3 +359,27 @@ footer a:hover{color:var(--white);}
 .props-page{min-height:70vh;}
 .props-intro{max-width:680px;margin:0 0 40px;font-size:16px;color:var(--grey);}
 .props--dark .props-intro{color:#A8A8A8;}
+
+/* Why Ray White v2: buyer origins, performer profile cards, wealth line */
+.buyer-origins{list-style:none;margin:28px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:10px;}
+.buyer-origins li{font-family:var(--display);font-size:11px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;padding:9px 14px;border:1px solid var(--ink);background:var(--white);}
+.buyer-origins li:nth-child(odd){background:var(--ink);color:var(--white);}
+
+.performers-grid{grid-template-columns:1fr 1fr;gap:1px;background:#2A2A2A;border:1px solid #2A2A2A;border-top:1px solid #2A2A2A;}
+.performer,.performer + .performer{padding:clamp(30px,4vw,52px);border-left:0;background:var(--black);}
+.performer:hover{background:#141414;}
+.performer h3{font-size:clamp(18px,1.8vw,22px);margin:22px 0 6px;}
+.performer p{font-size:15px;line-height:1.75;color:#B5B5B5;}
+.performer .where{margin-bottom:22px;}
+.figures{list-style:none;margin:0 0 22px;padding:0 0 22px;display:flex;flex-wrap:wrap;gap:12px 34px;border-bottom:1px solid #2A2A2A;}
+.figures li{font-size:13px;color:#8A8A8A;letter-spacing:.02em;}
+.figures b{display:block;font-family:var(--display);font-weight:400;font-size:clamp(24px,2.4vw,32px);color:var(--white);letter-spacing:.01em;margin-bottom:2px;}
+.performers-copy .wealth{font-family:var(--display);font-weight:500;font-size:clamp(28px,3.4vw,46px);text-transform:uppercase;letter-spacing:.04em;color:var(--accent);margin:0 0 18px;line-height:1;}
+
+@media (max-width:900px){
+  .performers-grid{grid-template-columns:1fr;}
+  .performer:nth-child(3){padding-left:clamp(30px,4vw,52px);}
+}
+@media (max-width:560px){
+  .performer + .performer{border-top:0;padding-left:clamp(30px,4vw,52px);}
+}
