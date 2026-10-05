@@ -455,3 +455,7 @@ footer a:hover{color:var(--white);}
 .social-cols p:nth-child(1){border-top-color:#BDB8AE;}
 .social-cols p:nth-child(2){border-top-color:var(--ink);}
 .social-cols p:nth-child(3){border-top-color:var(--accent);}
+
+/* Numbers bar: three stats */
+.social-stats{grid-template-columns:repeat(3,1fr);}
+@media (max-width:900px){.social-stats{grid-template-columns:1fr;}.sstat + .sstat{border-left:0;border-top:1px solid #2A2A2A;}}
