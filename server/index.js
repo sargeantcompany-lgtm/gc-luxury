@@ -50,9 +50,10 @@ app.use("/adam", (req, res) => {
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
-// GC Luxury public marketing site. The Pre-List Kit flipbook now lives on the
-// How to Sell page; keep old links to it working.
-app.get("/pre-list-kit.html", (req, res) => res.redirect(301, "/how-to-sell.html#pre-list-kit"));
+// GC Luxury public marketing site. The Pre-List Kit flipbook lives on the
+// Going to the Market page (formerly How to Sell); keep old links working.
+app.get("/pre-list-kit.html", (req, res) => res.redirect(301, "/going-to-the-market.html#pre-list-kit"));
+app.get("/how-to-sell.html", (req, res) => res.redirect(301, "/going-to-the-market.html"));
 app.use(express.static(CLIENT_DIR));
 
 // CRM admin (built React app), served under /admin

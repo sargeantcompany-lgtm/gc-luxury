@@ -4,11 +4,10 @@
 (function () {
   const LINKS = [
     ["Home", "/"],
-    ["Listings", "/listings.html"],
-    ["Off-Market", "/off-market.html"],
     ["Bio", "/about.html"],
-    ["How to Sell", "/how-to-sell.html"],
     ["Blog", "/blog.html"],
+    ["Off-Market", "/off-market.html"],
+    ["Going to the Market", "/going-to-the-market.html"],
     ["Make an Offer", "/adam/offer"],
     ["Enquiry", "/contact.html"],
   ];
