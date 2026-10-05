@@ -445,3 +445,13 @@ footer a:hover{color:var(--white);}
 .social-cols p:nth-child(1){background:var(--soft);color:#3A3A3A;}
 .social-cols p:nth-child(2){background:var(--black);color:#CFCFCF;}
 .social-cols p:nth-child(3){background:var(--accent);color:var(--ink);font-family:var(--display);font-size:clamp(17px,1.6vw,21px);line-height:1.55;}
+
+/* Social media paragraphs: plain background, coloured line breaks instead of colour blocks */
+.social-cols{gap:clamp(24px,4vw,56px);}
+.social-cols p,
+.social-cols p:nth-child(1),
+.social-cols p:nth-child(2),
+.social-cols p:nth-child(3){background:none;color:#3A3A3A;padding:28px 0 0;font-family:var(--body);font-size:15px;line-height:1.8;border-top:4px solid;}
+.social-cols p:nth-child(1){border-top-color:#BDB8AE;}
+.social-cols p:nth-child(2){border-top-color:var(--ink);}
+.social-cols p:nth-child(3){border-top-color:var(--accent);}
