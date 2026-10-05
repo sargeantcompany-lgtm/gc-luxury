@@ -438,3 +438,10 @@ footer a:hover{color:var(--white);}
 .basics-list li{position:relative;padding:9px 0 9px 26px;border-bottom:1px solid var(--line);font-size:16px;color:#2A2A2A;}
 .basics-list li::before{content:"";position:absolute;left:2px;top:19px;width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 1px var(--ink);}
 .baseline .beyond{margin-top:30px;}
+
+/* Social media paragraphs as three colour blocks */
+.social-cols{gap:0;border-top:0;padding-top:0;}
+.social-cols p{padding:clamp(28px,3vw,44px);font-size:15px;line-height:1.8;}
+.social-cols p:nth-child(1){background:var(--soft);color:#3A3A3A;}
+.social-cols p:nth-child(2){background:var(--black);color:#CFCFCF;}
+.social-cols p:nth-child(3){background:var(--accent);color:var(--ink);font-family:var(--display);font-size:clamp(17px,1.6vw,21px);line-height:1.55;}
