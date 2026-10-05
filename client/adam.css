@@ -475,3 +475,4 @@ footer a:hover{color:var(--white);}
 .bio-network-body p:not(.bio-network-lead){margin:0;font-size:16px;line-height:1.8;color:#B5B5B5;}
 .bio-close{font-family:var(--display);font-weight:300;font-size:clamp(24px,3vw,40px);line-height:1.3;max-width:900px;margin:0 auto 44px;}
 @media (max-width:900px){.bio-tech-body,.bio-network-body{grid-template-columns:1fr;}}
+.intro + .video{padding-top:0;}
