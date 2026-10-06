@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Your Property Portal — Adam Sargeant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/adam/client.css">
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="topbar">
+      <a class="mark" href="/">Adam Sargeant</a>
+      <button class="logout" onclick="logout()">Log out</button>
+    </div>
+    <p class="eyebrow">Your Property Portal</p>
+    <h1>Welcome<span id="name"></span></h1>
+    <p class="lede">Your appraisal, your offers and Adam's private off-market properties, all in one place.</p>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <section class="section" id="appraisalSection">
+      <h2>Your Appraisal</h2>
+      <div id="appraisals"></div>
+    </section>
+
+    <section class="section">
+      <h2>Your Offers</h2>
+      <div id="offers"></div>
+    </section>
+
+    <section class="section">
+      <h2>Off-Market Properties</h2>
+      <p class="sub" style="margin:-8px 0 20px;color:var(--grey);">These homes aren't advertised online. They're shared privately with Adam's clients, so please keep the details to yourself.</p>
+      <div id="offmarket"></div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <img src="/adam/ray-white-logo.png" alt="Ray White">
+  <span>Adam Sargeant · Ray White Malan + Co · Private &amp; confidential · <a href="tel:0407739919" style="color:inherit;">0407 739 919</a></span>
+</footer>
+
+<script>
+const PHONE = '0407739919';
+const STATUS_LABEL = {available:'Available', under_offer:'Under offer', sold:'Sold'};
+
+function esc(s){
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+const fmtDate = iso => new Date(iso).toLocaleDateString('en-AU', {day:'numeric', month:'long', year:'numeric'});
+const fmtMoney = n => (n || n === 0) ? '$' + Number(n).toLocaleString('en-AU') : '—';
+const yesNoDays = (yn, days) => yn === 'yes' ? `Yes — ${days} days` : yn === 'no' ? 'No' : '—';
+// Logged-in clients can load photos with their session cookie.
+const photoUrl = name => '/adam/api/off-market/photos/' + name;
+
+function renderAppraisals(list){
+  const el = document.getElementById('appraisals');
+  if (!list.length){
+    el.innerHTML = '<div class="empty">Your appraisal will appear here once Adam has prepared it.</div>';
+    return;
+  }
+  el.innerHTML = '<div class="rows">' + list.map(a => `
+    <div class="row">
+      <div><div class="addr">${esc(a.address || 'Your property')}</div><div class="sub">Prepared ${esc(fmtDate(a.createdAt))}</div></div>
+      <a class="btn solid" href="/adam/a/${esc(a.id)}">View appraisal</a>
+    </div>`).join('') + '</div>';
+}
+
+function renderOffers(list){
+  const el = document.getElementById('offers');
+  if (!list.length){
+    el.innerHTML = '<div class="empty">You haven\'t made any offers yet. When you make an offer on a property, you\'ll be able to see it here.</div>';
+    return;
+  }
+  el.innerHTML = list.map(o => {
+    const settlement = o.settlement === 'other' ? o.settlementOther : o.settlement ? o.settlement + ' days' : '—';
+    const rows = [
+      ['Purchase price', fmtMoney(o.purchasePrice)],
+      ['Initial deposit', fmtMoney(o.initialDeposit)],
+      ['Balance deposit', fmtMoney(o.balanceDeposit) + (o.balanceDepositPayableOn ? ' — payable on ' + o.balanceDepositPayableOn : '')],
+      ['Subject to finance', yesNoDays(o.finance, o.financeDays)],
+      ['Subject to pest & building', yesNoDays(o.pestBuilding, o.pestBuildingDays)],
+      ['Settlement', settlement],
+      ['Other terms & conditions', o.otherTerms || '—'],
+    ];
+    return `<details class="offer">
+      <summary>
+        <div><div class="addr" style="font-family:var(--display);font-weight:500;font-size:18px;">${esc(o.address)}</div><div class="sub" style="font-size:13px;color:var(--grey);">Submitted ${esc(fmtDate(o.createdAt))}</div></div>
+        <div style="font-family:var(--display);font-size:20px;font-weight:500;">${esc(fmtMoney(o.purchasePrice))}</div>
+      </summary>
+      <dl>${rows.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>
+    </details>`;
+  }).join('');
+}
+
+function renderListing(l){
+  const where = [l.address, l.suburb].filter(Boolean).join(', ');
+  const facts = [['beds', 'Bed'], ['baths', 'Bath'], ['cars', 'Car']]
+    .filter(([k]) => l[k])
+    .map(([k, label]) => `<span><b>${esc(l[k])}</b>${label}${l[k] === '1' ? '' : 's'}</span>`);
+  if (l.land) facts.push(`<span><b>${esc(l.land)}</b>Land</span>`);
+  const sms = `sms:${PHONE}?&body=${encodeURIComponent(`Hi Adam, I'm interested in the off-market property at ${where}.`)}`;
+  const n = l.photos.length;
+  return `<article class="listing">
+    <div class="gallery">
+      ${n ? `<div class="slides">${l.photos.map((p, i) => `<img src="${esc(photoUrl(p))}" alt="${esc(where)} photo ${i + 1}" loading="${i ? 'lazy' : 'eager'}">`).join('')}</div>`
+          : '<div class="no-photo">Photos on request</div>'}
+      <span class="badge ${esc(l.status)}">${esc(STATUS_LABEL[l.status] || '')}</span>
+      ${n > 1 ? `<span class="counter">${n} photos — swipe</span>` : ''}
+    </div>
+    <div class="info">
+      ${l.suburb ? `<p class="suburb">${esc(l.suburb)}</p>` : ''}
+      <h3>${esc(l.address)}</h3>
+      ${l.priceGuide ? `<p class="price">${esc(l.priceGuide)}</p>` : ''}
+      ${facts.length ? `<div class="facts">${facts.join('')}</div>` : ''}
+      ${l.description ? `<p class="desc">${esc(l.description)}</p>` : ''}
+      <div class="actions">
+        <a class="btn solid" href="tel:${PHONE}">Call Adam</a>
+        <a class="btn" href="${esc(sms)}">Text Adam</a>
+        ${l.status !== 'sold' ? `<a class="btn accent" href="/adam/offer?address=${encodeURIComponent(where)}">Make an offer</a>` : ''}
+      </div>
+    </div>
+  </article>`;
+}
+
+function renderOffMarket(list){
+  const el = document.getElementById('offmarket');
+  if (!list.length){
+    el.innerHTML = '<div class="empty">There are no off-market properties right now. New ones will appear here as soon as they\'re ready to share.</div>';
+    return;
+  }
+  el.innerHTML = list.map(renderListing).join('');
+}
+
+async function logout(){
+  await fetch('/adam/api/client/logout', {method:'POST'});
+  location.assign('/adam/login');
+}
+
+(async function boot(){
+  const res = await fetch('/adam/api/client/portal').catch(() => null);
+  if (!res || res.status === 401) return location.replace('/adam/login');
+  const data = await res.json();
+  document.getElementById('name').textContent = data.name;
+  document.getElementById('appraisalSection').querySelector('h2').textContent = data.appraisals.length > 1 ? 'Your Appraisals' : 'Your Appraisal';
+  renderAppraisals(data.appraisals);
+  renderOffers(data.offers);
+  renderOffMarket(data.offMarket);
+})();
+</script>
+</body>
+</html>

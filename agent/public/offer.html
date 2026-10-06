@@ -328,6 +328,16 @@ form.addEventListener('submit', async e => {
   }
 });
 
+// Logged-in portal clients get their details filled in; the offer is also
+// tagged to their account server-side so it shows in their portal.
+fetch('/adam/api/client/me').then(r => r.json()).then(({client}) => {
+  if (!client) return;
+  const fill = (id, v) => { const el = document.getElementById(id); if (el && !el.value && v) el.value = v; };
+  fill('buyerNames', client.name);
+  fill('email', client.email);
+  fill('mobile', client.mobile);
+}).catch(() => {});
+
 (async function boot(){
   // General link (/offer): the buyer types the address themselves.
   if (!linkId){

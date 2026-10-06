@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Client Login — Adam Sargeant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/adam/client.css">
+</head>
+<body class="form-page">
+
+<header>
+  <div class="wrap">
+    <div class="topbar"><a class="mark" href="/">Adam Sargeant</a></div>
+    <p class="eyebrow">Client Login</p>
+    <h1>Your<span>Property Portal</span></h1>
+    <p class="lede">See your appraisal, your offers and Adam's private off-market properties.</p>
+  </div>
+</header>
+
+<main>
+  <form class="form-card" id="loginForm" novalidate>
+    <h2>Log in</h2>
+    <p>Use the email Adam set up for you.</p>
+    <label for="email">Email</label>
+    <input id="email" type="email" autocomplete="email" required>
+    <label for="password">Password</label>
+    <input id="password" type="password" autocomplete="current-password" required>
+    <button class="btn solid" type="submit">Log in</button>
+    <p class="err" id="err" role="alert"></p>
+    <p class="help">Don't have a login, or forgotten your password? Call Adam on <a href="tel:0407739919">0407 739 919</a> and he'll send you a link.</p>
+  </form>
+</main>
+
+<footer>
+  <img src="/adam/ray-white-logo.png" alt="Ray White">
+  <span>Adam Sargeant · Ray White Malan + Co · Private &amp; confidential</span>
+</footer>
+
+<script>
+(async function(){
+  const me = await fetch('/adam/api/client/me').then(r => r.json()).catch(() => ({}));
+  if (me.client) location.replace('/adam/portal');
+})();
+
+document.getElementById('loginForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const err = document.getElementById('err');
+  err.textContent = '';
+  const res = await fetch('/adam/api/client/login', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({email: document.getElementById('email').value, password: document.getElementById('password').value})
+  });
+  if (res.ok) return location.assign('/adam/portal');
+  const data = await res.json().catch(() => ({}));
+  err.textContent = data.error || 'Could not log in — please try again.';
+});
+</script>
+</body>
+</html>

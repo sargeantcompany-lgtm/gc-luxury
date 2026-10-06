@@ -392,6 +392,7 @@ async function handleSubmitOffer(req, res) {
     id,
     createdAt: new Date().toISOString(),
     linkId: link.id,
+    clientId: (currentClient(req) || {}).id || null, // shows in that client's portal
     address: link.address,
     agent: link.agent,
     ...offer,
@@ -496,7 +497,7 @@ async function handleUploadPhoto(req, res) {
 
 function handleGetPhoto(req, res, name, token) {
   if (!isPhotoName(name)) return send(res, 404, "Not found");
-  if (!isAdmin(req) && !readRecord(OM_ACCESS_DIR, token || "")) return send(res, 403, "Forbidden");
+  if (!isAdmin(req) && !currentClient(req) && !readRecord(OM_ACCESS_DIR, token || "")) return send(res, 403, "Forbidden");
   fs.readFile(path.join(OM_PHOTOS_DIR, name), (err, data) => {
     if (err) return send(res, 404, "Not found");
     res.writeHead(200, { "Content-Type": "image/jpeg", "Cache-Control": "private, max-age=86400" });
@@ -530,6 +531,252 @@ function handleViewOffMarket(res, token) {
   sendJSON(res, 200, { name: access.name, listings });
 }
 
+/* ---------------- Client accounts ----------------
+ * Adam creates a client in /admin and texts them an invite link
+ * (/set-password/:token). Once they set a password they log in at /login and
+ * see /portal: only the appraisals Adam assigned to them, only their own
+ * offers, and the off-market properties. There is no public sign-up.
+ */
+
+const CLIENTS_DIR = path.join(DATA_DIR, "clients");
+fs.mkdirSync(CLIENTS_DIR, { recursive: true });
+
+const CLIENT_COOKIE = "client_session";
+const CLIENT_COOKIE_MAX_AGE = 60 * 60 * 24 * 90; // 90 days
+const MIN_PASSWORD = 8;
+
+// Signs client session cookies. Persisted under DATA_DIR so sessions survive
+// restarts without needing another environment variable.
+const SESSION_SECRET = (() => {
+  if (process.env.AGENT_SESSION_SECRET) return process.env.AGENT_SESSION_SECRET;
+  const file = path.join(DATA_DIR, "session-secret");
+  try {
+    return fs.readFileSync(file, "utf8").trim();
+  } catch (e) {
+    const secret = crypto.randomBytes(32).toString("hex");
+    fs.writeFileSync(file, secret, { mode: 0o600 });
+    return secret;
+  }
+})();
+
+function normEmail(v) {
+  return str(v, 200).toLowerCase();
+}
+
+function isEmail(v) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+}
+
+function hashPassword(password) {
+  const salt = crypto.randomBytes(16).toString("hex");
+  const hash = crypto.scryptSync(password, salt, 64).toString("hex");
+  return `${salt}:${hash}`;
+}
+
+function checkPassword(password, stored) {
+  if (!stored) return false;
+  const [salt, hash] = stored.split(":");
+  const test = crypto.scryptSync(String(password), salt, 64).toString("hex");
+  return safeEqual(test, hash);
+}
+
+// The signature covers the password hash, so changing or resetting a
+// password logs out every existing session for that client.
+function clientSig(client) {
+  return crypto.createHmac("sha256", SESSION_SECRET).update(`${client.id}:${client.passwordHash || ""}`).digest("hex");
+}
+
+function setClientCookie(req, res, value, maxAge) {
+  const secure = req.headers["x-forwarded-proto"] === "https" ? "; Secure" : "";
+  res.setHeader(
+    "Set-Cookie",
+    `${CLIENT_COOKIE}=${encodeURIComponent(value)}; Path=/adam; HttpOnly; SameSite=Lax; Max-Age=${maxAge}${secure}`
+  );
+}
+
+function startClientSession(req, res, client) {
+  setClientCookie(req, res, `${client.id}.${clientSig(client)}`, CLIENT_COOKIE_MAX_AGE);
+}
+
+function currentClient(req) {
+  const raw = parseCookies(req)[CLIENT_COOKIE] || "";
+  const dot = raw.lastIndexOf(".");
+  if (dot < 1) return null;
+  const client = readRecord(CLIENTS_DIR, raw.slice(0, dot));
+  if (!client || !client.passwordHash) return null;
+  return safeEqual(raw.slice(dot + 1), clientSig(client)) ? client : null;
+}
+
+function findClientByEmail(email) {
+  return readJSONDir(CLIENTS_DIR).find((c) => c.email === email) || null;
+}
+
+function findClientByInvite(token) {
+  if (!/^[a-f0-9]{48}$/.test(token || "")) return null;
+  return readJSONDir(CLIENTS_DIR).find((c) => c.inviteToken && safeEqual(c.inviteToken, token)) || null;
+}
+
+// What the admin page sees - never the password hash.
+function publicClient(c) {
+  return {
+    id: c.id,
+    createdAt: c.createdAt,
+    name: c.name,
+    email: c.email,
+    mobile: c.mobile,
+    appraisalIds: c.appraisalIds || [],
+    active: !!c.passwordHash,
+    inviteToken: c.inviteToken || null,
+    lastLoginAt: c.lastLoginAt || null,
+  };
+}
+
+function newInviteToken() {
+  return crypto.randomBytes(24).toString("hex");
+}
+
+function cleanAppraisalIds(ids) {
+  return Array.isArray(ids) ? ids.filter((id) => typeof id === "string" && /^[a-z0-9-]+$/i.test(id)).slice(0, 50) : [];
+}
+
+async function handleCreateClient(req, res) {
+  const body = await readJSONBody(req, res);
+  if (!body) return;
+  const name = str(body.name, 120);
+  const email = normEmail(body.email);
+  if (!name) return sendJSON(res, 400, { error: "Enter the client's name" });
+  if (!isEmail(email)) return sendJSON(res, 400, { error: "Enter a valid email — it's their login" });
+  if (findClientByEmail(email)) return sendJSON(res, 400, { error: "A client with that email already exists" });
+  const record = {
+    id: `${slugify(name) || "client"}-${randomSuffix()}`,
+    createdAt: new Date().toISOString(),
+    name,
+    email,
+    mobile: str(body.mobile, 40),
+    appraisalIds: cleanAppraisalIds(body.appraisalIds),
+    passwordHash: null,
+    inviteToken: newInviteToken(),
+    lastLoginAt: null,
+  };
+  writeRecord(CLIENTS_DIR, record);
+  sendJSON(res, 200, publicClient(record));
+}
+
+async function handleUpdateClient(req, res, id) {
+  const body = await readJSONBody(req, res);
+  if (!body) return;
+  const client = readRecord(CLIENTS_DIR, id);
+  if (!client) return sendJSON(res, 404, { error: "Client not found" });
+  if (body.name !== undefined) {
+    const name = str(body.name, 120);
+    if (!name) return sendJSON(res, 400, { error: "Enter the client's name" });
+    client.name = name;
+  }
+  if (body.email !== undefined) {
+    const email = normEmail(body.email);
+    if (!isEmail(email)) return sendJSON(res, 400, { error: "Enter a valid email" });
+    const other = findClientByEmail(email);
+    if (other && other.id !== id) return sendJSON(res, 400, { error: "Another client already uses that email" });
+    client.email = email;
+  }
+  if (body.mobile !== undefined) client.mobile = str(body.mobile, 40);
+  if (body.appraisalIds !== undefined) client.appraisalIds = cleanAppraisalIds(body.appraisalIds);
+  writeRecord(CLIENTS_DIR, client);
+  sendJSON(res, 200, publicClient(client));
+}
+
+// New invite/reset link. Doesn't touch the current password until it's used.
+function handleReissueInvite(res, id) {
+  const client = readRecord(CLIENTS_DIR, id);
+  if (!client) return sendJSON(res, 404, { error: "Client not found" });
+  client.inviteToken = newInviteToken();
+  writeRecord(CLIENTS_DIR, client);
+  sendJSON(res, 200, publicClient(client));
+}
+
+function handleGetInvite(res, token) {
+  const client = findClientByInvite(token);
+  if (!client) return sendJSON(res, 404, { error: "This link has expired or already been used" });
+  sendJSON(res, 200, { name: client.name, email: client.email, reset: !!client.passwordHash });
+}
+
+async function handleSetPassword(req, res) {
+  const body = await readJSONBody(req, res);
+  if (!body) return;
+  const client = findClientByInvite(str(body.token, 100));
+  if (!client) return sendJSON(res, 404, { error: "This link has expired or already been used — ask Adam for a new one" });
+  const password = typeof body.password === "string" ? body.password : "";
+  if (password.length < MIN_PASSWORD) return sendJSON(res, 400, { error: `Use at least ${MIN_PASSWORD} characters` });
+  client.passwordHash = hashPassword(password);
+  client.inviteToken = null;
+  client.lastLoginAt = new Date().toISOString();
+  writeRecord(CLIENTS_DIR, client);
+  startClientSession(req, res, client);
+  sendJSON(res, 200, { ok: true });
+}
+
+// Simple brute-force brake: 10 failed attempts per email per 15 minutes.
+const loginFailures = new Map();
+const LOGIN_WINDOW_MS = 15 * 60 * 1000;
+
+function tooManyFailures(email) {
+  const f = loginFailures.get(email);
+  if (!f || Date.now() - f.first > LOGIN_WINDOW_MS) return false;
+  return f.count >= 10;
+}
+
+function noteFailure(email) {
+  const f = loginFailures.get(email);
+  if (!f || Date.now() - f.first > LOGIN_WINDOW_MS) loginFailures.set(email, { first: Date.now(), count: 1 });
+  else f.count += 1;
+}
+
+async function handleClientLogin(req, res) {
+  const body = await readJSONBody(req, res);
+  if (!body) return;
+  const email = normEmail(body.email);
+  if (tooManyFailures(email)) return sendJSON(res, 429, { error: "Too many attempts — please wait 15 minutes or call Adam" });
+  const client = email && findClientByEmail(email);
+  if (!client || !checkPassword(body.password, client.passwordHash)) {
+    noteFailure(email);
+    return sendJSON(res, 401, { error: "Email or password is incorrect" });
+  }
+  loginFailures.delete(email);
+  client.lastLoginAt = new Date().toISOString();
+  writeRecord(CLIENTS_DIR, client);
+  startClientSession(req, res, client);
+  sendJSON(res, 200, { ok: true });
+}
+
+// Everything a logged-in client may see: only their own appraisals and
+// offers, plus the off-market properties (hidden drafts excluded).
+function handlePortal(req, res) {
+  const client = currentClient(req);
+  if (!client) return sendJSON(res, 401, { error: "Please log in" });
+
+  const appraisals = (client.appraisalIds || [])
+    .map((id) => readRecord(APPRAISALS_DIR, id))
+    .filter(Boolean)
+    .map((a) => ({ id: a.id, address: a.address, createdAt: a.createdAt }))
+    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+
+  const offers = readJSONDir(OFFERS_DIR)
+    .filter((o) => o.clientId === client.id || (o.email || "").toLowerCase() === client.email)
+    .map((o) => ({
+      id: o.id, createdAt: o.createdAt, address: o.address, purchasePrice: o.purchasePrice,
+      initialDeposit: o.initialDeposit, balanceDeposit: o.balanceDeposit, balanceDepositPayableOn: o.balanceDepositPayableOn,
+      finance: o.finance, financeDays: o.financeDays, pestBuilding: o.pestBuilding, pestBuildingDays: o.pestBuildingDays,
+      settlement: o.settlement, settlementOther: o.settlementOther, otherTerms: o.otherTerms,
+    }));
+
+  const order = { available: 0, under_offer: 1, sold: 2 };
+  const offMarket = readJSONDir(OM_LISTINGS_DIR)
+    .filter((l) => l.status !== "hidden")
+    .sort((a, b) => order[a.status] - order[b.status]);
+
+  sendJSON(res, 200, { name: client.name, email: client.email, appraisals, offers, offMarket });
+}
+
 // Admin delete for any stored record. The id pattern keeps the path inside dir.
 function handleDelete(res, dir, id) {
   if (!/^[a-z0-9-]+$/i.test(id)) return sendJSON(res, 400, { error: "Invalid id" });
@@ -539,7 +786,7 @@ function handleDelete(res, dir, id) {
   });
 }
 
-const DELETABLE = { appraisals: APPRAISALS_DIR, offers: OFFERS_DIR, "offer-links": OFFER_LINKS_DIR, "off-market/access": OM_ACCESS_DIR };
+const DELETABLE = { appraisals: APPRAISALS_DIR, offers: OFFERS_DIR, "offer-links": OFFER_LINKS_DIR, "off-market/access": OM_ACCESS_DIR, clients: CLIENTS_DIR };
 
 // Mounted with app.use("/adam", ...), so req.url arrives with /adam stripped.
 module.exports = function handleAgent(req, res) {
@@ -562,11 +809,46 @@ module.exports = function handleAgent(req, res) {
     return sendJSON(res, 200, { admin: isAdmin(req), configured: !!ADMIN_PASSWORD });
   }
 
-  const deleteMatch = pathname.match(/^\/api\/(appraisals|offers|offer-links|off-market\/access)\/([^/]+)$/);
+  const deleteMatch = pathname.match(/^\/api\/(appraisals|offers|offer-links|off-market\/access|clients)\/([^/]+)$/);
   if (deleteMatch && req.method === "DELETE") {
     if (!isAdmin(req)) return sendJSON(res, 401, { error: "Admin login required" });
     return handleDelete(res, DELETABLE[deleteMatch[1]], deleteMatch[2]);
   }
+
+  // Client accounts. Admin manages them; clients only reach their own portal.
+  if (pathname === "/api/clients" && req.method === "GET") {
+    if (!isAdmin(req)) return sendJSON(res, 401, { error: "Admin login required" });
+    return sendJSON(res, 200, readJSONDir(CLIENTS_DIR).map(publicClient));
+  }
+  if (pathname === "/api/clients" && req.method === "POST") {
+    if (!isAdmin(req)) return sendJSON(res, 401, { error: "Admin login required" });
+    return handleCreateClient(req, res);
+  }
+  const clientMatch = pathname.match(/^\/api\/clients\/([a-z0-9-]+)(\/invite)?$/i);
+  if (clientMatch && req.method === "POST" && clientMatch[2]) {
+    if (!isAdmin(req)) return sendJSON(res, 401, { error: "Admin login required" });
+    return handleReissueInvite(res, clientMatch[1]);
+  }
+  if (clientMatch && req.method === "PUT" && !clientMatch[2]) {
+    if (!isAdmin(req)) return sendJSON(res, 401, { error: "Admin login required" });
+    return handleUpdateClient(req, res, clientMatch[1]);
+  }
+  const inviteMatch = pathname.match(/^\/api\/client\/invite\/([a-f0-9]+)$/);
+  if (inviteMatch && req.method === "GET") return handleGetInvite(res, inviteMatch[1]);
+  if (pathname === "/api/client/set-password" && req.method === "POST") return handleSetPassword(req, res);
+  if (pathname === "/api/client/login" && req.method === "POST") return handleClientLogin(req, res);
+  if (pathname === "/api/client/logout" && req.method === "POST") {
+    setClientCookie(req, res, "", 0);
+    return sendJSON(res, 200, { ok: true });
+  }
+  if (pathname === "/api/client/me" && req.method === "GET") {
+    const c = currentClient(req);
+    return sendJSON(res, 200, { client: c ? { name: c.name, email: c.email, mobile: c.mobile } : null });
+  }
+  if (pathname === "/api/client/portal" && req.method === "GET") return handlePortal(req, res);
+  if (pathname === "/login" || pathname === "/login/") pathname = "/login.html";
+  if (/^\/set-password\/[a-f0-9]+$/.test(pathname)) pathname = "/set-password.html";
+  if (pathname === "/portal" || pathname === "/portal/") pathname = "/portal.html";
 
   // Offer links + offers. Creating links and reading offers is admin-only;
   // buyers can only look up a single link and submit an offer against it.

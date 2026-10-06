@@ -10,6 +10,7 @@
     ["Going to Market", "/going-to-the-market.html"],
     ["Make an Offer", "/adam/offer"],
     ["Enquiry", "/contact.html"],
+    ["Client Login", "/adam/login"],
   ];
 
   const here = location.pathname === "/index.html" ? "/" : location.pathname;
