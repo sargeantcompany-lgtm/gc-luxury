@@ -630,3 +630,5 @@ footer a:hover{color:var(--white);}
   .schedule-list li{grid-template-columns:1fr;gap:6px;}
   .pay-grid{grid-template-columns:1fr;}
 }
+.vantage-ip{max-width:620px;margin:-18px auto 36px;font-size:13px;letter-spacing:.04em;color:#9A9A9A;font-style:italic;}
+.vantage-page .vantage-ip{margin:0 auto 16px;}
