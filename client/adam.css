@@ -518,3 +518,23 @@ footer a:hover{color:var(--white);}
 .scale-stat .snum{font-size:clamp(34px,3.8vw,60px);}
 @media (max-width:900px){.bar-row{grid-template-columns:1fr auto;}}
 @media (max-width:560px){.scale-stats{grid-template-columns:1fr;}.scale-stat + .scale-stat{border-left:0;border-top:1px solid #2A2A2A;}}
+
+/* Scale graph, condensed on phones: name | bar | value on one line */
+@media (max-width:760px){
+  .scale-lede{margin-bottom:28px;}
+  .scale-bars{padding-top:4px;}
+  .bar-row,.bar-row:not(#x){grid-template-columns:86px 1fr auto;gap:10px;padding:10px 0;}
+  .bar-label{grid-column:auto;}
+  .bar-label b{font-size:11px;letter-spacing:.08em;}
+  .bar-label span{display:none;}
+  .bar-track{height:16px;}
+  .bar-value{font-size:16px;}
+  .bar-caption{margin-top:8px;font-size:10px;}
+  .scale-stats{grid-template-columns:1fr 1fr;margin-top:32px;}
+  .scale-stat{padding:18px 16px;}
+  .scale-stat .snum{font-size:28px;margin-bottom:6px;}
+  .scale-stat p{font-size:12px;}
+  .scale-stat + .scale-stat{border-left:0;border-top:0;}
+  .scale-stat:nth-child(even){border-left:1px solid #2A2A2A;}
+  .scale-stat:nth-child(n+3){border-top:1px solid #2A2A2A;}
+}
