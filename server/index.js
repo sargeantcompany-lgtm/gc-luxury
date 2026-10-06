@@ -54,6 +54,8 @@ app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 // Going to the Market page (formerly How to Sell); keep old links working.
 app.get("/pre-list-kit.html", (req, res) => res.redirect(301, "/going-to-the-market.html#pre-list-kit"));
 app.get("/how-to-sell.html", (req, res) => res.redirect(301, "/going-to-the-market.html"));
+// Placeholder until the Vantage page is built.
+app.get("/vantage", (req, res) => res.redirect(302, "/vantage-network.html"));
 app.use(express.static(CLIENT_DIR));
 
 // CRM admin (built React app), served under /admin

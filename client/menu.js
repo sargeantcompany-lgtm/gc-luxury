@@ -7,7 +7,7 @@
     ["Bio", "/about.html"],
     ["Blog", "/blog.html"],
     ["Off-Market", "/off-market.html"],
-    ["Going to the Market", "/going-to-the-market.html"],
+    ["Going to Market", "/going-to-the-market.html"],
     ["Make an Offer", "/adam/offer"],
     ["Enquiry", "/contact.html"],
   ];
