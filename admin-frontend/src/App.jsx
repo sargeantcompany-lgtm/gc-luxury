@@ -9,6 +9,7 @@ import Campaigns from './pages/Campaigns';
 import Templates from './pages/Templates';
 import GcListings from './pages/GcListings';
 import GcBlog from './pages/GcBlog';
+import ListingChecklists from './pages/ListingChecklists';
 import ActivityLog from './pages/ActivityLog';
 import Settings from './pages/Settings';
 
@@ -26,6 +27,8 @@ export default function App() {
             <Route path="templates" element={<Templates />} />
             <Route path="gc-listings" element={<GcListings />} />
             <Route path="gc-blog" element={<GcBlog />} />
+            <Route path="listing-checklists" element={<ListingChecklists />} />
+            <Route path="listing-checklists/:id" element={<ListingChecklists />} />
             <Route path="activity" element={<ActivityLog />} />
             <Route path="settings" element={<Settings />} />
           </Route>

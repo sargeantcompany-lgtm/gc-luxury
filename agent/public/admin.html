@@ -126,7 +126,7 @@
   .editor label{display:block;font-size:12px;font-weight:700;color:var(--grey);}
   .editor input,.editor select,.editor textarea{
     width:100%;margin-top:4px;font:inherit;font-size:14px;padding:9px 10px;
-    border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);
+    border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font-weight:400;
   }
   .editor textarea{min-height:120px;resize:vertical;}
   .photos{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px;}
@@ -181,15 +181,88 @@
   .login button:hover{background:var(--gold-dark);}
   .login .err{color:#B42318;font-size:13px;min-height:18px;margin-top:10px;}
 
-  /* Phones: table rows become stacked cards */
+  /* Listings tab: per-property checklist */
+  .lc-list{display:grid;gap:10px;}
+  .lc-card{display:block;width:100%;text-align:left;font:inherit;color:inherit;background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 16px;cursor:pointer;}
+  .lc-card:hover{border-color:var(--gold-dark);}
+  .lc-card .row{display:flex;justify-content:space-between;gap:12px;align-items:baseline;}
+  .lc-card .pct{font-weight:800;font-size:15px;white-space:nowrap;}
+  .lc-card .stage{font-size:12.5px;color:var(--ink);margin-top:6px;}
+  .bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-top:10px;}
+  .bar span{display:block;height:100%;background:var(--gold-dark);border-radius:3px;transition:width .2s;}
+  .bar.complete span{background:#12B76A;}
+
+  .lc-head{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;margin-bottom:6px;}
+  .lc-head h2{margin:0;font-size:20px;line-height:1.25;}
+  .lc-back{font:inherit;font-size:13px;font-weight:700;background:none;border:1px solid var(--line);border-radius:6px;padding:8px 12px;cursor:pointer;margin-bottom:14px;}
+  .lc-meta{display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-size:13px;color:var(--grey);}
+  .lc-meta button{font:inherit;font-size:12.5px;font-weight:700;background:none;border:1.5px solid var(--gold-dark);border-radius:6px;padding:5px 10px;cursor:pointer;color:var(--ink);}
+  .lc-meta button.del{border-color:#E4B4AE;color:#B42318;}
+  .lc-save{font-size:12px;color:var(--grey);min-height:18px;margin:8px 0 4px;}
+  .lc-save.err{color:#B42318;}
+  .lc-progress{position:sticky;top:0;z-index:5;background:var(--light);padding:8px 0 10px;}
+  .lc-progress .bar{margin-top:6px;}
+  .lc-progress .txt{display:flex;justify-content:space-between;font-size:13px;font-weight:700;}
+  .lc-tools{display:flex;gap:8px;margin:4px 0 12px;flex-wrap:wrap;}
+  .lc-tools button{font:inherit;font-size:12.5px;font-weight:700;background:#fff;border:1px solid var(--line);border-radius:6px;padding:6px 10px;cursor:pointer;}
+
+  details.lc-sec{background:#fff;border:1px solid var(--line);border-radius:10px;margin-bottom:10px;overflow:hidden;}
+  details.lc-sec > summary{list-style:none;cursor:pointer;padding:14px 16px;display:flex;justify-content:space-between;gap:12px;align-items:center;font-weight:800;font-size:15px;}
+  details.lc-sec > summary::-webkit-details-marker{display:none;}
+  details.lc-sec > summary::before{content:"▸";color:var(--grey);margin-right:-4px;transition:transform .15s;}
+  details.lc-sec[open] > summary::before{transform:rotate(90deg);}
+  details.lc-sec > summary .t{flex:1;}
+  details.lc-sec > summary .n{font-size:12px;font-weight:700;padding:2px 9px;border-radius:10px;background:var(--line);white-space:nowrap;}
+  details.lc-sec.complete > summary .n{background:#DCFAE6;color:#067647;}
+  details.lc-sec[open] > summary{border-bottom:1px solid var(--line);}
+  .lc-sub{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--grey);font-weight:700;padding:14px 16px 4px;}
+  .lc-item{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px 16px;align-items:start;padding:10px 16px;border-bottom:1px solid #F0EDE8;}
+  .lc-item:last-of-type{border-bottom:0;}
+  .lc-item label{display:flex;gap:12px;align-items:flex-start;cursor:pointer;font-size:14.5px;padding-top:6px;}
+  .lc-item input[type=checkbox]{flex:0 0 auto;width:22px;height:22px;margin:0;accent-color:var(--ink);cursor:pointer;}
+  .lc-item.done label .txt{color:var(--grey);text-decoration:line-through;text-decoration-color:#B8B2A8;}
+  .lc-item .ticked{display:block;font-size:11.5px;color:var(--grey);text-decoration:none;margin-top:2px;}
+  .lc-item textarea{
+    width:100%;font:inherit;font-size:14px;padding:8px 10px;min-height:38px;resize:vertical;
+    border:1px solid var(--line);border-radius:8px;background:#FBFAF8;color:var(--ink);field-sizing:content;max-height:240px;
+  }
+  .lc-item textarea:focus{background:#fff;outline:2px solid var(--gold);border-color:var(--gold-dark);}
+  .lc-tip{margin:4px 16px 14px;padding:10px 12px;background:#FFFBE0;border-left:3px solid var(--gold-dark);border-radius:4px;font-size:13px;}
+
+  /* Phones */
   @media (max-width:640px){
+    /* table rows become stacked cards */
     thead{display:none;}
     table,tbody,tr,td{display:block;width:100%;}
     tr{padding:12px 14px;border-bottom:1px solid var(--line);}
     td{padding:2px 0;border:0;}
-    .actions{text-align:left;margin-top:8px;}
-    .actions a,.actions button{margin:0 6px 0 0;}
+    .actions{text-align:left;margin-top:10px;white-space:normal;display:flex;flex-wrap:wrap;gap:8px;}
+    .actions a,.actions button{margin:0;padding:9px 14px;font-size:13.5px;}
+
+    .top{padding:12px 16px;}
+    .top .brand{font-size:15px;}
     .top .brand span{display:none;}
+    .top-actions{gap:8px;}
+    .top-actions a,.top-actions button{padding:9px 11px;white-space:nowrap;}
+    #wrap{padding:14px 12px 60px;}
+
+    /* tabs scroll sideways instead of squashing */
+    .tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:0 -12px 16px;padding:0 12px;}
+    .tabs::-webkit-scrollbar{display:none;}
+    .tab{flex:0 0 auto;padding:12px 12px;white-space:nowrap;}
+
+    /* forms stack full width; 16px text stops iOS zooming in on focus */
+    .link-form > *{flex:1 1 100% !important;}
+    input,select,textarea{font-size:16px !important;}
+    .link-form button,.editor-actions button,.section-head button{padding:12px 16px;}
+    .new-link > *{flex:1 1 100%;}
+    .section-head{gap:10px;}
+    .grid > div:empty{display:none;}
+
+    .lc-item{grid-template-columns:1fr;padding:12px 14px;}
+    .lc-item label{padding-top:0;}
+    details.lc-sec > summary{padding:14px;}
+    .lc-head h2{font-size:18px;}
   }
 </style>
 </head>
@@ -217,6 +290,7 @@
   <div id="wrap">
     <div class="tabs">
       <button class="tab active" data-tab="appraisals" onclick="showTab('appraisals')">Appraisals Sent<span class="count" id="appraisalCount">0</span></button>
+      <button class="tab" data-tab="listings" onclick="showTab('listings')">Listings<span class="count" id="listingCount">0</span></button>
       <button class="tab" data-tab="offers" onclick="showTab('offers')">Offers<span class="count" id="offerCount">0</span></button>
       <button class="tab" data-tab="offmarket" onclick="showTab('offmarket')">Off-Market<span class="count" id="omCount">0</span></button>
       <button class="tab" data-tab="clients" onclick="showTab('clients')">Clients<span class="count" id="clientCount">0</span></button>
@@ -232,6 +306,22 @@
           <tbody id="appraisalRows"><tr><td colspan="3" class="empty">Loading…</td></tr></tbody>
         </table>
       </div>
+    </section>
+
+    <section id="tab-listings" class="hidden">
+      <div id="lcIndex">
+        <h3 class="section-title">Add a listing</h3>
+        <p class="sub" style="margin:-4px 0 10px;">Each listing gets its own Property Listing &amp; Sales Checklist, from appraisal through to settlement. Tick items off and add notes as you go. Everything saves automatically.</p>
+        <form class="card link-form" onsubmit="createChecklist(event)">
+          <input id="lcAddress" placeholder="Property address, e.g. 8 Jindivick Street, Worongary" required>
+          <input id="lcSeller" placeholder="Seller name (optional)" style="flex:0 1 220px;">
+          <button type="submit">Add listing</button>
+        </form>
+        <p class="sub" id="lcCreateErr" style="color:#B42318;"></p>
+        <h3 class="section-title">Your listings</h3>
+        <div class="lc-list" id="lcList"><div class="card empty">Loading…</div></div>
+      </div>
+      <div id="lcDetail" class="hidden"></div>
     </section>
 
     <section id="tab-offers" class="hidden">
@@ -365,7 +455,10 @@ function fmtWhen(iso){
 
 function showTab(name){
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
-  ['appraisals', 'offers', 'offmarket', 'clients'].forEach(t =>
+  // On phones the tab bar scrolls sideways; keep the chosen tab in view.
+  const tab = document.querySelector(`.tab[data-tab="${name}"]`);
+  tab.parentNode.scrollTo({left: tab.offsetLeft - tab.parentNode.offsetLeft - 12, behavior:'smooth'});
+  ['appraisals', 'listings', 'offers', 'offmarket', 'clients'].forEach(t =>
     document.getElementById('tab-' + t).classList.toggle('hidden', name !== t));
 }
 
@@ -406,6 +499,7 @@ async function deleteRecord(type, id, message){
   if (!res.ok && res.status !== 404){ alert('Could not delete — please try again.'); return; }
   if (type === 'appraisals') loadAppraisals();
   else if (type === 'clients') loadClients();
+  else if (type === 'checklists') loadChecklists();
   else if (type.startsWith('off-market')) loadOffMarket();
   else loadOffers();
 }
@@ -735,6 +829,271 @@ async function deleteListing(id){
   loadOffMarket();
 }
 
+/* ---------------- Listings (sales checklist) ----------------
+ * The Property Listing & Sales Checklist. The checklist itself comes from the
+ * server (server/listingChecklists.js) and is shared with the CRM's Listing
+ * Checklists page, so ticks and notes made in either place show in both.
+ */
+let CHECKLIST = [];
+let ALL_ITEMS = [];
+let checklists = [];
+let openChecklistId = null;
+let pendingSaves = {};          // listing id -> {itemKey: {done?, note?}} not yet saved
+let saveTimer = null;
+let saveChain = Promise.resolve();
+
+const findChecklist = id => checklists.find(c => String(c.id) === String(id));
+const isDone = (c, key) => !!(c.items[key] && c.items[key].done);
+function countDone(c, items){
+  return items.filter(i => i.key && isDone(c, i.key)).length;
+}
+function stageText(c){
+  for (const s of CHECKLIST){
+    const next = s.items.find(i => i.key && !isDone(c, i.key));
+    if (next) return `${s.title} · Next: ${next.text}`;
+  }
+  return 'All done ✓';
+}
+const pct = (d, t) => t ? Math.round(d / t * 100) : 0;
+const shortDate = iso => new Date(iso).toLocaleDateString('en-AU', {day:'numeric', month:'short'});
+
+async function loadChecklists(){
+  const res = await fetch('/adam/api/checklists');
+  if (res.status === 401) return showLogin();
+  const data = res.ok ? await res.json() : {template: [], listings: []};
+  CHECKLIST = data.template;
+  ALL_ITEMS = CHECKLIST.flatMap(s => s.items.filter(i => i.key));
+  checklists = data.listings;
+  document.getElementById('listingCount').textContent = checklists.length;
+  if (openChecklistId && !findChecklist(openChecklistId)) closeChecklist();
+  else if (openChecklistId) renderChecklistDetail();
+  renderChecklistIndex();
+  if (Object.keys(pendingSaves).length) flushSaves();
+  const fromHash = (location.hash.match(/^#listing\/(\d+)$/) || [])[1];
+  if (fromHash && !openChecklistId && findChecklist(fromHash)){
+    showTab('listings');
+    openChecklist(fromHash);
+  }
+}
+
+function renderChecklistIndex(){
+  const el = document.getElementById('lcList');
+  if (!checklists.length){
+    el.innerHTML = '<div class="card empty">No listings yet. Add your first one above.</div>';
+    return;
+  }
+  // Unfinished listings first, most recently worked on at the top.
+  const sorted = checklists.slice().sort((a, b) => {
+    const fa = countDone(a, ALL_ITEMS) === ALL_ITEMS.length, fb = countDone(b, ALL_ITEMS) === ALL_ITEMS.length;
+    if (fa !== fb) return fa ? 1 : -1;
+    return a.updated_at < b.updated_at ? 1 : -1;
+  });
+  el.innerHTML = sorted.map(c => {
+    const d = countDone(c, ALL_ITEMS), p = pct(d, ALL_ITEMS.length);
+    return `<button class="lc-card" onclick="openChecklist('${esc(c.id)}')">
+      <div class="row"><div class="addr">${esc(c.address)}</div><div class="pct">${p}%</div></div>
+      <div class="sub">${c.seller ? esc(c.seller) + ' · ' : ''}${d} of ${ALL_ITEMS.length} done · added ${esc(shortDate(c.created_at))}</div>
+      <div class="stage">${esc(stageText(c))}</div>
+      <div class="bar${p === 100 ? ' complete' : ''}"><span style="width:${p}%"></span></div>
+    </button>`;
+  }).join('');
+}
+
+async function createChecklist(e){
+  e.preventDefault();
+  const err = document.getElementById('lcCreateErr');
+  err.textContent = '';
+  const address = document.getElementById('lcAddress').value.trim();
+  const seller = document.getElementById('lcSeller').value.trim();
+  const res = await fetch('/adam/api/checklists', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({address, seller})});
+  if (res.status === 401) return showLogin();
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok){ err.textContent = data.error || 'Could not add the listing — please try again.'; return; }
+  document.getElementById('lcAddress').value = '';
+  document.getElementById('lcSeller').value = '';
+  checklists.push(data);
+  document.getElementById('listingCount').textContent = checklists.length;
+  renderChecklistIndex();
+  openChecklist(data.id);
+}
+
+function openChecklist(id){
+  openChecklistId = String(id);
+  history.replaceState(null, '', '#listing/' + id);
+  document.getElementById('lcIndex').classList.add('hidden');
+  document.getElementById('lcDetail').classList.remove('hidden');
+  renderChecklistDetail();
+  window.scrollTo(0, 0);
+}
+
+function closeChecklist(){
+  flushSaves();
+  openChecklistId = null;
+  history.replaceState(null, '', location.pathname);
+  document.getElementById('lcDetail').classList.add('hidden');
+  document.getElementById('lcIndex').classList.remove('hidden');
+  renderChecklistIndex();
+}
+
+function renderChecklistDetail(){
+  const c = findChecklist(openChecklistId);
+  if (!c) return;
+  const itemHtml = i => {
+    if (i.sub) return `<div class="lc-sub">${esc(i.sub)}</div>`;
+    const st = c.items[i.key] || {};
+    return `<div class="lc-item${st.done ? ' done' : ''}" data-key="${esc(i.key)}">
+      <label><input type="checkbox" ${st.done ? 'checked' : ''}><span><span class="txt">${esc(i.text)}</span><span class="ticked">${st.done && st.doneAt ? 'Ticked ' + esc(shortDate(st.doneAt)) : ''}</span></span></label>
+      <textarea rows="${Math.min(8, (st.note || '').split('\n').length)}" placeholder="Notes" aria-label="Notes: ${esc(i.text)}">${esc(st.note || '')}</textarea>
+    </div>`;
+  };
+  document.getElementById('lcDetail').innerHTML = `
+    <button class="lc-back" onclick="closeChecklist()">← All listings</button>
+    <div class="lc-head"><div>
+      <h2>${esc(c.address)}</h2>
+      <div class="lc-meta">${c.seller ? `<span>Seller: ${esc(c.seller)}</span>` : ''}<span>Added ${esc(fmtWhen(c.created_at).date)}</span>
+        <button onclick="editChecklistDetails()">Edit details</button>
+        <button class="del" onclick="deleteChecklist()">Delete</button></div>
+    </div></div>
+    <div class="lc-progress"><div class="txt"><span id="lcDoneTxt"></span><span id="lcPct"></span></div>
+      <div class="bar" id="lcBar"><span></span></div>
+      <div class="lc-save" id="lcSave"></div></div>
+    <div class="lc-tools">
+      <button onclick="toggleSections(true)">Expand all</button>
+      <button onclick="toggleSections(false)">Collapse all</button>
+    </div>
+    ${CHECKLIST.map((s, si) => {
+      const keys = s.items.filter(i => i.key);
+      const done = countDone(c, keys) === keys.length;
+      return `<details class="lc-sec${done ? ' complete' : ''}" data-sec="${si}" ${done ? '' : 'open'}>
+        <summary><span class="t">${esc(s.title)}</span><span class="n"></span></summary>
+        ${s.items.map(itemHtml).join('')}
+        ${s.tip ? `<div class="lc-tip"><strong>Tip:</strong> ${esc(s.tip)}</div>` : ''}
+      </details>`;
+    }).join('')}`;
+  updateChecklistCounts();
+}
+
+// Refreshes the counters without re-rendering, so typing in a note keeps focus.
+function updateChecklistCounts(){
+  const c = findChecklist(openChecklistId);
+  if (!c) return;
+  const d = countDone(c, ALL_ITEMS), p = pct(d, ALL_ITEMS.length);
+  document.getElementById('lcDoneTxt').textContent = `${d} of ${ALL_ITEMS.length} done`;
+  document.getElementById('lcPct').textContent = p + '%';
+  const bar = document.getElementById('lcBar');
+  bar.classList.toggle('complete', p === 100);
+  bar.firstElementChild.style.width = p + '%';
+  document.querySelectorAll('#lcDetail details.lc-sec').forEach(el => {
+    const keys = CHECKLIST[el.dataset.sec].items.filter(i => i.key);
+    const n = countDone(c, keys);
+    el.querySelector('summary .n').textContent = `${n}/${keys.length}`;
+    el.classList.toggle('complete', n === keys.length);
+  });
+}
+
+function toggleSections(open){
+  document.querySelectorAll('#lcDetail details.lc-sec').forEach(el => el.open = open);
+}
+
+function setSaveStatus(text, isErr){
+  const el = document.getElementById('lcSave');
+  if (!el) return;
+  el.classList.toggle('err', !!isErr);
+  el.innerHTML = text;
+}
+
+function queueSave(key, patch, delay){
+  const c = findChecklist(openChecklistId);
+  const item = c.items[key] = Object.assign({done:false, note:'', doneAt:null}, c.items[key]);
+  if (patch.done !== undefined && patch.done !== item.done) item.doneAt = patch.done ? new Date().toISOString() : null;
+  Object.assign(item, patch);
+  c.updated_at = new Date().toISOString();
+  const forList = pendingSaves[c.id] = pendingSaves[c.id] || {};
+  forList[key] = Object.assign(forList[key] || {}, patch);
+  setSaveStatus('Saving…');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(flushSaves, delay);
+}
+
+// Sends every queued change, one request at a time so an older note can never
+// land after a newer one. Failed changes go back in the queue for a retry.
+function flushSaves(){
+  clearTimeout(saveTimer);
+  const batch = pendingSaves;
+  pendingSaves = {};
+  saveChain = saveChain.then(async () => {
+    for (const [id, items] of Object.entries(batch)){
+      try{
+        const res = await fetch('/adam/api/checklists/' + encodeURIComponent(id), {
+          method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({items}), keepalive:true
+        });
+        if (res.status === 401){ requeue(id, items); return showLogin('Logged out — log in again and your changes will save.'); }
+        if (res.status === 404) continue; // listing was deleted
+        if (!res.ok) throw new Error();
+      }catch(e){
+        requeue(id, items);
+        setSaveStatus('Couldn’t save — check your connection. <a href="#" onclick="flushSaves();return false;">Try again</a>', true);
+        return;
+      }
+    }
+    if (!Object.keys(pendingSaves).length) setSaveStatus('All changes saved ✓');
+  });
+}
+
+function requeue(id, items){
+  const newer = pendingSaves[id] || {};
+  pendingSaves[id] = items;
+  for (const [k, v] of Object.entries(newer)) pendingSaves[id][k] = Object.assign(pendingSaves[id][k] || {}, v);
+}
+
+document.getElementById('lcDetail').addEventListener('change', e => {
+  if (e.target.type !== 'checkbox') return;
+  const row = e.target.closest('.lc-item');
+  queueSave(row.dataset.key, {done: e.target.checked}, 0);
+  row.classList.toggle('done', e.target.checked);
+  const st = findChecklist(openChecklistId).items[row.dataset.key];
+  row.querySelector('.ticked').textContent = st.done ? 'Ticked ' + shortDate(st.doneAt) : '';
+  updateChecklistCounts();
+});
+document.getElementById('lcDetail').addEventListener('input', e => {
+  if (e.target.tagName !== 'TEXTAREA') return;
+  autoGrow(e.target);
+  queueSave(e.target.closest('.lc-item').dataset.key, {note: e.target.value}, 800);
+});
+document.getElementById('lcDetail').addEventListener('focusout', e => {
+  if (e.target.tagName === 'TEXTAREA' && Object.keys(pendingSaves).length) flushSaves();
+});
+function autoGrow(t){ t.style.height = 'auto'; t.style.height = t.scrollHeight + 2 + 'px'; }
+// Phones often drop the page without a blur when switching apps.
+document.addEventListener('visibilitychange', () => { if (document.hidden && Object.keys(pendingSaves).length) flushSaves(); });
+window.addEventListener('beforeunload', e => {
+  if (!Object.keys(pendingSaves).length) return;
+  flushSaves();
+  e.preventDefault();
+  e.returnValue = '';
+});
+
+async function editChecklistDetails(){
+  const c = findChecklist(openChecklistId);
+  const address = prompt('Property address', c.address);
+  if (address === null) return;
+  if (!address.trim()){ alert('The address can’t be blank.'); return; }
+  const seller = prompt('Seller name', c.seller || '');
+  if (seller === null) return;
+  const res = await fetch('/adam/api/checklists/' + encodeURIComponent(c.id), {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({address, seller})});
+  if (res.status === 401) return showLogin();
+  if (!res.ok){ alert('Could not save — please try again.'); return; }
+  const saved = await res.json();
+  c.address = saved.address;
+  c.seller = saved.seller;
+  renderChecklistDetail();
+}
+
+function deleteChecklist(){
+  const c = findChecklist(openChecklistId);
+  deleteRecord('checklists', c.id, `Delete the checklist for ${c.address}, including all ticks and notes?`);
+}
+
 /* ---------------- Clients ---------------- */
 let clients = [];
 const inviteUrl = token => location.origin + '/adam/set-password/' + token;
@@ -870,6 +1229,7 @@ function showAdmin(){
   document.getElementById('loginView').classList.add('hidden');
   document.getElementById('adminView').classList.remove('hidden');
   loadAppraisals();
+  loadChecklists();
   loadOffers();
   loadOffMarket();
   loadClients();

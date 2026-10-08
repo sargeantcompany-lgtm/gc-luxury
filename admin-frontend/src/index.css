@@ -308,6 +308,8 @@ tbody tr.selected { background: var(--primary-light); }
   flex-direction: column;
   overflow: hidden;
 }
+/* Each page's root fills the main area so its .page-content is what scrolls */
+.main-area > * { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .page-header {
   background: var(--surface);
   border-bottom: 1px solid var(--border);
@@ -523,6 +525,132 @@ tbody tr.selected { background: var(--primary-light); }
 .chip:hover { border-color: var(--primary); }
 
 .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+
+/* ── Listing Checklists ── */
+.lc-wrap { max-width: 980px; }
+.lc-add { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+.lc-card {
+  display: block; width: 100%; text-align: left; font: inherit; color: inherit;
+  padding: 14px 16px; margin-bottom: 10px; cursor: pointer;
+}
+.lc-card:hover { border-color: var(--primary); }
+.lc-card-row { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; margin-bottom: 2px; }
+.lc-card-address { font-weight: 600; font-size: 14px; }
+.lc-card-pct { font-weight: 700; white-space: nowrap; }
+.lc-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-top: 10px; }
+.lc-bar span { display: block; height: 100%; background: var(--primary); border-radius: 3px; transition: width 0.2s; }
+.lc-bar.complete span { background: var(--success); }
+
+.lc-address { font-size: 20px; font-weight: 700; line-height: 1.25; }
+.lc-meta { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+.lc-meta-actions { display: flex; gap: 6px; }
+.lc-progress { position: sticky; top: -24px; z-index: 5; background: var(--bg); padding: 14px 0 8px; margin-bottom: 4px; }
+.lc-progress-text { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; }
+.lc-progress .lc-bar { margin-top: 6px; }
+.lc-save { font-size: 12px; color: var(--text-muted); min-height: 18px; margin-top: 6px; display: flex; align-items: center; gap: 6px; }
+.lc-save.error { color: var(--danger); }
+
+details.lc-section { margin-bottom: 10px; overflow: hidden; }
+details.lc-section > summary {
+  list-style: none; cursor: pointer; padding: 14px 16px;
+  display: flex; align-items: center; gap: 10px;
+}
+details.lc-section > summary::-webkit-details-marker { display: none; }
+details.lc-section > summary::before { content: '▸'; color: var(--text-muted); transition: transform 0.15s; }
+details.lc-section[open] > summary::before { transform: rotate(90deg); }
+details.lc-section[open] > summary { border-bottom: 1px solid var(--border); }
+.lc-section-title { flex: 1; font-weight: 600; font-size: 14px; }
+.lc-sub { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); padding: 14px 16px 2px; }
+.lc-item {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px 16px; align-items: start;
+  padding: 10px 16px; border-bottom: 1px solid var(--border);
+}
+.lc-item:last-of-type { border-bottom: none; }
+.lc-item label { display: flex; gap: 12px; align-items: flex-start; cursor: pointer; font-size: 13.5px; padding-top: 6px; }
+.lc-item input[type=checkbox] { flex: 0 0 auto; width: 20px; height: 20px; margin: 0; accent-color: var(--primary); cursor: pointer; }
+.lc-item.done .lc-text { color: var(--text-muted); text-decoration: line-through; }
+.lc-ticked { display: block; font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+.lc-item .form-textarea { min-height: 36px; padding: 7px 10px; background: var(--bg); field-sizing: content; max-height: 240px; }
+.lc-item .form-textarea:focus { background: var(--surface); }
+.lc-tip { margin: 6px 16px 14px; padding: 10px 12px; background: var(--warning-light); border-left: 3px solid var(--warning); border-radius: 4px; font-size: 12.5px; }
+
+/* ── Mobile ── */
+.mobile-topbar, .sidebar-close, .sidebar-backdrop { display: none; }
+
+@media (max-width: 768px) {
+  /* Let the page scroll normally instead of inside fixed-height panels */
+  .app-shell { display: block; height: auto; overflow: visible; }
+  .main-area { overflow: visible; }
+  .page-content { overflow: visible; padding: 14px; }
+
+  .mobile-topbar {
+    display: flex; align-items: center; gap: 10px;
+    position: sticky; top: 0; z-index: 900;
+    height: 52px; padding: 0 12px;
+    background: var(--surface); border-bottom: 1px solid var(--border);
+  }
+  .mobile-topbar .sidebar-logo-icon { width: 28px; height: 28px; font-size: 13px; }
+  .mobile-menu-btn {
+    display: flex; align-items: center; justify-content: center;
+    width: 40px; height: 40px; margin-left: -6px;
+    background: none; border: none; border-radius: 8px; color: var(--text-primary); cursor: pointer;
+  }
+  .mobile-menu-btn:active { background: var(--bg); }
+
+  /* Sidebar slides in from the left */
+  .sidebar {
+    position: fixed; top: 0; left: 0; z-index: 1100;
+    width: min(280px, 85vw); height: 100vh; height: 100dvh;
+    transform: translateX(-100%); transition: transform 0.2s ease;
+    box-shadow: var(--shadow-lg);
+  }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-backdrop { display: block; position: fixed; inset: 0; z-index: 1050; background: rgba(15, 23, 42, 0.4); }
+  .sidebar-close {
+    display: block; margin-left: auto; background: none; border: none;
+    font-size: 26px; line-height: 1; color: var(--text-muted); padding: 4px 8px; cursor: pointer;
+  }
+  .sidebar-link { padding: 11px 10px; font-size: 14px; }
+
+  /* Headers and toolbars wrap instead of running off the screen */
+  .page-header { height: auto; min-height: 52px; padding: 10px 14px; flex-wrap: wrap; gap: 8px; }
+  .page-header > div { flex-wrap: wrap; }
+  .toolbar-left, .toolbar-right { flex-wrap: wrap; width: 100%; }
+  .search-input { width: 100%; }
+  .toolbar .form-select { flex: 1 1 140px; width: auto !important; }
+
+  .grid-2, .grid-3 { grid-template-columns: 1fr !important; }
+  .grid-4 { grid-template-columns: 1fr 1fr !important; gap: 10px; }
+  .stat-card { padding: 14px; }
+  .stat-value { font-size: 22px; }
+  .card-body { padding: 14px; }
+  .card-header { padding: 12px 14px; flex-wrap: wrap; gap: 6px; }
+
+  /* 16px text stops iPhones zooming in when a field is tapped */
+  .form-input, .form-select, .form-textarea, .search-input, input, select, textarea { font-size: 16px; }
+  .btn { padding: 9px 14px; }
+  .btn-sm { padding: 7px 12px; font-size: 13px; }
+
+  /* Pop-up forms slide up from the bottom and use the full width */
+  .modal-overlay { padding: 0; align-items: flex-end; }
+  .modal { max-height: 92vh; max-height: 92dvh; border-radius: 14px 14px 0 0; }
+  .modal-header { padding: 14px 16px; }
+  .modal-body { padding: 16px; }
+  .modal-footer { padding: 12px 16px; flex-wrap: wrap; }
+  .modal-footer .btn { flex: 1 1 auto; justify-content: center; }
+
+  .kanban-board { min-height: 0; }
+  .toast-container { left: 12px; right: 12px; bottom: 12px; }
+  .toast { max-width: none; }
+
+  .lc-progress { top: 52px; }
+  .lc-address { font-size: 18px; }
+  .lc-add .btn { width: 100%; justify-content: center; }
+  .lc-item { grid-template-columns: 1fr; padding: 12px 14px; }
+  .lc-item label { padding-top: 0; font-size: 14.5px; }
+  .lc-item input[type=checkbox] { width: 22px; height: 22px; }
+  details.lc-section > summary { padding: 14px; }
+}
 
 /* scrollbar */
 ::-webkit-scrollbar { width: 6px; height: 6px; }

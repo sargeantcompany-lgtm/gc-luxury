@@ -315,3 +315,18 @@ CREATE INDEX IF NOT EXISTS idx_gc_blog_posts_status ON gc_blog_posts(status, pub
 -- Migration: listings are either normal on-market listings or off-market
 -- properties - both public, shown in separate sections on the site.
 ALTER TABLE gc_listings ADD COLUMN IF NOT EXISTS listing_type VARCHAR(20) NOT NULL DEFAULT 'listing';
+
+-- ============================================
+-- Property Listing & Sales Checklist, one row per property listed.
+-- Shared by the CRM (Listing Checklists page) and /adam/admin (Listings tab);
+-- the checklist itself is defined in server/listingChecklists.js. `items` maps
+-- an item key to { done, note, doneAt }.
+-- ============================================
+CREATE TABLE IF NOT EXISTS listing_checklists (
+    id SERIAL PRIMARY KEY,
+    address VARCHAR(200) NOT NULL,
+    seller VARCHAR(200),
+    items JSONB NOT NULL DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);

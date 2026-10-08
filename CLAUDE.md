@@ -40,6 +40,10 @@ Neither admin scheme is a user-account system — both are single shared secrets
 
 `database/schema.sql` is the only source of truth for the schema — there is no migration tool. It's executed in full on every server boot (`ensureSchema()` in `server/db.js`), so every statement in it must be idempotent: `CREATE TABLE IF NOT EXISTS`, `ADD COLUMN IF NOT EXISTS`, `ON CONFLICT DO NOTHING`. When changing the schema, append idempotent statements to this file rather than editing historical `CREATE TABLE` blocks in place — e.g. the `top_five` table's move from a single global list to per-buyer rows is recorded as `ALTER TABLE` statements below its original `CREATE TABLE`, not by rewriting the original.
 
+### Listing checklists
+
+The Property Listing & Sales Checklist (one per property listed) is defined once in `server/listingChecklists.js` and stored in the `listing_checklists` table. Two UIs share it: the CRM's Listing Checklists page (`/api/listing-checklists`, CRM key) and the Listings tab of `/adam/admin` (`/adam/api/checklists`, Adam's admin cookie). Both fetch the checklist definition from the API rather than hardcoding it. Item keys are what's stored per listing, so never rename or reuse one.
+
 ### Listing auto-fill
 
 `server/connector/ogFetch.js` scrapes a listing URL's Open Graph tags / JSON-LD for title, description, images, and price, used by the Connector admin UI to prefill a new listing from a pasted URL.

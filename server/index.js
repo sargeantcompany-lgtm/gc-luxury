@@ -15,6 +15,7 @@ const activityRouter = require("./crm/routes/activity");
 const settingsRouter = require("./crm/routes/settings");
 const gcListingsRouter = require("./crm/routes/gcListings");
 const gcBlogRouter = require("./crm/routes/gcBlog");
+const listingChecklistsRouter = require("./crm/routes/listingChecklists");
 const { requireAdmin: requireCrmAdmin } = require("./crm/adminAuth");
 const connectorBuyerRouter = require("./connector/routes/buyer");
 const connectorAdminListingsRouter = require("./connector/routes/adminListings");
@@ -75,6 +76,7 @@ app.use("/api/campaigns", requireCrmAdmin, campaignsRouter);
 app.use("/api/templates", requireCrmAdmin, templatesRouter);
 app.use("/api/activity", requireCrmAdmin, activityRouter);
 app.use("/api/settings", requireCrmAdmin, settingsRouter);
+app.use("/api/listing-checklists", requireCrmAdmin, listingChecklistsRouter);
 
 // GC Luxury public listings - GET is public (read by the marketing site),
 // write routes are admin-gated inside the router itself.

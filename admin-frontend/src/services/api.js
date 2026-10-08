@@ -110,6 +110,14 @@ export const gcBlogApi = {
   delete: (id) => api.delete(`/gc-blog/${id}`),
 };
 
+// ── Listing Checklists ───────────────────────────────────────────
+export const listingChecklistsApi = {
+  list: () => api.get('/listing-checklists'),
+  create: (data) => api.post('/listing-checklists', data),
+  update: (id, data) => api.put(`/listing-checklists/${id}`, data),
+  delete: (id) => api.delete(`/listing-checklists/${id}`),
+};
+
 // ── Activity ─────────────────────────────────────────────────────
 export const activityApi = {
   list: (params) => api.get('/activity', { params }),

@@ -46,6 +46,12 @@ const icons = {
       <polyline points="9 22 9 12 15 12 15 22"/>
     </svg>
   ),
+  checklist: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M9 11l3 3L22 4"/>
+      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+    </svg>
+  ),
   settings: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <circle cx="12" cy="12" r="3"/>
@@ -61,6 +67,7 @@ const navSections = [
       { to: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
       { to: '/contacts', label: 'Contacts', icon: 'contacts' },
       { to: '/pipeline', label: 'Pipeline', icon: 'pipeline' },
+      { to: '/listing-checklists', label: 'Listing Checklists', icon: 'checklist' },
     ],
   },
   {
@@ -81,15 +88,16 @@ const navSections = [
   },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ open, onClose }) {
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar${open ? ' open' : ''}`}>
       <div className="sidebar-logo">
         <div className="sidebar-logo-icon">O</div>
         <div>
           <div className="sidebar-logo-text">Outreach HQ</div>
           <div className="sidebar-logo-sub">Real Estate CRM</div>
         </div>
+        <button className="sidebar-close" onClick={onClose} aria-label="Close menu">×</button>
       </div>
 
       <nav className="sidebar-nav">

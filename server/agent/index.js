@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
+const checklists = require("../listingChecklists");
 
 // Adam Sargeant appraisal / offer / off-market site, served under /adam by
 // server/index.js (ported from the standalone appraisal-proposal-tool app).
@@ -777,6 +778,38 @@ function handlePortal(req, res) {
   sendJSON(res, 200, { name: client.name, email: client.email, appraisals, offers, offMarket });
 }
 
+/* ---------------- Listing checklists ----------------
+ * The Property Listing & Sales Checklist, one per property Adam lists. Stored
+ * in Postgres and shared with the CRM's Listing Checklists page - see
+ * server/listingChecklists.js.
+ */
+
+async function handleChecklists(req, res, id) {
+  try {
+    if (!id && req.method === "GET") {
+      return sendJSON(res, 200, { template: checklists.TEMPLATE, listings: await checklists.list() });
+    }
+    if (!id && req.method === "POST") {
+      const body = await readJSONBody(req, res);
+      if (!body) return;
+      return sendJSON(res, 200, await checklists.create(body));
+    }
+    if (id && req.method === "PUT") {
+      const body = await readJSONBody(req, res);
+      if (!body) return;
+      return sendJSON(res, 200, await checklists.update(id, body));
+    }
+    if (id && req.method === "DELETE") {
+      await checklists.remove(id);
+      return sendJSON(res, 200, { ok: true });
+    }
+    sendJSON(res, 405, { error: "Method not allowed" });
+  } catch (err) {
+    if (!err.status) console.error("Checklist error:", err);
+    sendJSON(res, err.status || 500, { error: err.status ? err.message : "Could not save - please try again" });
+  }
+}
+
 // Admin delete for any stored record. The id pattern keeps the path inside dir.
 function handleDelete(res, dir, id) {
   if (!/^[a-z0-9-]+$/i.test(id)) return sendJSON(res, 400, { error: "Invalid id" });
@@ -813,6 +846,13 @@ module.exports = function handleAgent(req, res) {
   if (deleteMatch && req.method === "DELETE") {
     if (!isAdmin(req)) return sendJSON(res, 401, { error: "Admin login required" });
     return handleDelete(res, DELETABLE[deleteMatch[1]], deleteMatch[2]);
+  }
+
+  // Listing checklists are admin-only.
+  const checklistMatch = pathname.match(/^\/api\/checklists(?:\/([^/]+))?$/);
+  if (checklistMatch) {
+    if (!isAdmin(req)) return sendJSON(res, 401, { error: "Admin login required" });
+    return handleChecklists(req, res, checklistMatch[1]);
   }
 
   // Client accounts. Admin manages them; clients only reach their own portal.
