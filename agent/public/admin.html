@@ -25,6 +25,11 @@
   }
   a{color:var(--ink);}
   .hidden{display:none !important;}
+  /* Inside the CRM: its header and menu replace ours */
+  .embed .top, .embed .tabs{display:none;}
+  .embed body{background:transparent;}
+  .embed #wrap{padding-top:18px;}
+  .embed .login{margin-top:24px;}
 
   .top{
     background:var(--ink);color:#fff;
@@ -227,6 +232,10 @@
     border:1px solid var(--line);border-radius:8px;background:#FBFAF8;color:var(--ink);field-sizing:content;max-height:240px;
   }
   .lc-item textarea:focus{background:#fff;outline:2px solid var(--gold);border-color:var(--gold-dark);}
+  .lc-weeks{display:flex;flex-wrap:wrap;gap:6px;padding:12px 16px 4px;}
+  .lc-week{flex:0 0 auto;font:inherit;font-size:13px;font-weight:700;white-space:nowrap;padding:7px 13px;border-radius:20px;cursor:pointer;background:#FBFAF8;border:1px solid var(--line);color:var(--grey);}
+  .lc-week.done{background:#DCFAE6;border-color:#A6EFC4;color:#067647;}
+  .lc-week.active{background:var(--ink);border-color:var(--ink);color:var(--gold);}
   .lc-tip{margin:4px 16px 14px;padding:10px 12px;background:#FFFBE0;border-left:3px solid var(--gold-dark);border-radius:4px;font-size:13px;}
 
   /* Phones */
@@ -835,7 +844,7 @@ async function deleteListing(id){
  * Checklists page, so ticks and notes made in either place show in both.
  */
 let CHECKLIST = [];
-let ALL_ITEMS = [];
+let weekTab = {};               // `${listingId}|${sectionIndex}` -> chosen week tab
 let checklists = [];
 let openChecklistId = null;
 let pendingSaves = {};          // listing id -> {itemKey: {done?, note?}} not yet saved
@@ -844,13 +853,31 @@ let saveChain = Promise.resolve();
 
 const findChecklist = id => checklists.find(c => String(c.id) === String(id));
 const isDone = (c, key) => !!(c.items[key] && c.items[key].done);
-function countDone(c, items){
-  return items.filter(i => i.key && isDone(c, i.key)).length;
+const countDone = (c, keys) => keys.filter(k => isDone(c, k)).length;
+const range = n => Array.from({length: n}, (_, i) => i + 1);
+
+// Sections with `weeks` repeat their list per campaign week. Week 1 uses the
+// plain item key, week n uses `${key}-w${n}` (must match the server).
+const weekKey = (key, week) => week === 1 ? key : `${key}-w${week}`;
+const weekKeys = (s, week) => s.items.filter(i => i.key).map(i => weekKey(i.key, week));
+// Weeks that count towards progress: week 1 up to the latest week with any
+// tick or note, so a property that sells in week 2 can still reach 100%.
+function weeksUsed(c, s){
+  if (!s.weeks) return 1;
+  let used = 1;
+  for (const w of range(s.weeks)){
+    if (weekKeys(s, w).some(k => c.items[k] && (c.items[k].done || c.items[k].note))) used = w;
+  }
+  return used;
 }
+const sectionKeys = (c, s) => range(weeksUsed(c, s)).flatMap(w => weekKeys(s, w));
+const allKeys = c => CHECKLIST.flatMap(s => sectionKeys(c, s));
 function stageText(c){
   for (const s of CHECKLIST){
-    const next = s.items.find(i => i.key && !isDone(c, i.key));
-    if (next) return `${s.title} · Next: ${next.text}`;
+    for (const w of range(weeksUsed(c, s))){
+      const next = s.items.find(i => i.key && !isDone(c, weekKey(i.key, w)));
+      if (next) return `${s.title}${s.weeks ? ' · Week ' + w : ''} · Next: ${next.text}`;
+    }
   }
   return 'All done ✓';
 }
@@ -862,7 +889,6 @@ async function loadChecklists(){
   if (res.status === 401) return showLogin();
   const data = res.ok ? await res.json() : {template: [], listings: []};
   CHECKLIST = data.template;
-  ALL_ITEMS = CHECKLIST.flatMap(s => s.items.filter(i => i.key));
   checklists = data.listings;
   document.getElementById('listingCount').textContent = checklists.length;
   if (openChecklistId && !findChecklist(openChecklistId)) closeChecklist();
@@ -884,15 +910,16 @@ function renderChecklistIndex(){
   }
   // Unfinished listings first, most recently worked on at the top.
   const sorted = checklists.slice().sort((a, b) => {
-    const fa = countDone(a, ALL_ITEMS) === ALL_ITEMS.length, fb = countDone(b, ALL_ITEMS) === ALL_ITEMS.length;
+    const finished = c => { const k = allKeys(c); return countDone(c, k) === k.length; };
+    const fa = finished(a), fb = finished(b);
     if (fa !== fb) return fa ? 1 : -1;
     return a.updated_at < b.updated_at ? 1 : -1;
   });
   el.innerHTML = sorted.map(c => {
-    const d = countDone(c, ALL_ITEMS), p = pct(d, ALL_ITEMS.length);
+    const k = allKeys(c), d = countDone(c, k), p = pct(d, k.length);
     return `<button class="lc-card" onclick="openChecklist('${esc(c.id)}')">
       <div class="row"><div class="addr">${esc(c.address)}</div><div class="pct">${p}%</div></div>
-      <div class="sub">${c.seller ? esc(c.seller) + ' · ' : ''}${d} of ${ALL_ITEMS.length} done · added ${esc(shortDate(c.created_at))}</div>
+      <div class="sub">${c.seller ? esc(c.seller) + ' · ' : ''}${d} of ${k.length} done · added ${esc(shortDate(c.created_at))}</div>
       <div class="stage">${esc(stageText(c))}</div>
       <div class="bar${p === 100 ? ' complete' : ''}"><span style="width:${p}%"></span></div>
     </button>`;
@@ -938,14 +965,6 @@ function closeChecklist(){
 function renderChecklistDetail(){
   const c = findChecklist(openChecklistId);
   if (!c) return;
-  const itemHtml = i => {
-    if (i.sub) return `<div class="lc-sub">${esc(i.sub)}</div>`;
-    const st = c.items[i.key] || {};
-    return `<div class="lc-item${st.done ? ' done' : ''}" data-key="${esc(i.key)}">
-      <label><input type="checkbox" ${st.done ? 'checked' : ''}><span><span class="txt">${esc(i.text)}</span><span class="ticked">${st.done && st.doneAt ? 'Ticked ' + esc(shortDate(st.doneAt)) : ''}</span></span></label>
-      <textarea rows="${Math.min(8, (st.note || '').split('\n').length)}" placeholder="Notes" aria-label="Notes: ${esc(i.text)}">${esc(st.note || '')}</textarea>
-    </div>`;
-  };
   document.getElementById('lcDetail').innerHTML = `
     <button class="lc-back" onclick="closeChecklist()">← All listings</button>
     <div class="lc-head"><div>
@@ -962,14 +981,43 @@ function renderChecklistDetail(){
       <button onclick="toggleSections(false)">Collapse all</button>
     </div>
     ${CHECKLIST.map((s, si) => {
-      const keys = s.items.filter(i => i.key);
+      const keys = sectionKeys(c, s);
       const done = countDone(c, keys) === keys.length;
-      return `<details class="lc-sec${done ? ' complete' : ''}" data-sec="${si}" ${done ? '' : 'open'}>
+      // Weekly sections stay open so finishing a week doesn't hide the next one.
+      return `<details class="lc-sec${done ? ' complete' : ''}" data-sec="${si}" ${done && !s.weeks ? '' : 'open'}>
         <summary><span class="t">${esc(s.title)}</span><span class="n"></span></summary>
-        ${s.items.map(itemHtml).join('')}
+        ${s.weeks ? `<div class="lc-weeks" role="tablist">${range(s.weeks).map(w =>
+          `<button type="button" role="tab" class="lc-week" data-week="${w}" onclick="pickWeek(${si}, ${w})">Week ${w}</button>`).join('')}</div>` : ''}
+        <div class="lc-items" data-sec="${si}">${sectionItemsHtml(c, si)}</div>
         ${s.tip ? `<div class="lc-tip"><strong>Tip:</strong> ${esc(s.tip)}</div>` : ''}
       </details>`;
     }).join('')}`;
+  updateChecklistCounts();
+}
+
+function currentWeek(c, si){
+  const s = CHECKLIST[si];
+  return s.weeks ? (weekTab[c.id + '|' + si] || weeksUsed(c, s)) : 1;
+}
+
+function sectionItemsHtml(c, si){
+  const s = CHECKLIST[si], week = currentWeek(c, si);
+  return s.items.map(i => {
+    if (i.sub) return `<div class="lc-sub">${esc(i.sub)}</div>`;
+    const key = weekKey(i.key, week);
+    const st = c.items[key] || {};
+    const label = s.weeks ? `Week ${week} notes` : 'Notes';
+    return `<div class="lc-item${st.done ? ' done' : ''}" data-key="${esc(key)}">
+      <label><input type="checkbox" ${st.done ? 'checked' : ''}><span><span class="txt">${esc(i.text)}</span><span class="ticked">${st.done && st.doneAt ? 'Ticked ' + esc(shortDate(st.doneAt)) : ''}</span></span></label>
+      <textarea rows="${Math.min(8, (st.note || '').split('\n').length)}" placeholder="${label}" aria-label="${esc(label)}: ${esc(i.text)}">${esc(st.note || '')}</textarea>
+    </div>`;
+  }).join('');
+}
+
+function pickWeek(si, week){
+  const c = findChecklist(openChecklistId);
+  weekTab[c.id + '|' + si] = week;
+  document.querySelector(`#lcDetail .lc-items[data-sec="${si}"]`).innerHTML = sectionItemsHtml(c, si);
   updateChecklistCounts();
 }
 
@@ -977,15 +1025,23 @@ function renderChecklistDetail(){
 function updateChecklistCounts(){
   const c = findChecklist(openChecklistId);
   if (!c) return;
-  const d = countDone(c, ALL_ITEMS), p = pct(d, ALL_ITEMS.length);
-  document.getElementById('lcDoneTxt').textContent = `${d} of ${ALL_ITEMS.length} done`;
+  const k = allKeys(c), d = countDone(c, k), p = pct(d, k.length);
+  document.getElementById('lcDoneTxt').textContent = `${d} of ${k.length} done`;
   document.getElementById('lcPct').textContent = p + '%';
   const bar = document.getElementById('lcBar');
   bar.classList.toggle('complete', p === 100);
   bar.firstElementChild.style.width = p + '%';
   document.querySelectorAll('#lcDetail details.lc-sec').forEach(el => {
-    const keys = CHECKLIST[el.dataset.sec].items.filter(i => i.key);
+    const s = CHECKLIST[el.dataset.sec], keys = sectionKeys(c, s);
     const n = countDone(c, keys);
+    const week = currentWeek(c, el.dataset.sec);
+    el.querySelectorAll('.lc-week').forEach(b => {
+      const w = Number(b.dataset.week), wk = weekKeys(s, w), wDone = countDone(c, wk) === wk.length;
+      b.classList.toggle('active', w === week);
+      b.classList.toggle('done', wDone);
+      b.setAttribute('aria-selected', w === week);
+      b.textContent = `Week ${w}${wDone ? ' ✓' : ''}`;
+    });
     el.querySelector('summary .n').textContent = `${n}/${keys.length}`;
     el.classList.toggle('complete', n === keys.length);
   });
@@ -1250,6 +1306,20 @@ async function login(e){
 async function logout(){
   await fetch('/adam/api/admin/logout', {method:'POST'});
   showLogin();
+}
+
+// Embedded in the CRM (/admin → Ray White pages) as ?embed=1&tab=offers: the
+// CRM supplies the header and navigation, so hide ours and open that tab.
+const EMBED = new URLSearchParams(location.search).has('embed');
+if (EMBED){
+  document.documentElement.classList.add('embed');
+  const tab = new URLSearchParams(location.search).get('tab');
+  if (['appraisals', 'listings', 'offers', 'offmarket', 'clients'].includes(tab)) showTab(tab);
+  // Don't open the appraisal builder inside the CRM's frame.
+  document.addEventListener('click', e => {
+    const a = e.target.closest('a[href^="/adam/appraisal-tool"]');
+    if (a) a.target = '_blank';
+  });
 }
 
 (async function boot(){

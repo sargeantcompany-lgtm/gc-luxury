@@ -560,6 +560,15 @@ details.lc-section > summary::before { content: '▸'; color: var(--text-muted);
 details.lc-section[open] > summary::before { transform: rotate(90deg); }
 details.lc-section[open] > summary { border-bottom: 1px solid var(--border); }
 .lc-section-title { flex: 1; font-weight: 600; font-size: 14px; }
+.lc-weeks { display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 16px 4px; }
+.lc-week {
+  flex: 0 0 auto; font: inherit; font-size: 12.5px; font-weight: 500; white-space: nowrap;
+  padding: 6px 12px; border-radius: 20px; cursor: pointer;
+  background: var(--bg); border: 1px solid var(--border); color: var(--text-secondary);
+}
+.lc-week:hover { border-color: var(--primary); }
+.lc-week.done { background: var(--success-light); border-color: #a7f3d0; color: #047857; }
+.lc-week.active { background: var(--primary); border-color: var(--primary); color: #fff; }
 .lc-sub { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); padding: 14px 16px 2px; }
 .lc-item {
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px 16px; align-items: start;
@@ -573,6 +582,9 @@ details.lc-section[open] > summary { border-bottom: 1px solid var(--border); }
 .lc-item .form-textarea { min-height: 36px; padding: 7px 10px; background: var(--bg); field-sizing: content; max-height: 240px; }
 .lc-item .form-textarea:focus { background: var(--surface); }
 .lc-tip { margin: 6px 16px 14px; padding: 10px 12px; background: var(--warning-light); border-left: 3px solid var(--warning); border-radius: 4px; font-size: 12.5px; }
+
+/* ── Ray White pages (/adam/admin in a frame) ── */
+.rw-frame { flex: 1; min-height: 0; width: 100%; border: 0; display: block; background: var(--bg); }
 
 /* ── Mobile ── */
 .mobile-topbar, .sidebar-close, .sidebar-backdrop { display: none; }
@@ -643,6 +655,7 @@ details.lc-section[open] > summary { border-bottom: 1px solid var(--border); }
   .toast-container { left: 12px; right: 12px; bottom: 12px; }
   .toast { max-width: none; }
 
+  .rw-frame { flex: none; height: calc(100vh - 110px); height: calc(100dvh - 110px); }
   .lc-progress { top: 52px; }
   .lc-address { font-size: 18px; }
   .lc-add .btn { width: 100%; justify-content: center; }

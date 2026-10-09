@@ -10,6 +10,7 @@ import Templates from './pages/Templates';
 import GcListings from './pages/GcListings';
 import GcBlog from './pages/GcBlog';
 import ListingChecklists from './pages/ListingChecklists';
+import RayWhite from './pages/RayWhite';
 import ActivityLog from './pages/ActivityLog';
 import Settings from './pages/Settings';
 
@@ -29,6 +30,10 @@ export default function App() {
             <Route path="gc-blog" element={<GcBlog />} />
             <Route path="listing-checklists" element={<ListingChecklists />} />
             <Route path="listing-checklists/:id" element={<ListingChecklists />} />
+            <Route path="appraisals" element={<RayWhite key="appraisals" page="appraisals" />} />
+            <Route path="offers" element={<RayWhite key="offers" page="offers" />} />
+            <Route path="off-market" element={<RayWhite key="offmarket" page="offmarket" />} />
+            <Route path="client-logins" element={<RayWhite key="clients" page="clients" />} />
             <Route path="activity" element={<ActivityLog />} />
             <Route path="settings" element={<Settings />} />
           </Route>

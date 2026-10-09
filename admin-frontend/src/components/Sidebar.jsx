@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { clearAdminKey } from '../services/api';
+import { clearAdminKey, adamLogout } from '../services/api';
 
 const icons = {
   dashboard: (
@@ -46,6 +46,12 @@ const icons = {
       <polyline points="9 22 9 12 15 12 15 22"/>
     </svg>
   ),
+  offer: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <line x1="12" y1="1" x2="12" y2="23"/>
+      <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+    </svg>
+  ),
   checklist: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M9 11l3 3L22 4"/>
@@ -67,7 +73,16 @@ const navSections = [
       { to: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
       { to: '/contacts', label: 'Contacts', icon: 'contacts' },
       { to: '/pipeline', label: 'Pipeline', icon: 'pipeline' },
+    ],
+  },
+  {
+    title: 'Ray White',
+    items: [
       { to: '/listing-checklists', label: 'Listing Checklists', icon: 'checklist' },
+      { to: '/appraisals', label: 'Appraisals', icon: 'templates' },
+      { to: '/offers', label: 'Offers', icon: 'offer' },
+      { to: '/off-market', label: 'Off-Market', icon: 'listings' },
+      { to: '/client-logins', label: 'Client Logins', icon: 'contacts' },
     ],
   },
   {
@@ -121,7 +136,7 @@ export default function Sidebar({ open, onClose }) {
       <div className="sidebar-footer">
         Outreach HQ v1.0
         <button
-          onClick={() => { clearAdminKey(); window.location.reload(); }}
+          onClick={async () => { clearAdminKey(); await adamLogout(); window.location.reload(); }}
           style={{ display: 'block', marginTop: 8, background: 'none', border: 'none', color: 'inherit', opacity: 0.7, cursor: 'pointer', padding: 0, font: 'inherit' }}
         >
           Lock

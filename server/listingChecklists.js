@@ -6,6 +6,10 @@ const db = require("./db");
 //
 // Each item's `key` is what's stored against a listing, so never change or
 // reuse a key - to reword an item edit its text, to add one give it a new key.
+//
+// A section with `weeks: N` repeats its list once per campaign week, shown as
+// Week 1..N tabs. Week 1 is stored under the plain key (so ticks made before
+// sections had weeks land in Week 1) and week n under `${key}-w${n}`.
 const TEMPLATE = [
   { title: "1. Appraisal & seller setup", items: [
     { key: "appraisal", text: "Complete property appraisal" },
@@ -17,6 +21,8 @@ const TEMPLATE = [
     { key: "engagement-term", text: "Confirm term of engagement (90 days?)" },
     { key: "engagement-nature", text: "Confirm nature of engagement (Exclusive/Open?)" },
     { key: "commission", text: "Confirm commission, including GST" },
+    { key: "form6-paylater", text: "Are they using Pay Later?" },
+    { key: "form6-paylater-approved", text: "Pay Later sent and approved" },
     { key: "form6-signed", text: "Obtain seller signatures on Form 6" },
     { key: "form6-submit", text: "Submit completed Form 6 to Ray White Admin (via link)" },
     { key: "form6-docusign", text: "Provide details to Admin for Docusigning" },
@@ -26,6 +32,8 @@ const TEMPLATE = [
     { key: "mb-signboard", text: "Signboard" },
     { key: "mb-brochures", text: "Brochures" },
     { key: "mb-dl-flyers", text: "DL flyers" },
+    { key: "mb-domain", text: "Domain package" },
+    { key: "mb-rea", text: "realestate.com.au package" },
     { key: "mb-online", text: "Online platforms" },
     { key: "mb-social", text: "Social media" },
     { key: "mb-misc", text: "Miscellaneous marketing expenses" },
@@ -35,6 +43,8 @@ const TEMPLATE = [
     { key: "ab-aml", text: "AML charge" },
     { key: "ab-form2", text: "Form 2" },
     { key: "ab-other", text: "Other administration costs" },
+    { key: "ab-paylater", text: "Are they using Pay Later?" },
+    { key: "ab-paylater-approved", text: "Pay Later sent and approved" },
     { key: "ab-docusign", text: "Advise Admin to send budgets and Form 6 to client for Docusigning" },
   ] },
   { title: "4. Campaign preparation (3 to 4 weeks)", items: [
@@ -44,6 +54,7 @@ const TEMPLATE = [
     { key: "cp-online", text: "Set up online advertising" },
     { key: "cp-live-date", text: "Confirm live online date" },
     { key: "cp-open-homes", text: "Schedule open homes" },
+    { key: "cp-tenant-forms", text: "Send Form 10 and Form 9 to tenants, if applicable" },
     { key: "cp-auction", text: "Confirm auction date, if applicable" },
     { sub: "Ongoing: follow up Form 2" },
     { key: "cp-file-admin", text: "Send completed file to Admin" },
@@ -57,7 +68,7 @@ const TEMPLATE = [
     { key: "pl-database", text: "Buyer database notified" },
     { key: "pl-social", text: "Social media campaign launched" },
   ], tip: "Check every online advertisement immediately after launch for price, photos, spelling and property details. Don’t rely on accuracy of RP Data." },
-  { title: "6. Open homes & ongoing marketing", items: [
+  { title: "6. Open homes & ongoing marketing", weeks: 6, items: [
     { key: "oh-confirm", text: "Confirm open homes with seller" },
     { key: "oh-conduct", text: "Conduct scheduled open homes" },
     { key: "oh-follow-up", text: "Follow up all attendees" },
@@ -66,7 +77,7 @@ const TEMPLATE = [
     { key: "oh-notifications", text: "Continue buyer database notifications" },
     { key: "oh-vendor-reports", text: "Provide regular seller feedback/Vendor reports (Nurture Cloud)" },
   ], tip: "Follow up buyers as soon as possible after each open home while the property is fresh in their minds and their impressions/questions still fresh in your mind." },
-  { title: "7. Offers & negotiation", items: [
+  { title: "7. Offers & negotiation", weeks: 6, items: [
     { key: "of-letter", text: "Secure written Letter of Offer" },
     { key: "of-present", text: "Present all offers to seller" },
     { key: "of-discuss", text: "Discuss price and conditions" },
@@ -110,7 +121,10 @@ const TEMPLATE = [
   ] },
 ];
 
-const KEYS = new Set(TEMPLATE.flatMap((s) => s.items.filter((i) => i.key).map((i) => i.key)));
+const weekKey = (key, week) => (week === 1 ? key : `${key}-w${week}`);
+
+const KEYS = new Set(TEMPLATE.flatMap((s) => s.items.filter((i) => i.key).flatMap((i) =>
+  Array.from({ length: s.weeks || 1 }, (_, w) => weekKey(i.key, w + 1)))));
 
 class ChecklistError extends Error {
   constructor(status, message) {

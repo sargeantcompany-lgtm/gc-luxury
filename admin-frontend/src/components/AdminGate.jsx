@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { getAdminKey, setAdminKey, brandsApi } from '../services/api';
+import api, { getAdminKey, setAdminKey, adamLogin } from '../services/api';
 
 export default function AdminGate({ children }) {
   const [unlocked, setUnlocked] = useState(Boolean(getAdminKey()));
@@ -13,7 +13,8 @@ export default function AdminGate({ children }) {
     setError('');
     setAdminKey(input.trim());
     try {
-      await brandsApi.list();
+      await api.get('/brands', { skipAuthReset: true });
+      await adamLogin(input.trim());
       setUnlocked(true);
     } catch (err) {
       setError('Invalid password');

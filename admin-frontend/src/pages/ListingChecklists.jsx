@@ -9,15 +9,36 @@ import { useToast } from '../components/Toast';
 
 const itemsOf = (section) => section.items.filter((i) => i.key);
 const isDone = (listing, key) => !!listing.items?.[key]?.done;
-const countDone = (listing, items) => items.filter((i) => isDone(listing, i.key)).length;
+const countDone = (listing, keys) => keys.filter((k) => isDone(listing, k)).length;
 const pct = (done, total) => (total ? Math.round((done / total) * 100) : 0);
 const shortDate = (iso) => new Date(iso).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' });
 const longDate = (iso) => new Date(iso).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+const range = (n) => Array.from({ length: n }, (_, i) => i + 1);
+
+// Sections with `weeks` repeat their list per campaign week. Week 1 uses the
+// plain item key, week n uses `${key}-w${n}` (must match the server).
+const weekKey = (key, week) => (week === 1 ? key : `${key}-w${week}`);
+const weekKeys = (section, week) => itemsOf(section).map((i) => weekKey(i.key, week));
+
+// Weeks that count towards progress: week 1 up to the latest week with any
+// tick or note, so a property that sells in week 2 can still reach 100%.
+function weeksUsed(listing, section) {
+  if (!section.weeks) return 1;
+  let used = 1;
+  for (const w of range(section.weeks)) {
+    if (weekKeys(section, w).some((k) => listing.items?.[k]?.done || listing.items?.[k]?.note)) used = w;
+  }
+  return used;
+}
+const sectionKeys = (listing, section) => range(weeksUsed(listing, section)).flatMap((w) => weekKeys(section, w));
+const allKeys = (listing, template) => template.flatMap((s) => sectionKeys(listing, s));
 
 function nextStep(listing, template) {
   for (const section of template) {
-    const next = itemsOf(section).find((i) => !isDone(listing, i.key));
-    if (next) return `${section.title} · Next: ${next.text}`;
+    for (const w of range(weeksUsed(listing, section))) {
+      const next = itemsOf(section).find((i) => !isDone(listing, weekKey(i.key, w)));
+      if (next) return `${section.title}${section.weeks ? ` · Week ${w}` : ''} · Next: ${next.text}`;
+    }
   }
   return 'All done ✓';
 }
@@ -40,6 +61,8 @@ export default function ListingChecklists() {
   const [form, setForm] = useState({ address: '', seller: '' });
   const [creating, setCreating] = useState(false);
   const [saveStatus, setSaveStatus] = useState({ text: '', error: false });
+  // Chosen week tab per weekly section, keyed `${listingId}|${sectionTitle}`
+  const [weekTab, setWeekTab] = useState({});
 
   // Changes not yet on the server: { listingId: { itemKey: { done?, note? } } }
   const pending = useRef({});
@@ -155,7 +178,6 @@ export default function ListingChecklists() {
     } catch (err) { show(err.message, 'error'); }
   }
 
-  const allItems = template.flatMap(itemsOf);
   const open = openId ? listings.find((l) => String(l.id) === openId) : null;
 
   if (loading) {
@@ -168,8 +190,9 @@ export default function ListingChecklists() {
   }
 
   if (open) {
-    const done = countDone(open, allItems);
-    const percent = pct(done, allItems.length);
+    const keys = allKeys(open, template);
+    const done = countDone(open, keys);
+    const percent = pct(done, keys.length);
     return (
       <div>
         <div className="page-header">
@@ -189,7 +212,7 @@ export default function ListingChecklists() {
             </div>
 
             <div className="lc-progress">
-              <div className="lc-progress-text"><span>{done} of {allItems.length} done</span><span>{percent}%</span></div>
+              <div className="lc-progress-text"><span>{done} of {keys.length} done</span><span>{percent}%</span></div>
               <ProgressBar value={percent} />
               <div className={`lc-save${saveStatus.error ? ' error' : ''}`}>
                 {saveStatus.text}
@@ -198,26 +221,49 @@ export default function ListingChecklists() {
             </div>
 
             {template.map((section) => {
-              const items = itemsOf(section);
-              const n = countDone(open, items);
-              const complete = n === items.length;
+              const secKeys = sectionKeys(open, section);
+              const n = countDone(open, secKeys);
+              const complete = n === secKeys.length;
+              const tabId = `${open.id}|${section.title}`;
+              const week = section.weeks ? (weekTab[tabId] || weeksUsed(open, section)) : 1;
               return (
                 // Keyed by listing so sections re-open fresh when switching listings
-                <details key={`${open.id}-${section.title}`} className={`lc-section card${complete ? ' complete' : ''}`} open={!complete}>
+                <details key={`${open.id}-${section.title}`} className={`lc-section card${complete ? ' complete' : ''}`} open={section.weeks ? true : !complete}>
                   <summary>
                     <span className="lc-section-title">{section.title}</span>
-                    <span className={`badge ${complete ? 'badge-green' : 'badge-gray'}`}>{n}/{items.length}</span>
+                    <span className={`badge ${complete ? 'badge-green' : 'badge-gray'}`}>{n}/{secKeys.length}</span>
                   </summary>
+                  {section.weeks && (
+                    <div className="lc-weeks" role="tablist" aria-label={`${section.title} week`}>
+                      {range(section.weeks).map((w) => {
+                        const wk = weekKeys(section, w);
+                        const wDone = countDone(open, wk) === wk.length;
+                        return (
+                          <button
+                            key={w}
+                            type="button"
+                            role="tab"
+                            aria-selected={w === week}
+                            className={`lc-week${w === week ? ' active' : ''}${wDone ? ' done' : ''}`}
+                            onClick={() => setWeekTab((prev) => ({ ...prev, [tabId]: w }))}
+                          >
+                            Week {w}{wDone ? ' ✓' : ''}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                   {section.items.map((item) => {
                     if (item.sub) return <div key={item.sub} className="lc-sub">{item.sub}</div>;
-                    const st = open.items?.[item.key] || {};
+                    const key = weekKey(item.key, week);
+                    const st = open.items?.[key] || {};
                     return (
-                      <div key={item.key} className={`lc-item${st.done ? ' done' : ''}`}>
+                      <div key={key} className={`lc-item${st.done ? ' done' : ''}`}>
                         <label>
                           <input
                             type="checkbox"
                             checked={!!st.done}
-                            onChange={(e) => changeItem(open.id, item.key, { done: e.target.checked }, 0)}
+                            onChange={(e) => changeItem(open.id, key, { done: e.target.checked }, 0)}
                           />
                           <span>
                             <span className="lc-text">{item.text}</span>
@@ -227,10 +273,10 @@ export default function ListingChecklists() {
                         <textarea
                           className="form-textarea"
                           rows={1}
-                          placeholder="Notes"
-                          aria-label={`Notes: ${item.text}`}
+                          placeholder={section.weeks ? `Week ${week} notes` : 'Notes'}
+                          aria-label={`Notes: ${item.text}${section.weeks ? `, week ${week}` : ''}`}
                           value={st.note || ''}
-                          onChange={(e) => changeItem(open.id, item.key, { note: e.target.value }, 800)}
+                          onChange={(e) => changeItem(open.id, key, { note: e.target.value }, 800)}
                           onBlur={flush}
                         />
                       </div>
@@ -247,9 +293,10 @@ export default function ListingChecklists() {
   }
 
   // Unfinished listings first, most recently worked on at the top.
+  const isFinished = (l) => { const k = allKeys(l, template); return countDone(l, k) === k.length; };
   const sorted = [...listings].sort((a, b) => {
-    const fa = countDone(a, allItems) === allItems.length;
-    const fb = countDone(b, allItems) === allItems.length;
+    const fa = isFinished(a);
+    const fb = isFinished(b);
     if (fa !== fb) return fa ? 1 : -1;
     return a.updated_at < b.updated_at ? 1 : -1;
   });
@@ -284,8 +331,9 @@ export default function ListingChecklists() {
             </div>
           ) : (
             sorted.map((l) => {
-              const d = countDone(l, allItems);
-              const p = pct(d, allItems.length);
+              const k = allKeys(l, template);
+              const d = countDone(l, k);
+              const p = pct(d, k.length);
               return (
                 <button key={l.id} className="card lc-card" onClick={() => navigate(`/listing-checklists/${l.id}`)}>
                   <div className="lc-card-row">
@@ -293,7 +341,7 @@ export default function ListingChecklists() {
                     <span className="lc-card-pct">{p}%</span>
                   </div>
                   <div className="text-sm text-muted">
-                    {l.seller ? `${l.seller} · ` : ''}{d} of {allItems.length} done · added {shortDate(l.created_at)}
+                    {l.seller ? `${l.seller} · ` : ''}{d} of {k.length} done · added {shortDate(l.created_at)}
                   </div>
                   <div className="text-sm" style={{ marginTop: 4, color: 'var(--text-secondary)' }}>{nextStep(l, template)}</div>
                   <ProgressBar value={p} />

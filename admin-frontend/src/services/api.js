@@ -16,10 +16,33 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   res => res.data,
   err => {
+    // A saved password that no longer works (e.g. it was changed on the
+    // server): forget it and go back to the password screen.
+    if (err.response?.status === 401 && !err.config?.skipAuthReset && getAdminKey()) {
+      clearAdminKey();
+      window.location.reload();
+    }
     const msg = err.response?.data?.error || err.message || 'Request failed';
     return Promise.reject(new Error(msg));
   }
 );
+
+// The Ray White pages (/adam/admin) have their own login, set to the same
+// password as the CRM. Logging into one logs into both.
+export async function adamLogin(password) {
+  const me = await fetch('/adam/api/admin/me').then(r => r.json()).catch(() => ({}));
+  if (me.admin) return true;
+  const res = await fetch('/adam/api/admin/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ password }),
+  }).catch(() => null);
+  return !!res?.ok;
+}
+
+export function adamLogout() {
+  return fetch('/adam/api/admin/logout', { method: 'POST' }).catch(() => {});
+}
 
 export function getAdminKey() {
   return localStorage.getItem(ADMIN_KEY_STORAGE) || '';
