@@ -23,15 +23,15 @@
 
 <main>
   <form class="form-card" id="loginForm" novalidate>
-    <h2>Log in</h2>
-    <p>Use the email Adam set up for you.</p>
-    <label for="email">Email</label>
-    <input id="email" type="email" autocomplete="email" required>
-    <label for="password">Password</label>
-    <input id="password" type="password" autocomplete="current-password" required>
-    <button class="btn solid" type="submit">Log in</button>
+    <h2>Log in or register</h2>
+    <p>Enter your first name and mobile number. New here? The same details register you.</p>
+    <label for="firstName">First name</label>
+    <input id="firstName" autocomplete="given-name" autocapitalize="words" required>
+    <label for="mobile">Mobile number</label>
+    <input id="mobile" type="tel" inputmode="tel" autocomplete="tel" placeholder="0412 345 678" required>
+    <button class="btn solid" type="submit">Continue</button>
     <p class="err" id="err" role="alert"></p>
-    <p class="help">Don't have a login, or forgotten your password? Call Adam on <a href="tel:0407739919">0407 739 919</a> and he'll send you a link.</p>
+    <p class="help">Use the same mobile you gave Adam for your appraisal or offer, and they'll appear in your portal. Any trouble, call Adam on <a href="tel:0407739919">0407 739 919</a>.</p>
   </form>
 </main>
 
@@ -52,7 +52,7 @@ document.getElementById('loginForm').addEventListener('submit', async e => {
   err.textContent = '';
   const res = await fetch('/adam/api/client/login', {
     method: 'POST', headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({email: document.getElementById('email').value, password: document.getElementById('password').value})
+    body: JSON.stringify({firstName: document.getElementById('firstName').value, mobile: document.getElementById('mobile').value})
   });
   if (res.ok) return location.assign('/adam/portal');
   const data = await res.json().catch(() => ({}));

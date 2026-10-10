@@ -370,7 +370,10 @@
     <h2>Client &amp; Property</h2>
     <div class="row2">
       <div class="field"><label>Owner Name</label><input id="clientName" value="" placeholder="Property Owner"></div>
-      <div class="field"><label>Property Address</label><input id="propAddress" value="" placeholder="5 Rowes Court, Bundall QLD 4217"></div>
+      <div class="field"><label>Owner Mobile <span style="font-weight:400;opacity:.7;">(their client portal login)</span></label><input id="clientMobile" type="tel" inputmode="tel" value="" placeholder="0412 345 678"></div>
+    </div>
+    <div class="row2">
+      <div class="field" style="grid-column:1 / -1;"><label>Property Address</label><input id="propAddress" value="" placeholder="5 Rowes Court, Bundall QLD 4217"></div>
     </div>
     <div class="row3">
       <div class="field"><label>Land Area</label><input id="propLand" value="" placeholder="850m² (Lot 201, RP125160)"></div>
@@ -663,7 +666,7 @@ function collect(){
   const val = id => document.getElementById(id).value.trim();
   return {
     agent:{ name:val('agentName'), agency:val('agentAgency'), phone:val('agentPhone'), email:val('agentEmail'), licence:val('agentLicence') },
-    client:{ name:val('clientName'), address:val('propAddress') },
+    client:{ name:val('clientName'), mobile:val('clientMobile'), address:val('propAddress') },
     property:{ land:val('propLand'), floor:val('propFloor'), config:val('propConfig') },
     intro: val('introPara'),
     price:{ igniteLink:val('igniteLink') },

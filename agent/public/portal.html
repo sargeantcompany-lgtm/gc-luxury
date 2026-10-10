@@ -9,6 +9,15 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/adam/client.css">
+<style>
+  .ptabs{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin:0 0 34px;border-bottom:1px solid #DDD8D0;}
+  .ptabs button{font:inherit;font-family:var(--display);font-size:15px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;
+    background:none;border:0;border-bottom:3px solid transparent;margin-bottom:-1px;padding:14px 6px;cursor:pointer;color:var(--grey);}
+  .ptabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent);}
+  .ptabs .n{display:inline-block;min-width:22px;margin-left:8px;padding:0 7px;border-radius:11px;background:#ECE8E1;font-size:12px;letter-spacing:0;color:var(--ink);}
+  .ptabs button[aria-selected="true"] .n{background:var(--accent);}
+  @media (max-width:520px){ .ptabs button{font-size:13px;letter-spacing:.04em;padding:12px 2px;} .ptabs .n{margin-left:5px;padding:0 6px;} }
+</style>
 </head>
 <body>
 
@@ -26,17 +35,23 @@
 
 <main>
   <div class="wrap">
-    <section class="section" id="appraisalSection">
+    <nav class="ptabs" role="tablist">
+      <button role="tab" data-tab="appraisals" onclick="showTab('appraisals')">Appraisals<span class="n" id="nAppraisals"></span></button>
+      <button role="tab" data-tab="offers" onclick="showTab('offers')">Offers<span class="n" id="nOffers"></span></button>
+      <button role="tab" data-tab="offmarket" onclick="showTab('offmarket')">Off-Market<span class="n" id="nOffmarket"></span></button>
+    </nav>
+
+    <section class="section ptab" id="tab-appraisals">
       <h2>Your Appraisal</h2>
       <div id="appraisals"></div>
     </section>
 
-    <section class="section">
+    <section class="section ptab" id="tab-offers" hidden>
       <h2>Your Offers</h2>
       <div id="offers"></div>
     </section>
 
-    <section class="section">
+    <section class="section ptab" id="tab-offmarket" hidden>
       <h2>Off-Market Properties</h2>
       <p class="sub" style="margin:-8px 0 20px;color:var(--grey);">These homes aren't advertised online. They're shared privately with Adam's clients, so please keep the details to yourself.</p>
       <div id="offmarket"></div>
@@ -141,6 +156,17 @@ function renderOffMarket(list){
   el.innerHTML = list.map(renderListing).join('');
 }
 
+const TABS = ['appraisals', 'offers', 'offmarket'];
+function showTab(name){
+  if (!TABS.includes(name)) name = 'appraisals';
+  TABS.forEach(t => {
+    document.getElementById('tab-' + t).hidden = t !== name;
+    document.querySelector(`.ptabs [data-tab="${t}"]`).setAttribute('aria-selected', t === name);
+  });
+  history.replaceState(null, '', '#' + name);
+}
+showTab(location.hash.slice(1));
+
 async function logout(){
   await fetch('/adam/api/client/logout', {method:'POST'});
   location.assign('/adam/login');
@@ -151,7 +177,10 @@ async function logout(){
   if (!res || res.status === 401) return location.replace('/adam/login');
   const data = await res.json();
   document.getElementById('name').textContent = data.name;
-  document.getElementById('appraisalSection').querySelector('h2').textContent = data.appraisals.length > 1 ? 'Your Appraisals' : 'Your Appraisal';
+  document.querySelector('#tab-appraisals h2').textContent = data.appraisals.length > 1 ? 'Your Appraisals' : 'Your Appraisal';
+  document.getElementById('nAppraisals').textContent = data.appraisals.length;
+  document.getElementById('nOffers').textContent = data.offers.length;
+  document.getElementById('nOffmarket').textContent = data.offMarket.length;
   renderAppraisals(data.appraisals);
   renderOffers(data.offers);
   renderOffMarket(data.offMarket);

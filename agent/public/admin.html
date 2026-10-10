@@ -157,8 +157,14 @@
   @media (max-width:640px){ .grid{grid-template-columns:1fr 1fr;} .grid .wide{grid-column:1 / -1;} }
 
   /* Clients tab */
-  .status.active{background:#DCFAE6;color:#067647;}
-  .status.pending{background:#FEF0C7;color:#93370D;}
+  .status.src-self{background:#DCFAE6;color:#067647;}
+  .status.src-admin{background:#E0EAFF;color:#3538CD;}
+  .status.src-appraisal{background:#FEF0C7;color:#93370D;}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:22px;}
+  .stat{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 16px;}
+  .stat b{display:block;font-size:24px;line-height:1.1;}
+  .stat span{font-size:12px;color:var(--grey);}
+  @media (max-width:640px){ .stats{grid-template-columns:1fr 1fr;} .toolbar{flex-wrap:wrap;} .toolbar > *{flex:1 1 100%;} }
   .assign td{background:#FBFAF8;}
   .assign-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:6px 16px;margin:8px 0 12px;max-height:260px;overflow:auto;}
   .assign-list label{display:flex;gap:8px;align-items:flex-start;font-size:13.5px;cursor:pointer;}
@@ -302,7 +308,7 @@
       <button class="tab" data-tab="listings" onclick="showTab('listings')">Listings<span class="count" id="listingCount">0</span></button>
       <button class="tab" data-tab="offers" onclick="showTab('offers')">Offers<span class="count" id="offerCount">0</span></button>
       <button class="tab" data-tab="offmarket" onclick="showTab('offmarket')">Off-Market<span class="count" id="omCount">0</span></button>
-      <button class="tab" data-tab="clients" onclick="showTab('clients')">Clients<span class="count" id="clientCount">0</span></button>
+      <button class="tab" data-tab="clients" onclick="showTab('clients')">Client Logins<span class="count" id="clientCount">0</span></button>
     </div>
 
     <section id="tab-appraisals">
@@ -425,21 +431,35 @@
     </section>
 
     <section id="tab-clients" class="hidden">
+      <div class="stats" id="clientStats"></div>
+
       <h3 class="section-title">Add a client</h3>
-      <p class="sub" style="margin:-4px 0 10px;">Each client gets their own login. They see only the appraisals you tick for them, only their own offers, and your off-market properties. Text them the invite link so they can set a password. Client login page: <a href="/adam/login" target="_blank" rel="noopener">/adam/login</a></p>
+      <p class="sub" style="margin:-4px 0 10px;">Clients log in at <a href="/adam/login" target="_blank" rel="noopener">gcluxury.com.au/adam/login</a> with their <b>first name and mobile</b>. They see the appraisals you made with their mobile (or tick for them), the offers they made with their mobile, and your off-market properties. People can also register themselves there, and saving an appraisal with the owner's mobile adds them automatically.</p>
       <form class="card link-form" onsubmit="createClient(event)">
-        <input id="clientName" placeholder="Name, e.g. John &amp; Mary Smith" required>
-        <input id="clientEmail" type="email" placeholder="Email (their login)" required>
-        <input id="clientMobile" placeholder="Mobile (optional)" style="flex:0 1 160px;" inputmode="tel">
+        <input id="clientName" placeholder="Name, e.g. John Smith" required>
+        <input id="clientMobile" placeholder="Mobile, e.g. 0412 345 678" style="flex:0 1 180px;" inputmode="tel" required>
+        <input id="clientEmail" type="email" placeholder="Email (optional)" style="flex:0 1 200px;">
         <select id="clientAppraisal"><option value="">Their appraisal (optional)</option></select>
-        <button type="submit">Create login</button>
+        <button type="submit">Add client</button>
       </form>
       <div id="newClient" class="card new-link hidden"></div>
-      <div style="height:10px"></div>
+
+      <div class="section-head" style="margin-top:22px;">
+        <h3 class="section-title">Registered clients</h3>
+      </div>
+      <div class="toolbar">
+        <input id="clientSearch" type="search" placeholder="Search name, mobile or email…" oninput="renderClients()">
+        <select id="clientSource" onchange="renderClients()" style="font:inherit;font-size:14px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;">
+          <option value="">Everyone</option>
+          <option value="self">Signed up themselves</option>
+          <option value="admin">Added by you</option>
+          <option value="appraisal">From an appraisal</option>
+        </select>
+      </div>
       <div class="card">
         <table>
-          <thead><tr><th>Client</th><th>Status</th><th></th></tr></thead>
-          <tbody id="clientRows"><tr><td colspan="3" class="empty">Loading…</td></tr></tbody>
+          <thead><tr><th>Client</th><th>Registered</th><th>Linked</th><th></th></tr></thead>
+          <tbody id="clientRows"><tr><td colspan="4" class="empty">Loading…</td></tr></tbody>
         </table>
       </div>
     </section>
@@ -1150,12 +1170,18 @@ function deleteChecklist(){
   deleteRecord('checklists', c.id, `Delete the checklist for ${c.address}, including all ticks and notes?`);
 }
 
-/* ---------------- Clients ---------------- */
+/* ---------------- Clients ----------------
+ * Everyone registered for the client portal: people who signed up themselves
+ * at /adam/login, clients Adam added, and owners added by saving an appraisal
+ * with their mobile. They log in with first name + mobile.
+ */
 let clients = [];
-const inviteUrl = token => location.origin + '/adam/set-password/' + token;
+const loginUrl = () => location.origin + '/adam/login';
+const SOURCE_LABEL = {self:'Signed up themselves', admin:'Added by you', appraisal:'From an appraisal'};
+const fmtMobile = m => /^04\d{8}$/.test(m || '') ? `${m.slice(0, 4)} ${m.slice(4, 7)} ${m.slice(7)}` : (m || '');
 
 function assignedTo(appraisalId){
-  const names = clients.filter(c => c.appraisalIds.includes(appraisalId)).map(c => c.name);
+  const names = clients.filter(c => c.linkedAppraisalIds.includes(appraisalId)).map(c => c.name);
   return names.length ? ' · Client login: ' + esc(names.join(', ')) : '';
 }
 
@@ -1169,12 +1195,20 @@ async function loadClients(){
   renderAppraisals();
 }
 
-function inviteSms(c){
+function loginSms(c){
   const first = c.name.split(/[\s&]/)[0];
-  const msg = c.active
-    ? `Hi ${first}, here's a link to reset your password for my client portal: ${inviteUrl(c.inviteToken)} — Adam`
-    : `Hi ${first}, I've set up your private client portal. You can see your appraisal, your offers and my off-market properties. Set your password here: ${inviteUrl(c.inviteToken)} — Adam`;
-  return `sms:${c.mobile.replace(/[^\d+]/g, '')}?&body=${encodeURIComponent(msg)}`;
+  const msg = `Hi ${first}, you can now see your appraisal, your offers and my off-market properties in my client portal: ${loginUrl()} — just log in with your first name (${first}) and this mobile number. Adam`;
+  return `sms:${c.mobile}?&body=${encodeURIComponent(msg)}`;
+}
+
+function renderClientStats(){
+  const weekAgo = new Date(Date.now() - 7 * 864e5).toISOString();
+  const stat = (n, label) => `<div class="stat"><b>${n}</b><span>${esc(label)}</span></div>`;
+  document.getElementById('clientStats').innerHTML =
+    stat(clients.length, 'Registered') +
+    stat(clients.filter(c => c.source === 'self').length, 'Signed up themselves') +
+    stat(clients.filter(c => c.createdAt > weekAgo).length, 'New this week') +
+    stat(clients.filter(c => c.lastLoginAt && c.lastLoginAt > weekAgo).length, 'Logged in this week');
 }
 
 function renderClients(){
@@ -1183,38 +1217,46 @@ function renderClients(){
   select.innerHTML = '<option value="">Their appraisal (optional)</option>' +
     appraisals.map(a => `<option value="${esc(a.id)}">${esc(a.address || '(no address)')}${a.clientName ? ' — ' + esc(a.clientName) : ''}</option>`).join('');
   select.value = keep;
+  renderClientStats();
+
+  const q = document.getElementById('clientSearch').value.trim().toLowerCase();
+  const qDigits = q.replace(/\D/g, '');
+  const source = document.getElementById('clientSource').value;
+  const rows = clients.filter(c =>
+    (!source || c.source === source) &&
+    (!q || c.name.toLowerCase().includes(q) || (c.email || '').includes(q) || (qDigits.length >= 3 && c.mobile.includes(qDigits.replace(/^61/, '0')))));
 
   const body = document.getElementById('clientRows');
-  if (!clients.length){
-    body.innerHTML = '<tr><td colspan="3" class="empty">No client logins yet. Add one above.</td></tr>';
+  if (!rows.length){
+    body.innerHTML = `<tr><td colspan="4" class="empty">${clients.length ? 'No clients match.' : 'Nobody has registered yet. Add a client above, or send people to the login page to sign up.'}</td></tr>`;
     return;
   }
-  body.innerHTML = clients.map(c => {
+  body.innerHTML = rows.map(c => {
+    const joined = fmtWhen(c.createdAt);
     const login = c.lastLoginAt ? fmtWhen(c.lastLoginAt) : null;
-    const assigned = c.appraisalIds.map(id => (appraisals.find(a => a.id === id) || {}).address).filter(Boolean);
-    const status = c.active
-      ? `<span class="status active">Active</span><div class="sub">${login ? 'Last in ' + esc(login.date) : ''}</div>`
-      : '<span class="status pending">Invite sent</span><div class="sub">Password not set yet</div>';
-    const invite = c.inviteToken
-      ? `<button onclick="copyLink(this, '${esc(inviteUrl(c.inviteToken))}')">Copy invite</button>${c.mobile ? `<a href="${esc(inviteSms(c))}">Text invite</a>` : ''}`
-      : `<button onclick="reissueInvite('${esc(c.id)}')">Reset password link</button>`;
+    const linked = c.linkedAppraisalIds.map(id => (appraisals.find(a => a.id === id) || {}).address).filter(Boolean);
     return `<tr>
       <td><div class="addr">${esc(c.name)}</div>
-        <div class="sub">${esc(c.email)}${c.mobile ? ' · ' + esc(c.mobile) : ''}</div>
-        <div class="sub">Appraisal: ${assigned.length ? esc(assigned.join(', ')) : '<em>none ticked yet</em>'}</div></td>
-      <td>${status}</td>
+        <div class="sub"><a href="tel:${esc(c.mobile)}">${esc(fmtMobile(c.mobile))}</a>${c.email ? ' · ' + esc(c.email) : ''}</div></td>
+      <td><span class="status src-${esc(c.source)}">${esc(SOURCE_LABEL[c.source] || c.source)}</span>
+        <div class="sub">${esc(joined.date)}</div>
+        <div class="sub">${login ? 'Last login ' + esc(login.date) : 'Hasn’t logged in yet'}</div></td>
+      <td><div class="sub">${linked.length ? linked.length + ' appraisal' + (linked.length === 1 ? '' : 's') + ': ' + esc(linked.join(', ')) : 'No appraisal'}</div>
+        <div class="sub">${c.offerCount ? c.offerCount + ' offer' + (c.offerCount === 1 ? '' : 's') : 'No offers'}</div></td>
       <td class="actions">
         <button onclick="toggleAssign('${esc(c.id)}')">Appraisals</button>
-        ${invite}
-        <button class="del" onclick="deleteRecord('clients', '${esc(c.id)}', 'Delete the login for ${esc(jsStr(c.name))}? They will no longer be able to log in. Their appraisals and offers are kept.')">Delete</button>
+        <a href="${esc(loginSms(c))}">Text login</a>
+        <button class="del" onclick="deleteRecord('clients', '${esc(c.id)}', 'Delete ${esc(jsStr(c.name))} (${esc(fmtMobile(c.mobile))})? They will no longer be able to log in. Their appraisals and offers are kept. If they log in again with their name and mobile, they will be registered again.')">Delete</button>
       </td>
     </tr>
-    <tr class="assign hidden" id="assign-${esc(c.id)}"><td colspan="3">
+    <tr class="assign hidden" id="assign-${esc(c.id)}"><td colspan="4">
       <strong style="font-size:13px;">Appraisals ${esc(c.name)} can see</strong>
-      <div class="assign-list">${appraisals.length ? appraisals.map(a => `
-        <label><input type="checkbox" value="${esc(a.id)}" ${c.appraisalIds.includes(a.id) ? 'checked' : ''}>
-        <span>${esc(a.address || '(no address)')}<span class="sub"> — ${esc(a.clientName || '')} ${esc(fmtWhen(a.createdAt).date)}</span></span></label>`).join('')
-        : '<span class="sub">No appraisals yet.</span>'}</div>
+      <div class="sub">Appraisals you made with their mobile show automatically. Tick any others they should see.</div>
+      <div class="assign-list">${appraisals.length ? appraisals.map(a => {
+        const byMobile = a.mobile && a.mobile === c.mobile;
+        return `<label><input type="checkbox" value="${esc(a.id)}" ${c.appraisalIds.includes(a.id) || byMobile ? 'checked' : ''} ${byMobile ? 'disabled title="Linked by their mobile"' : ''}>
+        <span>${esc(a.address || '(no address)')}<span class="sub"> — ${esc(a.clientName || '')} ${esc(fmtWhen(a.createdAt).date)}${byMobile ? ' · their mobile' : ''}</span></span></label>`;
+      }).join('') : '<span class="sub">No appraisals yet.</span>'}</div>
       <div class="assign-actions">
         <button onclick="saveAssign('${esc(c.id)}')">Save</button>
         <button class="ghost" onclick="toggleAssign('${esc(c.id)}')">Cancel</button>
@@ -1228,49 +1270,27 @@ function toggleAssign(id){
 }
 
 async function saveAssign(id){
-  const ids = [...document.querySelectorAll('#assign-' + id + ' input:checked')].map(i => i.value);
+  const ids = [...document.querySelectorAll('#assign-' + id + ' input:checked:not(:disabled)')].map(i => i.value);
   const res = await fetch('/adam/api/clients/' + encodeURIComponent(id), {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({appraisalIds: ids})});
   if (res.status === 401) return showLogin();
   if (!res.ok){ alert('Could not save — please try again.'); return; }
   loadClients();
 }
 
-function showInvite(c, heading){
-  const box = document.getElementById('newClient');
-  box.classList.remove('hidden');
-  const url = inviteUrl(c.inviteToken);
-  box.innerHTML = `<strong style="font-size:13px;">${esc(heading)}</strong>
-    <input readonly value="${esc(url)}" onclick="this.select()">
-    <button onclick="copyLink(this, '${esc(url)}')">Copy link</button>
-    ${c.mobile ? `<a href="${esc(inviteSms(c))}">Text it</a>` : ''}`;
-  box.scrollIntoView({behavior:'smooth', block:'center'});
-}
-
 async function createClient(e){
   e.preventDefault();
   const get = id => document.getElementById(id).value.trim();
   const appraisalId = get('clientAppraisal');
+  const box = document.getElementById('newClient');
   const res = await fetch('/adam/api/clients', {method:'POST', headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({name:get('clientName'), email:get('clientEmail'), mobile:get('clientMobile'), appraisalIds: appraisalId ? [appraisalId] : []})});
+    body:JSON.stringify({name:get('clientName'), mobile:get('clientMobile'), email:get('clientEmail'), appraisalIds: appraisalId ? [appraisalId] : []})});
   if (res.status === 401) return showLogin();
   const data = await res.json().catch(() => ({}));
-  if (!res.ok){
-    const box = document.getElementById('newClient');
-    box.classList.remove('hidden');
-    box.textContent = data.error || 'Could not create the login';
-    return;
-  }
+  box.classList.remove('hidden');
+  if (!res.ok){ box.textContent = data.error || 'Could not add the client'; return; }
   ['clientName', 'clientEmail', 'clientMobile', 'clientAppraisal'].forEach(id => document.getElementById(id).value = '');
-  showInvite(data, `Invite link for ${data.name} — they set their password here:`);
-  loadClients();
-}
-
-async function reissueInvite(id){
-  const res = await fetch('/adam/api/clients/' + encodeURIComponent(id) + '/invite', {method:'POST'});
-  if (res.status === 401) return showLogin();
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok){ alert(data.error || 'Could not create a link'); return; }
-  showInvite(data, `Password reset link for ${data.name}:`);
+  box.innerHTML = `<strong style="font-size:13px;flex-basis:100%;">${esc(data.name)} added. They log in at ${esc(loginUrl())} with their first name and ${esc(fmtMobile(data.mobile))}.</strong>
+    <a href="${esc(loginSms(data))}">Text them their login</a>`;
   loadClients();
 }
 

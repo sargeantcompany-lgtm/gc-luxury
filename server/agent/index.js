@@ -155,16 +155,24 @@ async function handleSaveAppraisal(req, res) {
   const slug = slugify(address) || "appraisal";
   const id = `${slug}-${randomSuffix()}`;
 
+  const client = (data && data.client) || {};
+  const byAdmin = isAdmin(req);
   const record = {
     id,
     createdAt: new Date().toISOString(),
-    address: (data && data.client && data.client.address) || "",
-    clientName: (data && data.client && data.client.name) || "",
+    address: client.address || "",
+    clientName: client.name || "",
+    // Only appraisals Adam made show up in a client's portal by mobile.
+    byAdmin,
     data,
   };
 
   fs.writeFile(appraisalPath(id), JSON.stringify(record), (err) => {
     if (err) return sendJSON(res, 500, { error: "Could not save appraisal" });
+    // Saving an appraisal with the owner's mobile registers them as a client,
+    // so they can log in with their first name and that mobile.
+    const mobile = normMobile(client.mobile);
+    if (byAdmin && mobile && client.name && !findClientByMobile(mobile)) newClient(str(client.name, 120), mobile, { source: "appraisal" });
     sendJSON(res, 200, { id });
   });
 }
@@ -189,7 +197,8 @@ function handleListAppraisals(req, res) {
     const records = jsonFiles.map((f) => {
       try {
         const record = JSON.parse(fs.readFileSync(path.join(APPRAISALS_DIR, f), "utf8"));
-        return { id: record.id, createdAt: record.createdAt, address: record.address, clientName: record.clientName };
+        const mobile = record.data && record.data.client && record.data.client.mobile;
+        return { id: record.id, createdAt: record.createdAt, address: record.address, clientName: record.clientName, mobile: normMobile(mobile) };
       } catch (e) {
         return null;
       }
@@ -533,10 +542,12 @@ function handleViewOffMarket(res, token) {
 }
 
 /* ---------------- Client accounts ----------------
- * Adam creates a client in /admin and texts them an invite link
- * (/set-password/:token). Once they set a password they log in at /login and
- * see /portal: only the appraisals Adam assigned to them, only their own
- * offers, and the off-market properties. There is no public sign-up.
+ * Clients are identified by their mobile number. They log in at /login with
+ * their first name and mobile - a number we haven't seen registers a new
+ * account, a known one must match the first name it was registered with.
+ * Adam can also add clients himself in /admin, and saving an appraisal with
+ * an owner mobile adds that owner. The portal (/portal) then shows, for that
+ * mobile: their appraisals, their offers, and the off-market properties.
  */
 
 const CLIENTS_DIR = path.join(DATA_DIR, "clients");
@@ -544,7 +555,6 @@ fs.mkdirSync(CLIENTS_DIR, { recursive: true });
 
 const CLIENT_COOKIE = "client_session";
 const CLIENT_COOKIE_MAX_AGE = 60 * 60 * 24 * 90; // 90 days
-const MIN_PASSWORD = 8;
 
 // Signs client session cookies. Persisted under DATA_DIR so sessions survive
 // restarts without needing another environment variable.
@@ -568,23 +578,22 @@ function isEmail(v) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 }
 
-function hashPassword(password) {
-  const salt = crypto.randomBytes(16).toString("hex");
-  const hash = crypto.scryptSync(password, salt, 64).toString("hex");
-  return `${salt}:${hash}`;
+// Australian mobiles in one form, so "0412 345 678", "+61 412 345 678" and
+// "61412345678" all match: 04xxxxxxxx. Returns "" if it isn't a mobile.
+function normMobile(v) {
+  let d = String(v == null ? "" : v).replace(/\D/g, "");
+  if (d.startsWith("61") && d.length === 11) d = "0" + d.slice(2);
+  if (d.length === 9 && d.startsWith("4")) d = "0" + d;
+  return /^04\d{8}$/.test(d) ? d : "";
 }
 
-function checkPassword(password, stored) {
-  if (!stored) return false;
-  const [salt, hash] = stored.split(":");
-  const test = crypto.scryptSync(String(password), salt, 64).toString("hex");
-  return safeEqual(test, hash);
+function firstNameOf(name) {
+  return String(name || "").trim().split(/[\s&,]+/)[0].toLowerCase();
 }
 
-// The signature covers the password hash, so changing or resetting a
-// password logs out every existing session for that client.
+// Changing a client's name or mobile logs out their existing sessions.
 function clientSig(client) {
-  return crypto.createHmac("sha256", SESSION_SECRET).update(`${client.id}:${client.passwordHash || ""}`).digest("hex");
+  return crypto.createHmac("sha256", SESSION_SECRET).update(`${client.id}:${client.mobile}:${firstNameOf(client.name)}`).digest("hex");
 }
 
 function setClientCookie(req, res, value, maxAge) {
@@ -604,62 +613,74 @@ function currentClient(req) {
   const dot = raw.lastIndexOf(".");
   if (dot < 1) return null;
   const client = readRecord(CLIENTS_DIR, raw.slice(0, dot));
-  if (!client || !client.passwordHash) return null;
+  if (!client || !client.mobile) return null;
   return safeEqual(raw.slice(dot + 1), clientSig(client)) ? client : null;
 }
 
-function findClientByEmail(email) {
-  return readJSONDir(CLIENTS_DIR).find((c) => c.email === email) || null;
+function findClientByMobile(mobile) {
+  return mobile ? readJSONDir(CLIENTS_DIR).find((c) => c.mobile === mobile) || null : null;
 }
 
-function findClientByInvite(token) {
-  if (!/^[a-f0-9]{48}$/.test(token || "")) return null;
-  return readJSONDir(CLIENTS_DIR).find((c) => c.inviteToken && safeEqual(c.inviteToken, token)) || null;
+// Appraisals for a client: the ones Adam ticked for them, plus any he
+// prepared with their mobile as the owner's mobile.
+function clientAppraisals(client) {
+  const ticked = new Set(client.appraisalIds || []);
+  return readJSONDir(APPRAISALS_DIR).filter((a) =>
+    ticked.has(a.id) || (a.byAdmin && client.mobile && normMobile(a.data && a.data.client && a.data.client.mobile) === client.mobile));
 }
 
-// What the admin page sees - never the password hash.
+// Offers for a client: made while logged in as them, or with their mobile.
+function clientOffers(client) {
+  return readJSONDir(OFFERS_DIR).filter((o) =>
+    o.clientId === client.id || (client.mobile && normMobile(o.mobile) === client.mobile));
+}
+
 function publicClient(c) {
   return {
     id: c.id,
     createdAt: c.createdAt,
     name: c.name,
-    email: c.email,
+    email: c.email || "",
     mobile: c.mobile,
+    source: c.source || "admin",
     appraisalIds: c.appraisalIds || [],
-    active: !!c.passwordHash,
-    inviteToken: c.inviteToken || null,
+    linkedAppraisalIds: clientAppraisals(c).map((a) => a.id),
+    offerCount: clientOffers(c).length,
     lastLoginAt: c.lastLoginAt || null,
   };
-}
-
-function newInviteToken() {
-  return crypto.randomBytes(24).toString("hex");
 }
 
 function cleanAppraisalIds(ids) {
   return Array.isArray(ids) ? ids.filter((id) => typeof id === "string" && /^[a-z0-9-]+$/i.test(id)).slice(0, 50) : [];
 }
 
-async function handleCreateClient(req, res) {
-  const body = await readJSONBody(req, res);
-  if (!body) return;
-  const name = str(body.name, 120);
-  const email = normEmail(body.email);
-  if (!name) return sendJSON(res, 400, { error: "Enter the client's name" });
-  if (!isEmail(email)) return sendJSON(res, 400, { error: "Enter a valid email — it's their login" });
-  if (findClientByEmail(email)) return sendJSON(res, 400, { error: "A client with that email already exists" });
+function newClient(name, mobile, fields) {
   const record = {
     id: `${slugify(name) || "client"}-${randomSuffix()}`,
     createdAt: new Date().toISOString(),
     name,
-    email,
-    mobile: str(body.mobile, 40),
-    appraisalIds: cleanAppraisalIds(body.appraisalIds),
-    passwordHash: null,
-    inviteToken: newInviteToken(),
+    mobile,
+    email: "",
+    appraisalIds: [],
     lastLoginAt: null,
+    source: "admin",
+    ...fields,
   };
   writeRecord(CLIENTS_DIR, record);
+  return record;
+}
+
+async function handleCreateClient(req, res) {
+  const body = await readJSONBody(req, res);
+  if (!body) return;
+  const name = str(body.name, 120);
+  const mobile = normMobile(body.mobile);
+  const email = normEmail(body.email);
+  if (!name) return sendJSON(res, 400, { error: "Enter the client's name" });
+  if (!mobile) return sendJSON(res, 400, { error: "Enter their mobile, e.g. 0412 345 678 — it's their login" });
+  if (email && !isEmail(email)) return sendJSON(res, 400, { error: "That email doesn't look right" });
+  if (findClientByMobile(mobile)) return sendJSON(res, 400, { error: "A client with that mobile already exists" });
+  const record = newClient(name, mobile, { email, appraisalIds: cleanAppraisalIds(body.appraisalIds) });
   sendJSON(res, 200, publicClient(record));
 }
 
@@ -673,80 +694,70 @@ async function handleUpdateClient(req, res, id) {
     if (!name) return sendJSON(res, 400, { error: "Enter the client's name" });
     client.name = name;
   }
+  if (body.mobile !== undefined) {
+    const mobile = normMobile(body.mobile);
+    if (!mobile) return sendJSON(res, 400, { error: "Enter a valid mobile" });
+    const other = findClientByMobile(mobile);
+    if (other && other.id !== id) return sendJSON(res, 400, { error: "Another client already uses that mobile" });
+    client.mobile = mobile;
+  }
   if (body.email !== undefined) {
     const email = normEmail(body.email);
-    if (!isEmail(email)) return sendJSON(res, 400, { error: "Enter a valid email" });
-    const other = findClientByEmail(email);
-    if (other && other.id !== id) return sendJSON(res, 400, { error: "Another client already uses that email" });
+    if (email && !isEmail(email)) return sendJSON(res, 400, { error: "That email doesn't look right" });
     client.email = email;
   }
-  if (body.mobile !== undefined) client.mobile = str(body.mobile, 40);
   if (body.appraisalIds !== undefined) client.appraisalIds = cleanAppraisalIds(body.appraisalIds);
   writeRecord(CLIENTS_DIR, client);
   sendJSON(res, 200, publicClient(client));
 }
 
-// New invite/reset link. Doesn't touch the current password until it's used.
-function handleReissueInvite(res, id) {
-  const client = readRecord(CLIENTS_DIR, id);
-  if (!client) return sendJSON(res, 404, { error: "Client not found" });
-  client.inviteToken = newInviteToken();
-  writeRecord(CLIENTS_DIR, client);
-  sendJSON(res, 200, publicClient(client));
-}
-
-function handleGetInvite(res, token) {
-  const client = findClientByInvite(token);
-  if (!client) return sendJSON(res, 404, { error: "This link has expired or already been used" });
-  sendJSON(res, 200, { name: client.name, email: client.email, reset: !!client.passwordHash });
-}
-
-async function handleSetPassword(req, res) {
-  const body = await readJSONBody(req, res);
-  if (!body) return;
-  const client = findClientByInvite(str(body.token, 100));
-  if (!client) return sendJSON(res, 404, { error: "This link has expired or already been used — ask Adam for a new one" });
-  const password = typeof body.password === "string" ? body.password : "";
-  if (password.length < MIN_PASSWORD) return sendJSON(res, 400, { error: `Use at least ${MIN_PASSWORD} characters` });
-  client.passwordHash = hashPassword(password);
-  client.inviteToken = null;
-  client.lastLoginAt = new Date().toISOString();
-  writeRecord(CLIENTS_DIR, client);
-  startClientSession(req, res, client);
-  sendJSON(res, 200, { ok: true });
-}
-
-// Simple brute-force brake: 10 failed attempts per email per 15 minutes.
+// Brute-force brake: anyone who knows a first name and mobile can log in, so
+// limit guesses - 8 failures per mobile and 30 per IP address per 15 minutes.
 const loginFailures = new Map();
 const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 
-function tooManyFailures(email) {
-  const f = loginFailures.get(email);
+function tooManyFailures(key, max) {
+  const f = loginFailures.get(key);
   if (!f || Date.now() - f.first > LOGIN_WINDOW_MS) return false;
-  return f.count >= 10;
+  return f.count >= max;
 }
 
-function noteFailure(email) {
-  const f = loginFailures.get(email);
-  if (!f || Date.now() - f.first > LOGIN_WINDOW_MS) loginFailures.set(email, { first: Date.now(), count: 1 });
+function noteFailure(key) {
+  const f = loginFailures.get(key);
+  if (!f || Date.now() - f.first > LOGIN_WINDOW_MS) loginFailures.set(key, { first: Date.now(), count: 1 });
   else f.count += 1;
 }
 
+function clientIp(req) {
+  return String(req.headers["x-forwarded-for"] || req.socket.remoteAddress || "").split(",")[0].trim();
+}
+
+// One form does both: a new mobile registers, a known mobile logs in when
+// the first name matches the one it was registered with.
 async function handleClientLogin(req, res) {
   const body = await readJSONBody(req, res);
   if (!body) return;
-  const email = normEmail(body.email);
-  if (tooManyFailures(email)) return sendJSON(res, 429, { error: "Too many attempts — please wait 15 minutes or call Adam" });
-  const client = email && findClientByEmail(email);
-  if (!client || !checkPassword(body.password, client.passwordHash)) {
-    noteFailure(email);
-    return sendJSON(res, 401, { error: "Email or password is incorrect" });
+  const firstName = str(body.firstName, 60);
+  const mobile = normMobile(body.mobile);
+  if (!firstName) return sendJSON(res, 400, { error: "Enter your first name" });
+  if (!mobile) return sendJSON(res, 400, { error: "Enter your mobile number, e.g. 0412 345 678" });
+  const ipKey = "ip:" + clientIp(req);
+  if (tooManyFailures("m:" + mobile, 8) || tooManyFailures(ipKey, 30)) {
+    return sendJSON(res, 429, { error: "Too many attempts — please wait 15 minutes or call Adam on 0407 739 919" });
   }
-  loginFailures.delete(email);
+
+  let client = findClientByMobile(mobile);
+  if (client && firstNameOf(client.name) !== firstNameOf(firstName)) {
+    noteFailure("m:" + mobile);
+    noteFailure(ipKey);
+    return sendJSON(res, 401, { error: "That mobile is registered under a different first name. Check the spelling, or call Adam on 0407 739 919." });
+  }
+  const registered = !client;
+  if (!client) client = newClient(firstName, mobile, { source: "self" });
   client.lastLoginAt = new Date().toISOString();
   writeRecord(CLIENTS_DIR, client);
   startClientSession(req, res, client);
-  sendJSON(res, 200, { ok: true });
+  sendJSON(res, 200, { ok: true, registered });
 }
 
 // Everything a logged-in client may see: only their own appraisals and
@@ -755,14 +766,10 @@ function handlePortal(req, res) {
   const client = currentClient(req);
   if (!client) return sendJSON(res, 401, { error: "Please log in" });
 
-  const appraisals = (client.appraisalIds || [])
-    .map((id) => readRecord(APPRAISALS_DIR, id))
-    .filter(Boolean)
-    .map((a) => ({ id: a.id, address: a.address, createdAt: a.createdAt }))
-    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+  const appraisals = clientAppraisals(client)
+    .map((a) => ({ id: a.id, address: a.address, createdAt: a.createdAt }));
 
-  const offers = readJSONDir(OFFERS_DIR)
-    .filter((o) => o.clientId === client.id || (o.email || "").toLowerCase() === client.email)
+  const offers = clientOffers(client)
     .map((o) => ({
       id: o.id, createdAt: o.createdAt, address: o.address, purchasePrice: o.purchasePrice,
       initialDeposit: o.initialDeposit, balanceDeposit: o.balanceDeposit, balanceDepositPayableOn: o.balanceDepositPayableOn,
@@ -775,7 +782,31 @@ function handlePortal(req, res) {
     .filter((l) => l.status !== "hidden")
     .sort((a, b) => order[a.status] - order[b.status]);
 
-  sendJSON(res, 200, { name: client.name, email: client.email, appraisals, offers, offMarket });
+  sendJSON(res, 200, { name: client.name, mobile: client.mobile, appraisals, offers, offMarket });
+}
+
+/* One-off import of records from the old standalone appraisal app. Admin
+ * only; never overwrites a record that already exists here.
+ */
+async function handleImport(req, res) {
+  let body;
+  try {
+    body = JSON.parse((await readRaw(req, 10 * 1024 * 1024)).toString("utf8"));
+  } catch (e) {
+    return sendJSON(res, 400, { error: "Invalid import" });
+  }
+  const result = {};
+  const sets = [["appraisals", APPRAISALS_DIR], ["offers", OFFERS_DIR], ["offerLinks", OFFER_LINKS_DIR]];
+  for (const [name, dir] of sets) {
+    let added = 0, skipped = 0;
+    for (const rec of Array.isArray(body[name]) ? body[name] : []) {
+      if (!rec || !/^[a-z0-9-]+$/i.test(rec.id || "") || readRecord(dir, rec.id)) { skipped++; continue; }
+      writeRecord(dir, name === "appraisals" ? { ...rec, byAdmin: true } : rec);
+      added++;
+    }
+    result[name] = { added, skipped };
+  }
+  sendJSON(res, 200, result);
 }
 
 /* ---------------- Listing checklists ----------------
@@ -864,18 +895,15 @@ module.exports = function handleAgent(req, res) {
     if (!isAdmin(req)) return sendJSON(res, 401, { error: "Admin login required" });
     return handleCreateClient(req, res);
   }
-  const clientMatch = pathname.match(/^\/api\/clients\/([a-z0-9-]+)(\/invite)?$/i);
-  if (clientMatch && req.method === "POST" && clientMatch[2]) {
-    if (!isAdmin(req)) return sendJSON(res, 401, { error: "Admin login required" });
-    return handleReissueInvite(res, clientMatch[1]);
-  }
-  if (clientMatch && req.method === "PUT" && !clientMatch[2]) {
+  const clientMatch = pathname.match(/^\/api\/clients\/([a-z0-9-]+)$/i);
+  if (clientMatch && req.method === "PUT") {
     if (!isAdmin(req)) return sendJSON(res, 401, { error: "Admin login required" });
     return handleUpdateClient(req, res, clientMatch[1]);
   }
-  const inviteMatch = pathname.match(/^\/api\/client\/invite\/([a-f0-9]+)$/);
-  if (inviteMatch && req.method === "GET") return handleGetInvite(res, inviteMatch[1]);
-  if (pathname === "/api/client/set-password" && req.method === "POST") return handleSetPassword(req, res);
+  if (pathname === "/api/admin/import" && req.method === "POST") {
+    if (!isAdmin(req)) return sendJSON(res, 401, { error: "Admin login required" });
+    return handleImport(req, res);
+  }
   if (pathname === "/api/client/login" && req.method === "POST") return handleClientLogin(req, res);
   if (pathname === "/api/client/logout" && req.method === "POST") {
     setClientCookie(req, res, "", 0);
@@ -883,11 +911,11 @@ module.exports = function handleAgent(req, res) {
   }
   if (pathname === "/api/client/me" && req.method === "GET") {
     const c = currentClient(req);
-    return sendJSON(res, 200, { client: c ? { name: c.name, email: c.email, mobile: c.mobile } : null });
+    return sendJSON(res, 200, { client: c ? { name: c.name, email: c.email || "", mobile: c.mobile } : null });
   }
   if (pathname === "/api/client/portal" && req.method === "GET") return handlePortal(req, res);
   if (pathname === "/login" || pathname === "/login/") pathname = "/login.html";
-  if (/^\/set-password\/[a-f0-9]+$/.test(pathname)) pathname = "/set-password.html";
+  if (pathname === "/register" || /^\/set-password\/[a-f0-9]+$/.test(pathname)) pathname = "/login.html"; // old invite links
   if (pathname === "/portal" || pathname === "/portal/") pathname = "/portal.html";
 
   // Offer links + offers. Creating links and reading offers is admin-only;
