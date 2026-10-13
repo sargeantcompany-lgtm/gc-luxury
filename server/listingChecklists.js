@@ -48,6 +48,8 @@ const TEMPLATE = [
     { key: "ab-docusign", text: "Advise Admin to send budgets and Form 6 to client for Docusigning" },
   ] },
   { title: "4. Campaign preparation (3 to 4 weeks)", items: [
+    { key: "cp-order-aml", text: "Order AML" },
+    { key: "cp-order-form2", text: "Order Form 2" },
     { key: "cp-calendar", text: "Add all following key dates to calendar and share with seller" },
     { key: "cp-photography", text: "Book photography" },
     { key: "cp-collateral", text: "Prepare marketing collateral" },
@@ -58,7 +60,11 @@ const TEMPLATE = [
     { key: "cp-auction", text: "Confirm auction date, if applicable" },
     { sub: "Ongoing: follow up Form 2" },
     { key: "cp-file-admin", text: "Send completed file to Admin" },
-    { key: "cp-form2-buyers", text: "Send Form 2 to prospective buyers upon request" },
+    { key: "cp-form2-received", text: "Received Form 2" },
+    { key: "cp-aml-approved", text: "AML approved" },
+    { key: "cp-contract-file", text: "Contract in file" },
+    { key: "cp-offer-form-file", text: "Offer form in file" },
+    { key: "cp-brochures-ordered", text: "Brochures ordered" },
   ], tip: "Work backwards from the live date so photography, copy, approvals and online advertising are ready before launch." },
   { title: "5. Property launch", items: [
     { key: "pl-live", text: "Property live online" },

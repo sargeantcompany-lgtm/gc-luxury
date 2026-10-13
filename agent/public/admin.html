@@ -109,6 +109,9 @@
   details.offer summary::-webkit-details-marker{display:none;}
   details.offer summary:hover{background:#FBFAF8;}
   details.offer .price{font-weight:800;font-size:16px;white-space:nowrap;}
+  details.offer summary .right{display:flex;align-items:center;gap:12px;}
+  details.offer summary button.del{font:inherit;font-size:12.5px;font-weight:700;background:none;border:1.5px solid #E4B4AE;color:#B42318;border-radius:6px;padding:5px 10px;cursor:pointer;}
+  details.offer summary button.del:hover{background:#FEF3F2;}
   details.offer[open] summary{background:#FBFAF8;border-bottom:1px solid var(--line);}
   .offer-body{padding:6px 14px 16px;}
   .offer-body dl{display:grid;grid-template-columns:190px 1fr;gap:8px 16px;margin:10px 0 0;font-size:14px;}
@@ -587,11 +590,10 @@ function renderOffers(){
     return `<details class="offer">
       <summary>
         <div><div class="addr">${esc(o.address)}</div><div class="sub">${esc(o.buyerNames)} · ${esc(w.date)}, ${esc(w.time)}</div></div>
-        <div class="price">${esc(fmtMoney(o.purchasePrice))}</div>
+        <div class="right"><div class="price">${esc(fmtMoney(o.purchasePrice))}</div>
+          <button class="del" onclick="event.preventDefault(); event.stopPropagation(); deleteRecord('offers', '${esc(o.id)}', 'Delete the offer from ${esc(jsStr(o.buyerNames))} for ${esc(jsStr(o.address))}?')">Delete</button></div>
       </summary>
-      <div class="offer-body"><dl>${rows.map(([k, v, html]) => `<dt>${esc(k)}</dt><dd>${html ? v : esc(v)}</dd>`).join('')}</dl>
-        <button class="del" onclick="deleteRecord('offers', '${esc(o.id)}', 'Delete the offer from ${esc(jsStr(o.buyerNames))} for ${esc(jsStr(o.address))}?')">Delete offer</button>
-      </div>
+      <div class="offer-body"><dl>${rows.map(([k, v, html]) => `<dt>${esc(k)}</dt><dd>${html ? v : esc(v)}</dd>`).join('')}</dl></div>
     </details>`;
   }).join('');
 }
