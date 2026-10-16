@@ -10,11 +10,30 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 
 
 const PIPELINE_STAGES = ['New', 'Contacted', 'Warm', 'Meeting Booked', 'Listed'];
 
+// Buyer / seller tags and the buyer brief (price range, locations, notes).
+const BUYER_FIELDS = ['is_buyer', 'is_seller', 'price_min', 'price_max', 'buyer_locations', 'buyer_notes'];
+
+function cleanBuyerField(key, val) {
+  if (key === 'is_buyer' || key === 'is_seller') return val === true || val === 'true';
+  if (key === 'price_min' || key === 'price_max') {
+    const n = parseInt(String(val ?? '').replace(/[^0-9]/g, ''), 10);
+    return Number.isFinite(n) ? n : null;
+  }
+  return val ? String(val) : null;
+}
+
+// Adds a buyer/seller filter: type=buyer | seller | both
+function addTypeFilter(type, where) {
+  if (type === 'buyer') where.push('c.is_buyer = TRUE');
+  if (type === 'seller') where.push('c.is_seller = TRUE');
+  if (type === 'both') where.push('c.is_buyer = TRUE AND c.is_seller = TRUE');
+}
+
 // ─── LIST contacts ───────────────────────────────────────────────
 router.get('/', async (req, res) => {
   try {
     const {
-      brand_id, stage, dnc, search,
+      brand_id, stage, dnc, search, type,
       page = 1, limit = 50, sort = 'created_at', order = 'DESC'
     } = req.query;
 
@@ -29,9 +48,10 @@ router.get('/', async (req, res) => {
     if (stage) { params.push(stage); where.push(`c.pipeline_stage = $${params.length}`); }
     if (dnc === 'true') { where.push(`c.do_not_contact = TRUE`); }
     if (dnc === 'false') { where.push(`c.do_not_contact = FALSE`); }
+    addTypeFilter(type, where);
     if (search) {
       params.push(`%${search}%`);
-      where.push(`(c.first_name ILIKE $${params.length} OR c.last_name ILIKE $${params.length} OR c.email ILIKE $${params.length} OR c.phone ILIKE $${params.length} OR c.city ILIKE $${params.length})`);
+      where.push(`(c.first_name ILIKE $${params.length} OR c.last_name ILIKE $${params.length} OR c.email ILIKE $${params.length} OR c.phone ILIKE $${params.length} OR c.city ILIKE $${params.length} OR c.buyer_locations ILIKE $${params.length} OR c.buyer_notes ILIKE $${params.length})`);
     }
 
     const whereStr = where.join(' AND ');
@@ -69,12 +89,14 @@ router.get('/', async (req, res) => {
 // ─── EXPORT contacts as CSV ───────────────────────────────────────
 router.get('/export', async (req, res) => {
   try {
-    const { brand_id, stage, dnc, search } = req.query;
+    const { brand_id, stage, dnc, search, type } = req.query;
     let where = ['1=1'];
     const params = [];
     if (brand_id) { params.push(brand_id); where.push(`c.brand_id = $${params.length}`); }
     if (stage) { params.push(stage); where.push(`c.pipeline_stage = $${params.length}`); }
     if (dnc === 'true') where.push(`c.do_not_contact = TRUE`);
+    if (dnc === 'false') where.push(`c.do_not_contact = FALSE`);
+    addTypeFilter(type, where);
     if (search) {
       params.push(`%${search}%`);
       where.push(`(c.first_name ILIKE $${params.length} OR c.last_name ILIKE $${params.length} OR c.email ILIKE $${params.length})`);
@@ -82,7 +104,8 @@ router.get('/export', async (req, res) => {
 
     const result = await db.query(
       `SELECT c.first_name, c.last_name, c.email, c.phone, c.address, c.city, c.state, c.zip,
-              c.pipeline_stage, c.source, c.do_not_contact, c.dnc_reason, b.name as brand,
+              c.pipeline_stage, c.source, c.is_buyer, c.is_seller, c.price_min, c.price_max,
+              c.buyer_locations, c.buyer_notes, c.do_not_contact, c.dnc_reason, b.name as brand,
               c.created_at
        FROM contacts c
        LEFT JOIN brands b ON c.brand_id = b.id
@@ -91,7 +114,7 @@ router.get('/export', async (req, res) => {
       params
     );
 
-    const headers = ['first_name','last_name','email','phone','address','city','state','zip','pipeline_stage','source','do_not_contact','dnc_reason','brand','created_at'];
+    const headers = ['first_name','last_name','email','phone','address','city','state','zip','pipeline_stage','source','is_buyer','is_seller','price_min','price_max','buyer_locations','buyer_notes','do_not_contact','dnc_reason','brand','created_at'];
     const csvRows = [headers.join(',')];
     for (const row of result.rows) {
       csvRows.push(headers.map(h => {
@@ -147,11 +170,13 @@ router.post('/', async (req, res) => {
   const { brand_id, first_name, last_name, email, phone, address, city, state, zip, pipeline_stage, source } = req.body;
   try {
     const result = await db.query(
-      `INSERT INTO contacts (brand_id, first_name, last_name, email, phone, address, city, state, zip, pipeline_stage, source)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`,
+      `INSERT INTO contacts (brand_id, first_name, last_name, email, phone, address, city, state, zip, pipeline_stage, source,
+                             is_buyer, is_seller, price_min, price_max, buyer_locations, buyer_notes)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17) RETURNING *`,
       [brand_id || null, first_name || '', last_name || '', email || null, phone || null,
        address || null, city || null, state || null, zip || null,
-       pipeline_stage || 'New', source || null]
+       pipeline_stage || 'New', source || null,
+       ...BUYER_FIELDS.map(k => cleanBuyerField(k, req.body[k]))]
     );
     await db.query(
       `INSERT INTO activity_log (contact_id, brand_id, type, description) VALUES ($1,$2,$3,$4)`,
@@ -167,12 +192,19 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   const { brand_id, first_name, last_name, email, phone, address, city, state, zip, pipeline_stage, source } = req.body;
   try {
+    const params = [brand_id || null, first_name, last_name, email, phone, address, city, state, zip,
+      pipeline_stage || 'New', source || null];
+    // Only touch buyer fields that were sent — the Pipeline edit form doesn't send them.
+    const extra = BUYER_FIELDS.filter(k => req.body[k] !== undefined).map(k => {
+      params.push(cleanBuyerField(k, req.body[k]));
+      return `, ${k}=$${params.length}`;
+    }).join('');
+    params.push(req.params.id);
     const result = await db.query(
       `UPDATE contacts SET brand_id=$1, first_name=$2, last_name=$3, email=$4, phone=$5, address=$6,
-       city=$7, state=$8, zip=$9, pipeline_stage=$10, source=$11, updated_at=NOW()
-       WHERE id=$12 RETURNING *`,
-      [brand_id || null, first_name, last_name, email, phone, address, city, state, zip,
-       pipeline_stage || 'New', source || null, req.params.id]
+       city=$7, state=$8, zip=$9, pipeline_stage=$10, source=$11${extra}, updated_at=NOW()
+       WHERE id=$${params.length} RETURNING *`,
+      params
     );
     if (!result.rows.length) return res.status(404).json({ error: 'Contact not found' });
     res.json(result.rows[0]);
@@ -196,6 +228,27 @@ router.patch('/:id/stage', async (req, res) => {
        VALUES ($1,$2,$3,$4)`,
       [req.params.id, result.rows[0].brand_id, 'stage_changed', `Stage changed to ${stage}`]
     );
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── TOGGLE buyer / seller tag ────────────────────────────────────
+router.patch('/:id/type', async (req, res) => {
+  const sets = [];
+  const params = [];
+  for (const k of ['is_buyer', 'is_seller']) {
+    if (req.body[k] !== undefined) { params.push(req.body[k] === true); sets.push(`${k}=$${params.length}`); }
+  }
+  if (!sets.length) return res.status(400).json({ error: 'is_buyer or is_seller required' });
+  params.push(req.params.id);
+  try {
+    const result = await db.query(
+      `UPDATE contacts SET ${sets.join(', ')}, updated_at=NOW() WHERE id=$${params.length} RETURNING *`,
+      params
+    );
+    if (!result.rows.length) return res.status(404).json({ error: 'Contact not found' });
     res.json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -337,6 +390,12 @@ router.post('/import', upload.single('file'), async (req, res) => {
     zip: r.zip || r.zip_code || r.postal_code || r.postal || null,
     pipeline_stage: r.pipeline_stage || r.stage || 'New',
     source: r.source || r.lead_source || 'Import',
+    is_buyer: /^(true|yes|y|1)$/i.test(String(r.is_buyer ?? r.buyer ?? '').trim()),
+    is_seller: /^(true|yes|y|1)$/i.test(String(r.is_seller ?? r.seller ?? '').trim()),
+    price_min: cleanBuyerField('price_min', r.price_min || r.min_price),
+    price_max: cleanBuyerField('price_max', r.price_max || r.max_price),
+    buyer_locations: r.buyer_locations || r.locations || r.suburbs || null,
+    buyer_notes: r.buyer_notes || r.notes || null,
   });
 
   try {
@@ -367,9 +426,11 @@ router.post('/import', upload.single('file'), async (req, res) => {
           if (exists.rows.length) { skipped++; continue; }
         }
         await db.query(
-          `INSERT INTO contacts (brand_id, first_name, last_name, email, phone, address, city, state, zip, pipeline_stage, source)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
-          [r.brand_id, r.first_name, r.last_name, r.email, r.phone, r.address, r.city, r.state, r.zip, r.pipeline_stage, r.source]
+          `INSERT INTO contacts (brand_id, first_name, last_name, email, phone, address, city, state, zip, pipeline_stage, source,
+                                 is_buyer, is_seller, price_min, price_max, buyer_locations, buyer_notes)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)`,
+          [r.brand_id, r.first_name, r.last_name, r.email, r.phone, r.address, r.city, r.state, r.zip, r.pipeline_stage, r.source,
+           ...BUYER_FIELDS.map(k => r[k])]
         );
         imported++;
       } catch {

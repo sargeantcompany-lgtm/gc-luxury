@@ -13,7 +13,49 @@ const STAGE_CLASS = {
 const emptyForm = {
   brand_id: '', first_name: '', last_name: '', email: '', phone: '',
   address: '', city: '', state: '', zip: '', pipeline_stage: 'New', source: '',
+  is_buyer: false, is_seller: false, price_min: '', price_max: '', buyer_locations: '', buyer_notes: '',
 };
+
+const BUYER_COLOR = '#2563eb';
+const SELLER_COLOR = '#dc2626';
+
+// Accepts "1.5m", "800k", "$1,200,000" → whole dollars (or '' if blank)
+function parsePrice(v) {
+  const t = String(v || '').trim().toLowerCase().replace(/[$,\s]/g, '');
+  if (!t) return '';
+  const n = parseFloat(t);
+  if (!Number.isFinite(n)) return '';
+  const mult = t.endsWith('m') ? 1e6 : t.endsWith('k') ? 1e3 : 1;
+  return Math.round(n * mult);
+}
+
+function shortPrice(n) {
+  if (n === null || n === undefined || n === '') return '';
+  n = Number(n);
+  if (n >= 1e6) return `$${+(n / 1e6).toFixed(2)}M`;
+  if (n >= 1e3) return `$${Math.round(n / 1e3)}K`;
+  return `$${n}`;
+}
+
+function priceRange(min, max) {
+  if (min && max) return `${shortPrice(min)} – ${shortPrice(max)}`;
+  if (min) return `${shortPrice(min)}+`;
+  if (max) return `Up to ${shortPrice(max)}`;
+  return '';
+}
+
+function TypeChip({ label, color, on, onClick }) {
+  return (
+    <button type="button" onClick={onClick} title={on ? `Untick ${label}` : `Tick ${label}`}
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 9px', borderRadius: 999,
+        fontSize: 12, fontWeight: 600, cursor: 'pointer', border: `1.5px solid ${color}`,
+        background: on ? color : 'transparent', color: on ? '#fff' : color, opacity: on ? 1 : 0.55,
+      }}>
+      {on ? '✓' : '+'} {label}
+    </button>
+  );
+}
 
 function formatDate(d) {
   if (!d) return '';
@@ -33,6 +75,7 @@ export default function Contacts() {
   const [brandFilter, setBrandFilter] = useState(searchParams.get('brand_id') || '');
   const [stageFilter, setStageFilter] = useState('');
   const [dncFilter, setDncFilter] = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
   const [page, setPage] = useState(1);
   const limit = 50;
 
@@ -71,6 +114,7 @@ export default function Contacts() {
       if (brandFilter) params.brand_id = brandFilter;
       if (stageFilter) params.stage = stageFilter;
       if (dncFilter) params.dnc = dncFilter;
+      if (typeFilter) params.type = typeFilter;
       const [contactsData, brandsData] = await Promise.all([
         contactsApi.list(params),
         brandsApi.list(),
@@ -84,10 +128,10 @@ export default function Contacts() {
     } finally {
       setLoading(false);
     }
-  }, [page, search, brandFilter, stageFilter, dncFilter]);
+  }, [page, search, brandFilter, stageFilter, dncFilter, typeFilter]);
 
   useEffect(() => { load(); }, [load]);
-  useEffect(() => { setPage(1); }, [search, brandFilter, stageFilter, dncFilter]);
+  useEffect(() => { setPage(1); }, [search, brandFilter, stageFilter, dncFilter, typeFilter]);
 
   // ── Add / Edit ──────────────────────────────────────────────────
   function openAdd() { setForm(emptyForm); setShowAdd(true); }
@@ -99,19 +143,24 @@ export default function Contacts() {
       phone: c.phone || '', address: c.address || '',
       city: c.city || '', state: c.state || '', zip: c.zip || '',
       pipeline_stage: c.pipeline_stage || 'New', source: c.source || '',
+      is_buyer: !!c.is_buyer, is_seller: !!c.is_seller,
+      price_min: c.price_min ? Number(c.price_min).toLocaleString() : '',
+      price_max: c.price_max ? Number(c.price_max).toLocaleString() : '',
+      buyer_locations: c.buyer_locations || '', buyer_notes: c.buyer_notes || '',
     });
   }
 
   async function saveContact(e) {
     e.preventDefault();
     setSaving(true);
+    const data = { ...form, price_min: parsePrice(form.price_min), price_max: parsePrice(form.price_max) };
     try {
       if (editContact) {
-        await contactsApi.update(editContact.id, form);
+        await contactsApi.update(editContact.id, data);
         show('Contact updated', 'success');
         setEditContact(null);
       } else {
-        await contactsApi.create(form);
+        await contactsApi.create(data);
         show('Contact created', 'success');
         setShowAdd(false);
       }
@@ -120,6 +169,18 @@ export default function Contacts() {
       show(err.message, 'error');
     } finally {
       setSaving(false);
+    }
+  }
+
+  // ── Buyer / seller tick ─────────────────────────────────────────
+  async function toggleType(contact, key) {
+    const value = !contact[key];
+    setContacts(prev => prev.map(c => c.id === contact.id ? { ...c, [key]: value } : c));
+    try {
+      await contactsApi.setType(contact.id, { [key]: value });
+    } catch (err) {
+      setContacts(prev => prev.map(c => c.id === contact.id ? { ...c, [key]: !value } : c));
+      show(err.message, 'error');
     }
   }
 
@@ -243,15 +304,47 @@ export default function Contacts() {
 
   const pages = Math.ceil(total / limit);
 
-  const ContactForm = ({ onSubmit }) => (
-    <form onSubmit={onSubmit}>
+  const setField = (key, value) => setForm(p => ({ ...p, [key]: value }));
+
+  const contactForm = (
+    <form onSubmit={saveContact}>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 16 }}>
+        <span className="form-label" style={{ margin: 0 }}>Type</span>
+        <TypeChip label="Buyer" color={BUYER_COLOR} on={form.is_buyer} onClick={() => setField('is_buyer', !form.is_buyer)} />
+        <TypeChip label="Seller" color={SELLER_COLOR} on={form.is_seller} onClick={() => setField('is_seller', !form.is_seller)} />
+      </div>
+
+      {form.is_buyer && (
+        <div style={{ border: `1px solid ${BUYER_COLOR}33`, background: `${BUYER_COLOR}0d`, borderRadius: 8, padding: 12, marginBottom: 16 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: BUYER_COLOR, marginBottom: 8 }}>BUYER BRIEF</div>
+          <div className="grid-2">
+            <div className="form-group">
+              <label className="form-label">Price From</label>
+              <input className="form-input" placeholder="e.g. 900k" value={form.price_min} onChange={e => setField('price_min', e.target.value)} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Price To</label>
+              <input className="form-input" placeholder="e.g. 1.5m" value={form.price_max} onChange={e => setField('price_max', e.target.value)} />
+            </div>
+            <div className="form-group" style={{ gridColumn: '1/-1' }}>
+              <label className="form-label">Locations</label>
+              <input className="form-input" placeholder="e.g. Broadbeach, Mermaid Waters, Burleigh" value={form.buyer_locations} onChange={e => setField('buyer_locations', e.target.value)} />
+            </div>
+            <div className="form-group" style={{ gridColumn: '1/-1' }}>
+              <label className="form-label">Buyer Notes</label>
+              <textarea className="form-textarea" style={{ minHeight: 70 }} placeholder="Beds, must-haves, timeframe, finance..." value={form.buyer_notes} onChange={e => setField('buyer_notes', e.target.value)} />
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="grid-2">
         {[['first_name','First Name'],['last_name','Last Name'],['email','Email'],['phone','Phone'],
           ['address','Address'],['city','City'],['state','State'],['zip','ZIP'],['source','Source']].map(([key,label]) => (
           <div className={`form-group ${key === 'address' ? '' : ''}`} key={key}
             style={key === 'address' ? { gridColumn: '1/-1' } : {}}>
             <label className="form-label">{label}</label>
-            <input className="form-input" value={form[key] || ''} onChange={e => setForm(p => ({...p,[key]:e.target.value}))} />
+            <input className="form-input" value={form[key] || ''} onChange={e => setField(key, e.target.value)} />
           </div>
         ))}
         <div className="form-group">
@@ -277,7 +370,7 @@ export default function Contacts() {
         <h1 className="page-title">Contacts <span style={{ fontSize: 13, fontWeight: 400, color: 'var(--text-muted)' }}>({total.toLocaleString()})</span></h1>
         <div style={{ display: 'flex', gap: 8 }}>
           <button className="btn btn-secondary btn-sm" onClick={() => setShowImport(true)}>↑ Import</button>
-          <button className="btn btn-secondary btn-sm" onClick={() => contactsApi.export({ brand_id: brandFilter, stage: stageFilter, dnc: dncFilter, search })}>↓ Export CSV</button>
+          <button className="btn btn-secondary btn-sm" onClick={() => contactsApi.export({ brand_id: brandFilter, stage: stageFilter, dnc: dncFilter, type: typeFilter, search })}>↓ Export CSV</button>
           <button className="btn btn-primary btn-sm" onClick={openAdd}>+ Add Contact</button>
         </div>
       </div>
@@ -288,10 +381,16 @@ export default function Contacts() {
           <div className="toolbar-left">
             <input
               className="search-input"
-              placeholder="Search name, email, phone, city..."
+              placeholder="Search name, phone, location, notes..."
               value={search}
               onChange={e => setSearch(e.target.value)}
             />
+            <select className="form-select" style={{ width: 150 }} value={typeFilter} onChange={e => setTypeFilter(e.target.value)}>
+              <option value="">Buyers &amp; Sellers</option>
+              <option value="buyer">Buyers</option>
+              <option value="seller">Sellers</option>
+              <option value="both">Both</option>
+            </select>
             <select className="form-select" style={{ width: 150 }} value={brandFilter} onChange={e => setBrandFilter(e.target.value)}>
               <option value="">All Brands</option>
               {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
@@ -307,8 +406,8 @@ export default function Contacts() {
             </select>
           </div>
           <div className="toolbar-right">
-            {(search || brandFilter || stageFilter || dncFilter) && (
-              <button className="btn btn-ghost btn-sm" onClick={() => { setSearch(''); setBrandFilter(''); setStageFilter(''); setDncFilter(''); }}>
+            {(search || brandFilter || stageFilter || dncFilter || typeFilter) && (
+              <button className="btn btn-ghost btn-sm" onClick={() => { setSearch(''); setBrandFilter(''); setStageFilter(''); setDncFilter(''); setTypeFilter(''); }}>
                 Clear
               </button>
             )}
@@ -336,11 +435,13 @@ export default function Contacts() {
                       onChange={toggleAll} />
                   </th>
                   <th>Name</th>
-                  <th>Email</th>
+                  <th>Buyer / Seller</th>
+                  <th>Price Range</th>
+                  <th>Locations</th>
                   <th>Phone</th>
+                  <th>Email</th>
                   <th>Brand</th>
                   <th>Stage</th>
-                  <th>City</th>
                   <th>Added</th>
                   <th>Status</th>
                   <th style={{ width: 160 }}>Actions</th>
@@ -348,17 +449,30 @@ export default function Contacts() {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={10} style={{ textAlign: 'center', padding: 40, color: 'var(--text-muted)' }}>Loading...</td></tr>
+                  <tr><td colSpan={11} style={{ textAlign: 'center', padding: 40, color: 'var(--text-muted)' }}>Loading...</td></tr>
                 ) : contacts.length === 0 ? (
-                  <tr><td colSpan={10} style={{ textAlign: 'center', padding: 40, color: 'var(--text-muted)' }}>No contacts found</td></tr>
+                  <tr><td colSpan={11} style={{ textAlign: 'center', padding: 40, color: 'var(--text-muted)' }}>No contacts found</td></tr>
                 ) : contacts.map(c => (
                   <tr key={c.id} className={selected.has(c.id) ? 'selected' : ''}>
                     <td><input type="checkbox" checked={selected.has(c.id)} onChange={() => toggleSelect(c.id)} /></td>
                     <td>
                       <span style={{ fontWeight: 500 }}>{c.first_name} {c.last_name}</span>
+                      {c.buyer_notes && (
+                        <div title={c.buyer_notes} style={{ fontSize: 11, color: 'var(--text-muted)', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {c.buyer_notes}
+                        </div>
+                      )}
                     </td>
-                    <td style={{ color: 'var(--text-secondary)' }}>{c.email || '—'}</td>
+                    <td>
+                      <div style={{ display: 'flex', gap: 4 }}>
+                        <TypeChip label="Buyer" color={BUYER_COLOR} on={!!c.is_buyer} onClick={() => toggleType(c, 'is_buyer')} />
+                        <TypeChip label="Seller" color={SELLER_COLOR} on={!!c.is_seller} onClick={() => toggleType(c, 'is_seller')} />
+                      </div>
+                    </td>
+                    <td style={{ whiteSpace: 'nowrap', fontWeight: 500 }}>{priceRange(c.price_min, c.price_max) || '—'}</td>
+                    <td style={{ color: 'var(--text-secondary)' }}>{c.buyer_locations || c.city || '—'}</td>
                     <td style={{ color: 'var(--text-secondary)' }}>{c.phone || '—'}</td>
+                    <td style={{ color: 'var(--text-secondary)' }}>{c.email || '—'}</td>
                     <td>
                       {c.brand_name ? (
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12 }}>
@@ -368,7 +482,6 @@ export default function Contacts() {
                       ) : '—'}
                     </td>
                     <td><span className={`badge ${STAGE_CLASS[c.pipeline_stage] || 'badge-gray'}`}>{c.pipeline_stage}</span></td>
-                    <td style={{ color: 'var(--text-secondary)' }}>{c.city || '—'}</td>
                     <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{formatDate(c.created_at)}</td>
                     <td>
                       {c.do_not_contact ? (
@@ -422,7 +535,7 @@ export default function Contacts() {
           </>
         }
       >
-        <ContactForm onSubmit={saveContact} />
+        {contactForm}
       </Modal>
 
       {/* Edit Contact Modal */}
@@ -434,7 +547,7 @@ export default function Contacts() {
           </>
         }
       >
-        <ContactForm onSubmit={saveContact} />
+        {contactForm}
       </Modal>
 
       {/* Import Modal */}
@@ -447,7 +560,7 @@ export default function Contacts() {
               onChange={e => setImportFile(e.target.files[0])}
               style={{ fontSize: 13 }}
             />
-            <span className="form-hint">Expected columns: first_name, last_name, email, phone, address, city, state, zip, pipeline_stage, source</span>
+            <span className="form-hint">Expected columns: first_name, last_name, email, phone, address, city, state, zip, pipeline_stage, source. Optional: buyer, seller (yes/no), price_min, price_max, locations, notes</span>
           </div>
           <div className="form-group mb-4">
             <label className="form-label">Assign to Brand (optional)</label>

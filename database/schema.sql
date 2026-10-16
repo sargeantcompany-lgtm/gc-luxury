@@ -330,3 +330,13 @@ CREATE TABLE IF NOT EXISTS listing_checklists (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- ============================================
+-- CRM contacts: buyer / seller tagging + buyer brief
+-- ============================================
+ALTER TABLE contacts ADD COLUMN IF NOT EXISTS is_buyer BOOLEAN DEFAULT FALSE;
+ALTER TABLE contacts ADD COLUMN IF NOT EXISTS is_seller BOOLEAN DEFAULT FALSE;
+ALTER TABLE contacts ADD COLUMN IF NOT EXISTS price_min BIGINT;
+ALTER TABLE contacts ADD COLUMN IF NOT EXISTS price_max BIGINT;
+ALTER TABLE contacts ADD COLUMN IF NOT EXISTS buyer_locations TEXT;
+ALTER TABLE contacts ADD COLUMN IF NOT EXISTS buyer_notes TEXT;

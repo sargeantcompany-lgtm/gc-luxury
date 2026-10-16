@@ -92,6 +92,8 @@ export const contactsApi = {
   // DNC
   addDnc: (id, reason) => api.post(`/contacts/${id}/dnc`, { reason }),
   removeDnc: (id) => api.delete(`/contacts/${id}/dnc`),
+  // Buyer / seller tag
+  setType: (id, data) => api.patch(`/contacts/${id}/type`, data),
 };
 
 // ── Campaigns ────────────────────────────────────────────────────
