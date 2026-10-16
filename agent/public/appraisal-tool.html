@@ -608,16 +608,21 @@ function addWhyRow(v=''){
 
 /* ---------------- Malan + Co marketing schedule presets ---------------- */
 const TIERS = {
+  // Matches the Malan + Co Marketing Budget Master (Silver), plus video and reel.
   Silver: [
-    {item:'Signboard 6x4 / 8x4', desc:'General marketing', amount:'$250'},
-    {item:'Professional Day Photography, Drone Images & Floor Plan', desc:'Video included for Silver', amount:'$500'},
-    {item:"Seller's Disclosure — House & Land", desc:'Statutory disclosure documentation', amount:'$990'},
-    {item:"1,000 Just Listed DL's", desc:'Letterbox drop', amount:'$500'},
+    {item:'Signboard 6x4', desc:'General marketing', amount:'$250'},
     {item:'Just Listed SMS & E-Newsletter', desc:'Sent to high net wealth database', amount:'$100'},
     {item:'Sundry Marketing', desc:'In-house printing, open home prep, social media marketing', amount:'$200'},
-    {item:'realestate.com.au Premiere+', desc:'Online listing upgrade', amount:'$2,859'},
-    {item:'Domain Platinum', desc:'Online listing upgrade', amount:'$1,569'},
-    {item:'Auctioneer Fee', desc:'Online/onsite auction', amount:'$705'},
+    {item:'AML', desc:'Anti-money laundering verification', amount:'$180'},
+    {item:'Form 2 Seller Disclosure Statement', desc:'OMB Solicitors — $1,265 for units', amount:'$990'},
+    {item:'Professional Photography', desc:'Sun Stone Visuals — houses', amount:'$950'},
+    {item:'Professional Videography', desc:'Malan Studios — standard video', amount:'$400'},
+    {item:'Social Media Reel', desc:'Malan Studios — reel, added to the standard video', amount:'$200'},
+    {item:'realestate.com.au Premiere+', desc:'With Pro AMAX social boost', amount:'$3,098'},
+    {item:'Domain Platinum', desc:'Plus 2-week social boost', amount:'$1,519'},
+    {item:'Social Media Marketing', desc:'Meta and Google ad spend', amount:'$1,000'},
+    {item:'Online Auctioneer Fee', desc:'Incurred as soon as an auction is booked', amount:'$705'},
+    {item:'Gold Coast Bulletin Campaign', desc:'Full page print', amount:'$920'},
   ],
   Gold: [
     {item:'Signboard 6x4 / 8x4', desc:'General marketing', amount:'$300'},
@@ -626,8 +631,8 @@ const TIERS = {
     {item:"1,000 Just Listed DL's", desc:'Letterbox drop', amount:'$500'},
     {item:'Just Listed SMS & E-Newsletter', desc:'Sent to high net wealth database', amount:'$150'},
     {item:'Sundry Marketing', desc:'In-house printing, open home prep, social media marketing', amount:'$300'},
-    {item:'realestate.com.au Premiere+', desc:'Online listing upgrade', amount:'$2,859'},
-    {item:'Domain Platinum', desc:'Online listing upgrade', amount:'$1,569'},
+    {item:'realestate.com.au Premiere+', desc:'With Pro AMAX social boost', amount:'$3,098'},
+    {item:'Domain Platinum', desc:'Plus 2-week social boost', amount:'$1,519'},
     {item:'Auctioneer Fee', desc:'Online/onsite auction', amount:'$705'},
     {item:'Gold Coast Bulletin Campaign', desc:'Full page print — 1 week', amount:'$920'},
   ],
@@ -638,8 +643,8 @@ const TIERS = {
     {item:"1,000 Just Listed DL's", desc:'Letterbox drop', amount:'$500'},
     {item:'Just Listed SMS & E-Newsletter', desc:'Sent to high net wealth database', amount:'$150'},
     {item:'Sundry Marketing', desc:'In-house printing, open home prep, social media marketing', amount:'$500'},
-    {item:'realestate.com.au Premiere+', desc:'Online listing upgrade', amount:'$2,859'},
-    {item:'Domain Platinum', desc:'Online listing upgrade', amount:'$1,569'},
+    {item:'realestate.com.au Premiere+', desc:'With Pro AMAX social boost', amount:'$3,098'},
+    {item:'Domain Platinum', desc:'Plus 2-week social boost', amount:'$1,519'},
     {item:'Auctioneer Fee', desc:'Online/onsite auction', amount:'$770'},
     {item:'Gold Coast Bulletin Campaign', desc:'Full page print — 2 weeks', amount:'$1,840'},
   ],
@@ -717,7 +722,7 @@ function moneyToNumber(s){
 function renderClientView(data){
   const initials = (data.agent.name||'').split(' ').map(w=>w[0]||'').join('').toUpperCase();
   let costTotal = data.costs.items.reduce((sum,c)=>sum+moneyToNumber(c.amount),0);
-  const payLaterTotal = Math.round(costTotal*1.069*100)/100;
+  const payLaterTotal = Math.round(costTotal*1.0765*100)/100;
 
   const timelineItems = data.process.timeline.filter(t=>t.what).map(t=>`
     <li><span class="t-when">${esc(t.when)}</span><span class="t-what">${esc(t.what)}</span></li>`).join('');
@@ -838,7 +843,7 @@ function renderClientView(data){
         <button type="button" class="cv-toggle-btn" onclick="document.getElementById('paymentOptions').classList.toggle('hidden')">View payment options ▾</button>
         <div id="paymentOptions" class="payment-options hidden">
           <div class="po-row"><span>Pay Now</span><span>$${costTotal.toLocaleString()}</span></div>
-          <div class="po-row"><span>Pay Later <small>(+6.9% flat fee)</small></span><span>$${payLaterTotal.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div>
+          <div class="po-row"><span>Pay Later <small>(+7.65% flat fee, via Campaign Agent)</small></span><span>$${payLaterTotal.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div>
         </div>` : ''}
         ${data.costs.commissionRate ? `<p style="font-size:12.5px;color:var(--grey);margin:14px 0 0;">Agency commission: <strong style="color:var(--ink);">${esc(data.costs.commissionRate)}</strong> of the sale price, payable on settlement — separate from the marketing investment above.</p>` : ''}
         </div>
