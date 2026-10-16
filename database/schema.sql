@@ -111,57 +111,10 @@ CREATE INDEX IF NOT EXISTS idx_campaigns_brand ON campaigns(brand_id);
 CREATE INDEX IF NOT EXISTS idx_campaign_contacts_campaign ON campaign_contacts(campaign_id);
 
 -- Default brands
-INSERT INTO brands (name, color) VALUES ('Real Estate', '#2563eb') ON CONFLICT (name) DO NOTHING;
-INSERT INTO brands (name, color) VALUES ('Houzeey', '#10b981') ON CONFLICT (name) DO NOTHING;
 INSERT INTO brands (name, color) VALUES ('GC Luxury', '#c9a24b') ON CONFLICT (name) DO NOTHING;
-
--- Default email templates
-INSERT INTO templates (brand_id, name, type, subject, body) VALUES
-(1, 'Welcome Email', 'email', 'Welcome to {{brand_name}}!',
-'Hi {{first_name}},
-
-Thank you for your interest in {{brand_name}}. We''re excited to connect with you about properties in {{city}}.
-
-Feel free to reach out anytime — we''re here to help.
-
-Best regards,
-{{brand_name}} Team'),
-
-(1, 'Follow Up', 'email', 'Following up — {{brand_name}}',
-'Hi {{first_name}},
-
-I wanted to follow up on your recent inquiry. Are you still looking for properties in {{city}}, {{state}}?
-
-We have some great options that might interest you. Let''s connect!
-
-Best,
-{{brand_name}} Team'),
-
-(1, 'Meeting Confirmation', 'email', 'Meeting Confirmed — {{brand_name}}',
-'Hi {{first_name}},
-
-Your meeting with {{brand_name}} has been confirmed. We look forward to speaking with you.
-
-If you need to reschedule, please don''t hesitate to reach out.
-
-See you soon!
-{{brand_name}} Team'),
-
-(1, 'Welcome SMS', 'sms', NULL,
-'Hi {{first_name}}, this is {{brand_name}}. Thanks for your interest! We''ll be in touch soon. Reply STOP to opt out.'),
-
-(2, 'Houzeey Welcome', 'email', 'Welcome to Houzeey!',
-'Hi {{first_name}},
-
-Welcome to Houzeey! We''re dedicated to helping you find your perfect home.
-
-Our team is ready to guide you through every step of the process.
-
-The Houzeey Team'),
-
-(2, 'Houzeey Follow Up', 'sms', NULL,
-'Hi {{first_name}}, this is Houzeey. We''d love to help you find your dream home. Reply STOP to opt out.')
-ON CONFLICT DO NOTHING;
+-- The CRM is GC Luxury only (2026-10): the old 'Real Estate' and 'Houzeey'
+-- brands are no longer seeded, and the default-template seed was removed - it
+-- had no unique key, so it re-inserted 6 templates on every boot.
 
 -- ============================================
 -- The Connector - buyer portal
@@ -340,3 +293,11 @@ ALTER TABLE contacts ADD COLUMN IF NOT EXISTS price_min BIGINT;
 ALTER TABLE contacts ADD COLUMN IF NOT EXISTS price_max BIGINT;
 ALTER TABLE contacts ADD COLUMN IF NOT EXISTS buyer_locations TEXT;
 ALTER TABLE contacts ADD COLUMN IF NOT EXISTS buyer_notes TEXT;
+
+-- ============================================
+-- CRM is GC Luxury only: fold the old brands into it
+-- ============================================
+UPDATE contacts SET brand_id = (SELECT id FROM brands WHERE name = 'GC Luxury')
+  WHERE brand_id IS NULL OR brand_id IN (SELECT id FROM brands WHERE name IN ('Real Estate', 'Houzeey'));
+DELETE FROM templates WHERE brand_id IN (SELECT id FROM brands WHERE name IN ('Real Estate', 'Houzeey'));
+DELETE FROM brands WHERE name IN ('Real Estate', 'Houzeey');

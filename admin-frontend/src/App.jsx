@@ -24,8 +24,9 @@ export default function App() {
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="contacts" element={<Contacts />} />
             <Route path="pipeline" element={<Pipeline />} />
-            <Route path="campaigns" element={<Campaigns />} />
-            <Route path="templates" element={<Templates />} />
+            {/* Campaigns and Templates are switched off for now (pages kept in src/pages). */}
+            <Route path="campaigns" element={<Navigate to="/dashboard" replace />} />
+            <Route path="templates" element={<Navigate to="/dashboard" replace />} />
             <Route path="gc-listings" element={<GcListings />} />
             <Route path="gc-blog" element={<GcBlog />} />
             <Route path="listing-checklists" element={<ListingChecklists />} />

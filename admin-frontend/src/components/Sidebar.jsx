@@ -88,8 +88,6 @@ const navSections = [
   {
     title: 'Outreach',
     items: [
-      { to: '/campaigns', label: 'Campaigns', icon: 'campaigns' },
-      { to: '/templates', label: 'Templates', icon: 'templates' },
       { to: '/gc-listings', label: 'GC Listings', icon: 'listings' },
       { to: '/gc-blog', label: 'GC Blog', icon: 'templates' },
     ],
@@ -110,7 +108,7 @@ export default function Sidebar({ open, onClose }) {
         <div className="sidebar-logo-icon">O</div>
         <div>
           <div className="sidebar-logo-text">Outreach HQ</div>
-          <div className="sidebar-logo-sub">Real Estate CRM</div>
+          <div className="sidebar-logo-sub">GC Luxury CRM</div>
         </div>
         <button className="sidebar-close" onClick={onClose} aria-label="Close menu">×</button>
       </div>

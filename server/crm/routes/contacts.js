@@ -22,6 +22,12 @@ function cleanBuyerField(key, val) {
   return val ? String(val) : null;
 }
 
+// The CRM is GC Luxury only, so contacts without a brand go under it.
+async function gcLuxuryBrandId() {
+  const r = await db.query("SELECT id FROM brands WHERE name = 'GC Luxury'");
+  return r.rows[0] ? r.rows[0].id : null;
+}
+
 // Adds a buyer/seller filter: type=buyer | seller | both
 function addTypeFilter(type, where) {
   if (type === 'buyer') where.push('c.is_buyer = TRUE');
@@ -173,7 +179,7 @@ router.post('/', async (req, res) => {
       `INSERT INTO contacts (brand_id, first_name, last_name, email, phone, address, city, state, zip, pipeline_stage, source,
                              is_buyer, is_seller, price_min, price_max, buyer_locations, buyer_notes)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17) RETURNING *`,
-      [brand_id || null, first_name || '', last_name || '', email || null, phone || null,
+      [brand_id || await gcLuxuryBrandId(), first_name || '', last_name || '', email || null, phone || null,
        address || null, city || null, state || null, zip || null,
        pipeline_stage || 'New', source || null,
        ...BUYER_FIELDS.map(k => cleanBuyerField(k, req.body[k]))]
@@ -370,7 +376,13 @@ router.delete('/:id/dnc', async (req, res) => {
 // ─── IMPORT CSV / XLSX ────────────────────────────────────────────
 router.post('/import', upload.single('file'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
-  const { brand_id, skip_duplicates = 'true' } = req.body;
+  const { skip_duplicates = 'true' } = req.body;
+  let brand_id;
+  try {
+    brand_id = req.body.brand_id || await gcLuxuryBrandId();
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
 
   const normalize = (row) => {
     const r = {};

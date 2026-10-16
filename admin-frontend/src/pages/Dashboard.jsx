@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { brandsApi, contactsApi, campaignsApi, activityApi } from '../services/api';
+import { brandsApi, contactsApi, activityApi } from '../services/api';
 
 const STAGES = ['New', 'Contacted', 'Warm', 'Meeting Booked', 'Listed'];
 const STAGE_COLORS = {
@@ -28,26 +28,23 @@ export default function Dashboard() {
   const [totalContacts, setTotalContacts] = useState(0);
   const [totalDnc, setTotalDnc] = useState(0);
   const [recentActivity, setRecentActivity] = useState([]);
-  const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       try {
-        const [brandsData, countsData, contactsData, dncData, actData, campData] = await Promise.all([
+        const [brandsData, countsData, contactsData, dncData, actData] = await Promise.all([
           brandsApi.list(),
           contactsApi.pipelineCounts({}),
           contactsApi.list({ limit: 1 }),
           contactsApi.list({ limit: 1, dnc: 'true' }),
           activityApi.list({ limit: 8 }),
-          campaignsApi.list({ limit: 5 }),
         ]);
         setBrands(brandsData);
         setStageCounts(countsData);
         setTotalContacts(contactsData.total || 0);
         setTotalDnc(dncData.total || 0);
         setRecentActivity(actData.items || []);
-        setCampaigns(campData.campaigns || []);
       } catch (err) {
         console.error(err);
       } finally {
@@ -70,8 +67,8 @@ export default function Dashboard() {
       <div className="page-header">
         <h1 className="page-title">Dashboard</h1>
         <div style={{ display: 'flex', gap: 8 }}>
-          <Link to="/contacts" className="btn btn-secondary btn-sm">Add Contact</Link>
-          <Link to="/campaigns" className="btn btn-primary btn-sm">New Campaign</Link>
+          <Link to="/pipeline" className="btn btn-secondary btn-sm">Pipeline</Link>
+          <Link to="/contacts" className="btn btn-primary btn-sm">Add Contact</Link>
         </div>
       </div>
 
@@ -146,7 +143,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="grid-2 gap-4" style={{ gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+        <div style={{ display: 'grid', gap: 20 }}>
           {/* Recent Activity */}
           <div className="card">
             <div className="card-header">
@@ -177,32 +174,6 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Recent Campaigns */}
-          <div className="card">
-            <div className="card-header">
-              <span className="card-title">Recent Campaigns</span>
-              <Link to="/campaigns" style={{ fontSize: 12, color: 'var(--primary)', textDecoration: 'none' }}>View all →</Link>
-            </div>
-            <div className="card-body">
-              {campaigns.length === 0 ? (
-                <div className="empty-state" style={{ padding: '30px 0' }}><p>No campaigns yet</p></div>
-              ) : (
-                campaigns.map(c => (
-                  <div key={c.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                    <div>
-                      <div style={{ fontSize: 13, fontWeight: 500 }}>{c.name}</div>
-                      <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                        {c.type.toUpperCase()} · {c.brand_name || 'All'} · {c.sent_count || 0} sent
-                      </div>
-                    </div>
-                    <span className={`badge ${c.status === 'sent' ? 'badge-green' : c.status === 'sending' ? 'badge-yellow' : 'badge-gray'}`}>
-                      {c.status}
-                    </span>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
         </div>
       </div>
     </div>
