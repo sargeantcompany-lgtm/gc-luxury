@@ -218,6 +218,17 @@
   .lc-progress{position:sticky;top:0;z-index:5;background:var(--light);padding:8px 0 10px;}
   .lc-progress .bar{margin-top:6px;}
   .lc-progress .txt{display:flex;justify-content:space-between;font-size:13px;font-weight:700;}
+  .lc-phases{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .lc-phase{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;}
+  .lc-phase .pt{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;}
+  .lc-phase .pt span{font-weight:500;text-transform:none;letter-spacing:0;color:var(--grey);}
+  .lc-phase .txt{font-weight:500;}
+  .lc-phase .wks{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;}
+  .lc-phase .wk{font:inherit;font-size:11px;padding:3px 7px;border-radius:12px;border:1px solid var(--line);background:#FBFAF8;color:var(--grey);cursor:pointer;}
+  .lc-phase .wk b{font-weight:700;}
+  .lc-phase .wk.done{background:#DCFAE6;border-color:#A6EFC4;color:#067647;}
+  .lc-phase .wk.active{border-color:var(--ink);color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink);}
+  @media (max-width:900px){ .lc-phases{grid-template-columns:1fr;gap:6px;} .lc-progress{position:static;} }
   .lc-tools{display:flex;gap:8px;margin:4px 0 12px;flex-wrap:wrap;}
   .lc-tools button{font:inherit;font-size:12.5px;font-weight:700;background:#fff;border:1px solid var(--line);border-radius:6px;padding:6px 10px;cursor:pointer;}
 
@@ -1042,8 +1053,7 @@ function renderChecklistDetail(){
         <button onclick="editChecklistDetails()">Edit details</button>
         <button class="del" onclick="deleteChecklist()">Delete</button></div>
     </div></div>
-    <div class="lc-progress"><div class="txt"><span id="lcDoneTxt"></span><span id="lcPct"></span></div>
-      <div class="bar" id="lcBar"><span></span></div>
+    <div class="lc-progress"><div class="lc-phases" id="lcPhases"></div>
       <div class="lc-save" id="lcSave"></div></div>
     <div class="lc-tools">
       <button onclick="toggleSections(true)">Expand all</button>
@@ -1090,16 +1100,36 @@ function pickWeek(si, week){
   updateChecklistCounts();
 }
 
+// The bars at the top of a checklist, one per phase (server/listingChecklists.js):
+// Listing & launch (1-5), Campaign (6, one week at a time, with a small count
+// for each week) and Offers to settlement (7 to Final check).
+const sectionNo = s => (s.title.match(/^(\d+)\./) || [])[1] || s.title;
+function phaseBarsHtml(c){
+  const phases = [...new Set(CHECKLIST.map(s => s.phase || ''))];
+  const barHtml = (d, t) => `<div class="txt"><span>${d} of ${t} done</span><span>${pct(d, t)}%</span></div>
+    <div class="bar${pct(d, t) === 100 ? ' complete' : ''}"><span style="width:${pct(d, t)}%"></span></div>`;
+  return phases.map(phase => {
+    const secs = CHECKLIST.filter(s => (s.phase || '') === phase);
+    const label = secs.length > 1 ? `${sectionNo(secs[0])} – ${sectionNo(secs[secs.length - 1])}` : sectionNo(secs[0]);
+    if (secs.length === 1 && secs[0].weeks){
+      const s = secs[0], si = CHECKLIST.indexOf(s), week = currentWeek(c, si), keys = weekKeys(s, week);
+      return `<div class="lc-phase"><div class="pt">${esc(phase)} <span>· ${esc(label)} · Week ${week}</span></div>
+        ${barHtml(countDone(c, keys), keys.length)}
+        <div class="wks">${range(s.weeks).map(w => {
+          const wk = weekKeys(s, w), wd = countDone(c, wk);
+          return `<button type="button" class="wk${w === week ? ' active' : ''}${wd === wk.length ? ' done' : ''}" title="Week ${w}: ${wd} of ${wk.length} done" onclick="pickWeek(${si}, ${w})">Wk ${w} <b>${wd}/${wk.length}</b></button>`;
+        }).join('')}</div></div>`;
+    }
+    const keys = secs.flatMap(s => sectionKeys(c, s));
+    return `<div class="lc-phase"><div class="pt">${esc(phase)} <span>· ${esc(label)}</span></div>${barHtml(countDone(c, keys), keys.length)}</div>`;
+  }).join('');
+}
+
 // Refreshes the counters without re-rendering, so typing in a note keeps focus.
 function updateChecklistCounts(){
   const c = findChecklist(openChecklistId);
   if (!c) return;
-  const k = allKeys(c), d = countDone(c, k), p = pct(d, k.length);
-  document.getElementById('lcDoneTxt').textContent = `${d} of ${k.length} done`;
-  document.getElementById('lcPct').textContent = p + '%';
-  const bar = document.getElementById('lcBar');
-  bar.classList.toggle('complete', p === 100);
-  bar.firstElementChild.style.width = p + '%';
+  document.getElementById('lcPhases').innerHTML = phaseBarsHtml(c);
   document.querySelectorAll('#lcDetail details.lc-sec').forEach(el => {
     const s = CHECKLIST[el.dataset.sec], keys = sectionKeys(c, s);
     const n = countDone(c, keys);

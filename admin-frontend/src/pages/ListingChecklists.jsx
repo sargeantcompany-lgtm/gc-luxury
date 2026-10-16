@@ -51,6 +51,60 @@ function ProgressBar({ value }) {
   );
 }
 
+// The bars at the top of a checklist, one per phase (server/listingChecklists.js):
+// Listing & launch (1-5), Campaign (6, one week at a time, with a small count
+// for each week) and Offers to settlement (7 to Final check).
+const phasesOf = (template) => [...new Set(template.map((s) => s.phase || ''))];
+const sectionNo = (s) => (s.title.match(/^(\d+)\./) || [])[1] || s.title;
+
+function PhaseBars({ listing, template, weekOf, onPickWeek }) {
+  return (
+    <div className="lc-phases">
+      {phasesOf(template).map((phase) => {
+        const sections = template.filter((s) => (s.phase || '') === phase);
+        const label = sections.length > 1
+          ? `${sectionNo(sections[0])} – ${sectionNo(sections[sections.length - 1])}`
+          : sectionNo(sections[0]);
+        const weekly = sections.length === 1 && sections[0].weeks ? sections[0] : null;
+        if (weekly) {
+          const week = weekOf(weekly);
+          const keys = weekKeys(weekly, week);
+          const d = countDone(listing, keys);
+          return (
+            <div key={phase} className="lc-phase">
+              <div className="lc-phase-title">{phase} <span>· {label} · Week {week}</span></div>
+              <div className="lc-progress-text"><span>{d} of {keys.length} done</span><span>{pct(d, keys.length)}%</span></div>
+              <ProgressBar value={pct(d, keys.length)} />
+              <div className="lc-phase-weeks">
+                {range(weekly.weeks).map((w) => {
+                  const wk = weekKeys(weekly, w);
+                  const wd = countDone(listing, wk);
+                  return (
+                    <button key={w} type="button" title={`Week ${w}: ${wd} of ${wk.length} done`}
+                      className={`lc-phase-week${w === week ? ' active' : ''}${wd === wk.length ? ' done' : ''}`}
+                      onClick={() => onPickWeek(weekly, w)}>
+                      Wk {w} <b>{wd}/{wk.length}</b>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        }
+        const keys = sections.flatMap((s) => sectionKeys(listing, s));
+        const d = countDone(listing, keys);
+        return (
+          <div key={phase} className="lc-phase">
+            <div className="lc-phase-title">{phase} <span>· {label}</span></div>
+            <div className="lc-progress-text"><span>{d} of {keys.length} done</span><span>{pct(d, keys.length)}%</span></div>
+            <ProgressBar value={pct(d, keys.length)} />
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function ListingChecklists() {
   const { id: openId } = useParams();
   const navigate = useNavigate();
@@ -190,9 +244,8 @@ export default function ListingChecklists() {
   }
 
   if (open) {
-    const keys = allKeys(open, template);
-    const done = countDone(open, keys);
-    const percent = pct(done, keys.length);
+    const weekOf = (section) => weekTab[`${open.id}|${section.title}`] || weeksUsed(open, section);
+    const pickWeek = (section, w) => setWeekTab((prev) => ({ ...prev, [`${open.id}|${section.title}`]: w }));
     return (
       <div>
         <div className="page-header">
@@ -212,8 +265,7 @@ export default function ListingChecklists() {
             </div>
 
             <div className="lc-progress">
-              <div className="lc-progress-text"><span>{done} of {keys.length} done</span><span>{percent}%</span></div>
-              <ProgressBar value={percent} />
+              <PhaseBars listing={open} template={template} weekOf={weekOf} onPickWeek={pickWeek} />
               <div className={`lc-save${saveStatus.error ? ' error' : ''}`}>
                 {saveStatus.text}
                 {saveStatus.error && <button className="btn btn-ghost btn-sm" onClick={flush}>Try again</button>}
@@ -225,7 +277,7 @@ export default function ListingChecklists() {
               const n = countDone(open, secKeys);
               const complete = n === secKeys.length;
               const tabId = `${open.id}|${section.title}`;
-              const week = section.weeks ? (weekTab[tabId] || weeksUsed(open, section)) : 1;
+              const week = section.weeks ? weekOf(section) : 1;
               return (
                 // Keyed by listing so sections re-open fresh when switching listings
                 <details key={`${open.id}-${section.title}`} className={`lc-section card${complete ? ' complete' : ''}`} open={section.weeks ? true : !complete}>

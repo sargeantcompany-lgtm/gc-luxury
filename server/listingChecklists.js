@@ -10,8 +10,12 @@ const db = require("./db");
 // A section with `weeks: N` repeats its list once per campaign week, shown as
 // Week 1..N tabs. Week 1 is stored under the plain key (so ticks made before
 // sections had weeks land in Week 1) and week n under `${key}-w${n}`.
+//
+// `phase` groups sections into the progress bars at the top of a checklist:
+// Listing & launch (1-5), Campaign (6, shown one week at a time) and Offers to
+// settlement (7 to Final check).
 const TEMPLATE = [
-  { title: "1. Appraisal & seller setup", items: [
+  { title: "1. Appraisal & seller setup", phase: "Listing & launch", items: [
     { key: "appraisal", text: "Complete property appraisal" },
     { key: "cma-form6", text: "Add CMA to Form 6" },
     { key: "seller-aml", text: "Complete Seller AML registration" },
@@ -27,7 +31,7 @@ const TEMPLATE = [
     { key: "form6-submit", text: "Submit completed Form 6 to Ray White Admin (via link)" },
     { key: "form6-docusign", text: "Provide details to Admin for Docusigning" },
   ], tip: "Check names on the Form 6 match the registered ownership details before submitting." },
-  { title: "2. Marketing budget", items: [
+  { title: "2. Marketing budget", phase: "Listing & launch", items: [
     { key: "mb-photography", text: "Photography" },
     { key: "mb-signboard", text: "Signboard" },
     { key: "mb-brochures", text: "Brochures" },
@@ -39,7 +43,7 @@ const TEMPLATE = [
     { key: "mb-misc", text: "Miscellaneous marketing expenses" },
     { key: "mb-docusign", text: "Provide details to Admin for Docusigning" },
   ] },
-  { title: "3. Administration budget", items: [
+  { title: "3. Administration budget", phase: "Listing & launch", items: [
     { key: "ab-aml", text: "AML charge" },
     { key: "ab-form2", text: "Form 2" },
     { key: "ab-other", text: "Other administration costs" },
@@ -47,7 +51,7 @@ const TEMPLATE = [
     { key: "ab-paylater-approved", text: "Pay Later sent and approved" },
     { key: "ab-docusign", text: "Advise Admin to send budgets and Form 6 to client for Docusigning" },
   ] },
-  { title: "4. Campaign preparation (3 to 4 weeks)", items: [
+  { title: "4. Campaign preparation (3 to 4 weeks)", phase: "Listing & launch", items: [
     { key: "cp-order-aml", text: "Order AML" },
     { key: "cp-order-form2", text: "Order Form 2" },
     { key: "cp-calendar", text: "Add all following key dates to calendar and share with seller" },
@@ -66,7 +70,7 @@ const TEMPLATE = [
     { key: "cp-offer-form-file", text: "Offer form in file" },
     { key: "cp-brochures-ordered", text: "Brochures ordered" },
   ], tip: "Work backwards from the live date so photography, copy, approvals and online advertising are ready before launch." },
-  { title: "5. Property launch", items: [
+  { title: "5. Property launch", phase: "Listing & launch", items: [
     { key: "pl-live", text: "Property live online" },
     { key: "pl-signboard", text: "Signboard installed" },
     { key: "pl-brochures", text: "Brochures prepared" },
@@ -74,7 +78,7 @@ const TEMPLATE = [
     { key: "pl-database", text: "Buyer database notified" },
     { key: "pl-social", text: "Social media campaign launched" },
   ], tip: "Check every online advertisement immediately after launch for price, photos, spelling and property details. Don’t rely on accuracy of RP Data." },
-  { title: "6. Open homes & ongoing marketing", weeks: 6, items: [
+  { title: "6. Open homes & ongoing marketing", weeks: 6, phase: "Campaign", items: [
     { key: "oh-confirm", text: "Confirm open homes with seller" },
     { key: "oh-conduct", text: "Conduct scheduled open homes" },
     { key: "oh-follow-up", text: "Follow up all attendees" },
@@ -83,14 +87,14 @@ const TEMPLATE = [
     { key: "oh-notifications", text: "Continue buyer database notifications" },
     { key: "oh-vendor-reports", text: "Provide regular seller feedback/Vendor reports (Nurture Cloud)" },
   ], tip: "Follow up buyers as soon as possible after each open home while the property is fresh in their minds and their impressions/questions still fresh in your mind." },
-  { title: "7. Offers & negotiation", weeks: 6, items: [
+  { title: "7. Offers & negotiation", weeks: 6, phase: "Offers to settlement", items: [
     { key: "of-letter", text: "Secure written Letter of Offer" },
     { key: "of-present", text: "Present all offers to seller" },
     { key: "of-discuss", text: "Discuss price and conditions" },
     { key: "of-negotiate", text: "Negotiate between buyer and seller" },
     { key: "of-buyer-aml", text: "Complete Buyer AML registration" },
   ], tip: "Wherever possible, obtain offers in writing with price, deposit, settlement date and conditions clearly stated." },
-  { title: "8. Contract execution", items: [
+  { title: "8. Contract execution", phase: "Offers to settlement", items: [
     { key: "ce-prepare", text: "Prepare contract documentation" },
     { key: "ce-buyer-details", text: "Confirm buyer details" },
     { key: "ce-seller-details", text: "Confirm seller details" },
@@ -99,7 +103,7 @@ const TEMPLATE = [
     { key: "ce-submit", text: "Submit completed contract form to Contracts Department (via Form Process link)" },
     { key: "ce-contracts-process", text: "Follow Contracts Department email process from here (Philippa)" },
   ], tip: "Once executed, check that all signatures, dates, conditions, deposits and settlement details are correct." },
-  { title: "9. Contract to settlement", items: [
+  { title: "9. Contract to settlement", phase: "Offers to settlement", items: [
     { key: "cs-dates", text: "Monitor important contract dates" },
     { key: "cs-conditions", text: "Follow up outstanding conditions" },
     { key: "cs-contracts", text: "Liaise with Contracts Department" },
@@ -107,7 +111,7 @@ const TEMPLATE = [
     { key: "cs-pending", text: "Advise all parties of pending dates" },
     { key: "cs-arrangements", text: "Confirm settlement arrangements" },
   ], tip: "Keep ahead of critical dates rather than waiting for the buyer or seller to chase an update." },
-  { title: "10. Settlement day", items: [
+  { title: "10. Settlement day", phase: "Offers to settlement", items: [
     { key: "sd-notification", text: "Await formal settlement notification from Contracts (Philippa)" },
     { key: "sd-confirm", text: "Confirm settlement has occurred" },
     { key: "sd-notify-seller", text: "Notify seller" },
@@ -117,7 +121,7 @@ const TEMPLATE = [
     { key: "sd-congratulate", text: "Congratulate buyer and seller" },
     { key: "sd-close-file", text: "Close and finalise property file" },
   ], tip: "Do not release keys until formal confirmation of settlement has been received." },
-  { title: "Final check", items: [
+  { title: "Final check", phase: "Offers to settlement", items: [
     { key: "fc-compliance", text: "All compliance completed" },
     { key: "fc-documentation", text: "All documentation filed" },
     { key: "fc-accounts", text: "Commission and marketing accounted for" },
