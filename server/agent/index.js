@@ -21,6 +21,7 @@ const OFFERS_DIR = path.join(DATA_DIR, "offers");
 const OM_LISTINGS_DIR = path.join(DATA_DIR, "off-market-listings");
 const OM_ACCESS_DIR = path.join(DATA_DIR, "off-market-access");
 const OM_PHOTOS_DIR = path.join(DATA_DIR, "off-market-photos");
+const VANTAGE_SHARES_DIR = path.join(DATA_DIR, "vantage-shares");
 const MAX_PHOTO_BYTES = 8 * 1024 * 1024; // admin page resizes before upload, so real photos land well under this
 
 fs.mkdirSync(APPRAISALS_DIR, { recursive: true });
@@ -29,6 +30,7 @@ fs.mkdirSync(OFFERS_DIR, { recursive: true });
 fs.mkdirSync(OM_LISTINGS_DIR, { recursive: true });
 fs.mkdirSync(OM_ACCESS_DIR, { recursive: true });
 fs.mkdirSync(OM_PHOTOS_DIR, { recursive: true });
+fs.mkdirSync(VANTAGE_SHARES_DIR, { recursive: true });
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
@@ -453,8 +455,16 @@ function cleanListing(body) {
     baths: str(body.baths, 5),
     cars: str(body.cars, 5),
     land: str(body.land, 50),
-    description: str(body.description, 5000),
+    floor: str(body.floor, 50),
+    headline: str(body.headline, 200),
+    description: str(body.description, 8000),
+    highlights: str(body.highlights, 8000), // one per line
+    location: str(body.location, 3000),     // one per line
+    videoUrl: /^https?:\/\//i.test(str(body.videoUrl, 500)) ? str(body.videoUrl, 500) : "",
     status: OM_STATUSES.includes(body.status) ? body.status : "available",
+    // Vantage listings are exclusive to Vantage agents (/vantage) - never on
+    // the client portal or the off-market access links.
+    vantage: body.vantage === true,
     photos: Array.isArray(body.photos) ? body.photos.filter(isPhotoName).slice(0, 40) : [],
   };
 }
@@ -507,7 +517,9 @@ async function handleUploadPhoto(req, res) {
 
 function handleGetPhoto(req, res, name, token) {
   if (!isPhotoName(name)) return send(res, 404, "Not found");
-  if (!isAdmin(req) && !currentClient(req) && !readRecord(OM_ACCESS_DIR, token || "")) return send(res, 403, "Forbidden");
+  if (!isAdmin(req) && !currentClient(req) && !readRecord(OM_ACCESS_DIR, token || "") && !shareCanSeePhoto(token, name)) {
+    return send(res, 403, "Forbidden");
+  }
   fs.readFile(path.join(OM_PHOTOS_DIR, name), (err, data) => {
     if (err) return send(res, 404, "Not found");
     res.writeHead(200, { "Content-Type": "image/jpeg", "Cache-Control": "private, max-age=86400" });
@@ -536,7 +548,7 @@ function handleViewOffMarket(res, token) {
 
   const order = { available: 0, under_offer: 1, sold: 2 };
   const listings = readJSONDir(OM_LISTINGS_DIR)
-    .filter((l) => l.status !== "hidden")
+    .filter((l) => l.status !== "hidden" && !l.vantage)
     .sort((a, b) => order[a.status] - order[b.status]); // stable, so newest-first holds within each status
   sendJSON(res, 200, { name: access.name, listings });
 }
@@ -647,6 +659,7 @@ function publicClient(c) {
     linkedAppraisalIds: clientAppraisals(c).map((a) => a.id),
     offerCount: clientOffers(c).length,
     lastLoginAt: c.lastLoginAt || null,
+    vantage: !!c.vantage,
   };
 }
 
@@ -753,7 +766,12 @@ async function handleClientLogin(req, res) {
     return sendJSON(res, 401, { error: "That mobile is registered under a different first name. Check the spelling, or call Adam on 0407 739 919." });
   }
   const registered = !client;
-  if (!client) client = newClient(firstName, mobile, { source: "self" });
+  if (!client) client = newClient(firstName, mobile, { source: body.vantage === true ? "vantage" : "self" });
+  // Logging in on the Vantage page makes the account a Vantage agent.
+  if (body.vantage === true && !client.vantage) {
+    client.vantage = true;
+    client.vantageSince = new Date().toISOString();
+  }
   client.lastLoginAt = new Date().toISOString();
   writeRecord(CLIENTS_DIR, client);
   startClientSession(req, res, client);
@@ -779,10 +797,89 @@ function handlePortal(req, res) {
 
   const order = { available: 0, under_offer: 1, sold: 2 };
   const offMarket = readJSONDir(OM_LISTINGS_DIR)
-    .filter((l) => l.status !== "hidden")
+    .filter((l) => l.status !== "hidden" && !l.vantage)
     .sort((a, b) => order[a.status] - order[b.status]);
 
   sendJSON(res, 200, { name: client.name, mobile: client.mobile, appraisals, offers, offMarket });
+}
+
+/* ---------------- Vantage ----------------
+ * Exclusive off-market listings for agents in Adam's Vantage Network. Agents
+ * register and log in at /vantage with first name + mobile, exactly like the
+ * client login (it's the same account, flagged vantage). Each agent can share
+ * a listing with their own clients: a share link (/vantage/s/:token) shows
+ * that one listing as a brochure with no contact details, no login needed. Adam
+ * sees every share and its views in /admin, and deleting a share revokes it.
+ */
+
+const LISTING_ORDER = { available: 0, under_offer: 1, sold: 2 };
+
+function vantageListings() {
+  return readJSONDir(OM_LISTINGS_DIR)
+    .filter((l) => l.vantage && l.status !== "hidden")
+    .sort((a, b) => LISTING_ORDER[a.status] - LISTING_ORDER[b.status]);
+}
+
+function vantageAgent(req, res) {
+  const client = currentClient(req);
+  if (!client) { sendJSON(res, 401, { error: "Please log in" }); return null; }
+  if (!client.vantage) { sendJSON(res, 403, { error: "Log in on this page to join Vantage" }); return null; }
+  return client;
+}
+
+function shareCanSeePhoto(token, name) {
+  const share = readRecord(VANTAGE_SHARES_DIR, token || "");
+  if (!share) return false;
+  const listing = readRecord(OM_LISTINGS_DIR, share.listingId);
+  return !!(listing && listing.vantage && (listing.photos || []).includes(name));
+}
+
+function handleVantage(req, res) {
+  const agent = vantageAgent(req, res);
+  if (!agent) return;
+  const shares = readJSONDir(VANTAGE_SHARES_DIR).filter((s) => s.agentId === agent.id);
+  const listings = vantageListings().map((l) => {
+    const share = shares.find((s) => s.listingId === l.id);
+    return { ...l, shareId: share ? share.id : null, shareViews: share ? share.views : 0 };
+  });
+  sendJSON(res, 200, { name: agent.name, mobile: agent.mobile, listings });
+}
+
+async function handleCreateShare(req, res) {
+  const agent = vantageAgent(req, res);
+  if (!agent) return;
+  const body = await readJSONBody(req, res);
+  if (!body) return;
+  const listing = readRecord(OM_LISTINGS_DIR, String(body.listingId || ""));
+  if (!listing || !listing.vantage || listing.status === "hidden") return sendJSON(res, 404, { error: "Listing not found" });
+  // One link per agent per listing, so re-sharing gives the same link.
+  const existing = readJSONDir(VANTAGE_SHARES_DIR).find((s) => s.agentId === agent.id && s.listingId === listing.id);
+  if (existing) return sendJSON(res, 200, existing);
+  const record = {
+    // The id is the secret in the link, so it gets the same randomness as access links.
+    id: `${slugify(listing.address) || "property"}-${crypto.randomBytes(8).toString("hex")}`,
+    createdAt: new Date().toISOString(),
+    agentId: agent.id, agentName: agent.name, agentMobile: agent.mobile,
+    listingId: listing.id, address: listing.address,
+    views: 0, lastViewedAt: null,
+  };
+  writeRecord(VANTAGE_SHARES_DIR, record);
+  sendJSON(res, 200, record);
+}
+
+function handleViewShare(res, token) {
+  const share = readRecord(VANTAGE_SHARES_DIR, token);
+  const listing = share && readRecord(OM_LISTINGS_DIR, share.listingId);
+  if (!share || !listing || !listing.vantage || listing.status === "hidden") {
+    return sendJSON(res, 404, { error: "This link is no longer active" });
+  }
+  share.views = (share.views || 0) + 1;
+  share.lastViewedAt = new Date().toISOString();
+  writeRecord(VANTAGE_SHARES_DIR, share);
+  // A clean brochure: no agent or Adam contact details, so agents can pass it
+  // to their clients. Views are still counted against the agent's share.
+  const { id, address, suburb, priceGuide, beds, baths, cars, land, floor, headline, description, highlights, location, videoUrl, status, photos } = listing;
+  sendJSON(res, 200, { listing: { id, address, suburb, priceGuide, beds, baths, cars, land, floor, headline, description, highlights, location, videoUrl, status, photos } });
 }
 
 /* One-off import of records from the old standalone appraisal app. Admin
@@ -850,7 +947,7 @@ function handleDelete(res, dir, id) {
   });
 }
 
-const DELETABLE = { appraisals: APPRAISALS_DIR, offers: OFFERS_DIR, "offer-links": OFFER_LINKS_DIR, "off-market/access": OM_ACCESS_DIR, clients: CLIENTS_DIR };
+const DELETABLE = { appraisals: APPRAISALS_DIR, offers: OFFERS_DIR, "offer-links": OFFER_LINKS_DIR, "off-market/access": OM_ACCESS_DIR, clients: CLIENTS_DIR, "vantage/shares": VANTAGE_SHARES_DIR };
 
 // Mounted with app.use("/adam", ...), so req.url arrives with /adam stripped.
 module.exports = function handleAgent(req, res) {
@@ -873,7 +970,7 @@ module.exports = function handleAgent(req, res) {
     return sendJSON(res, 200, { admin: isAdmin(req), configured: !!ADMIN_PASSWORD });
   }
 
-  const deleteMatch = pathname.match(/^\/api\/(appraisals|offers|offer-links|off-market\/access|clients)\/([^/]+)$/);
+  const deleteMatch = pathname.match(/^\/api\/(appraisals|offers|offer-links|off-market\/access|clients|vantage\/shares)\/([^/]+)$/);
   if (deleteMatch && req.method === "DELETE") {
     if (!isAdmin(req)) return sendJSON(res, 401, { error: "Admin login required" });
     return handleDelete(res, DELETABLE[deleteMatch[1]], deleteMatch[2]);
@@ -917,6 +1014,17 @@ module.exports = function handleAgent(req, res) {
   if (pathname === "/login" || pathname === "/login/") pathname = "/login.html";
   if (pathname === "/register" || /^\/set-password\/[a-f0-9]+$/.test(pathname)) pathname = "/login.html"; // old invite links
   if (pathname === "/portal" || pathname === "/portal/") pathname = "/portal.html";
+
+  // Vantage: agents' listings + share links. Adam lists every share.
+  if (pathname === "/api/vantage" && req.method === "GET") return handleVantage(req, res);
+  if (pathname === "/api/vantage/share" && req.method === "POST") return handleCreateShare(req, res);
+  if (pathname === "/api/vantage/shares" && req.method === "GET") {
+    if (!isAdmin(req)) return sendJSON(res, 401, { error: "Admin login required" });
+    return sendJSON(res, 200, readJSONDir(VANTAGE_SHARES_DIR));
+  }
+  const sharedMatch = pathname.match(/^\/api\/vantage\/shared\/([a-z0-9-]+)$/i);
+  if (sharedMatch && req.method === "GET") return handleViewShare(res, sharedMatch[1]);
+  if (/^\/vantage(\/|\/[a-z0-9-]+|\/s\/[a-z0-9-]+)?$/i.test(pathname)) pathname = "/vantage.html";
 
   // Offer links + offers. Creating links and reading offers is admin-only;
   // buyers can only look up a single link and submit an offer against it.

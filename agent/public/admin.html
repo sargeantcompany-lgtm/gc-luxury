@@ -126,6 +126,7 @@
   .status.available{background:#DCFAE6;color:#067647;}
   .status.under_offer{background:#FEF0C7;color:#93370D;}
   .status.hidden{background:#F2F4F7;color:#667085;}
+  .status.vantage,.status.src-vantage{background:#111;color:#FFE512;}
   .editor{padding:16px;margin-bottom:14px;border-color:var(--gold-dark);}
   .editor h3{margin:0 0 12px;font-size:16px;}
   .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
@@ -379,6 +380,7 @@
         <h3 id="editorTitle">New off-market property</h3>
         <div class="grid">
           <label class="wide">Address *<input id="omAddress" required placeholder="e.g. 12 Sovereign Island Drive"></label>
+          <label class="full">Headline<input id="omHeadline" placeholder="e.g. Riverstone House | Main River"></label>
           <label>Suburb<input id="omSuburb" placeholder="e.g. Paradise Point"></label>
           <label>Status
             <select id="omStatus">
@@ -390,12 +392,19 @@
           </label>
           <label class="wide">Price guide<input id="omPrice" placeholder="e.g. $4.2M – $4.5M, or Offers over $3M"></label>
           <label>Land<input id="omLand" placeholder="e.g. 810 m²"></label>
-          <div></div>
+          <label>Floor area<input id="omFloor" placeholder="e.g. 720 m²"></label>
           <label>Beds<input id="omBeds" inputmode="numeric"></label>
           <label>Baths<input id="omBaths" inputmode="numeric"></label>
           <label>Cars<input id="omCars" inputmode="numeric"></label>
           <div></div>
-          <label class="full">Description<textarea id="omDesc" placeholder="What makes it special, why it's off-market, inspection details…"></textarea></label>
+          <label class="full" style="display:flex;align-items:center;gap:10px;font-weight:500;">
+            <input type="checkbox" id="omVantage" style="width:auto;margin:0;">
+            Vantage exclusive — only Vantage agents see it (at /adam/vantage), not clients or access links
+          </label>
+          <label class="full">Description<textarea id="omDesc" rows="8" placeholder="What makes it special, why it's off-market, inspection details… Leave a blank line between paragraphs."></textarea></label>
+          <label class="full">Highlights <span style="font-weight:400;">— one per line, shown as a list</span><textarea id="omHighlights" rows="8"></textarea></label>
+          <label class="full">Location <span style="font-weight:400;">— one per line, e.g. “Golden beaches 1.5km away”</span><textarea id="omLocation" rows="4"></textarea></label>
+          <label class="full">Video link <span style="font-weight:400;">— YouTube or Vimeo plays on the page; any other link shows a “Watch the video” button</span><input id="omVideo" type="url" placeholder="https://"></label>
           <div class="full">
             <label>Photos <span style="font-weight:400;">— first photo is the cover. Optional.</span></label>
             <div class="photos" id="omPhotos"></div>
@@ -431,6 +440,15 @@
           <tbody id="accessRows"><tr><td colspan="3" class="empty">Loading…</td></tr></tbody>
         </table>
       </div>
+
+      <h3 class="section-title">Vantage shares</h3>
+      <p class="sub" style="margin:-4px 0 10px;">Agents log in at <a href="/adam/vantage" target="_blank" rel="noopener">/adam/vantage</a> with their first name and mobile and see the properties ticked <b>Vantage exclusive</b>. Each link below is one agent sharing one property with their clients. Remove a share to switch that link off.</p>
+      <div class="card">
+        <table>
+          <thead><tr><th>Agent &amp; property</th><th>Client views</th><th></th></tr></thead>
+          <tbody id="shareRows"><tr><td colspan="3" class="empty">Loading…</td></tr></tbody>
+        </table>
+      </div>
     </section>
 
     <section id="tab-clients" class="hidden">
@@ -457,6 +475,7 @@
           <option value="self">Signed up themselves</option>
           <option value="admin">Added by you</option>
           <option value="appraisal">From an appraisal</option>
+          <option value="vantage-agents">Vantage agents</option>
         </select>
       </div>
       <div class="card">
@@ -532,7 +551,7 @@ async function deleteRecord(type, id, message){
   if (type === 'appraisals') loadAppraisals();
   else if (type === 'clients') loadClients();
   else if (type === 'checklists') loadChecklists();
-  else if (type.startsWith('off-market')) loadOffMarket();
+  else if (type.startsWith('off-market') || type.startsWith('vantage')) loadOffMarket();
   else loadOffers();
 }
 
@@ -661,13 +680,38 @@ const photoUrl = name => '/adam/api/off-market/photos/' + name;
 const accessUrl = id => location.origin + '/adam/off-market/' + id;
 
 async function loadOffMarket(){
-  const [l, a] = await Promise.all([fetch('/adam/api/off-market/listings'), fetch('/adam/api/off-market/access')]);
-  if (l.status === 401 || a.status === 401) return showLogin();
+  const [l, a, s] = await Promise.all([fetch('/adam/api/off-market/listings'), fetch('/adam/api/off-market/access'), fetch('/adam/api/vantage/shares')]);
+  if (l.status === 401 || a.status === 401 || s.status === 401) return showLogin();
   omListings = l.ok ? await l.json() : [];
   omAccess = a.ok ? await a.json() : [];
+  vantageShares = s.ok ? await s.json() : [];
   document.getElementById('omCount').textContent = omListings.length;
   renderListings();
   renderAccess();
+  renderShares();
+}
+
+let vantageShares = [];
+
+function renderShares(){
+  const body = document.getElementById('shareRows');
+  if (!vantageShares.length){
+    body.innerHTML = '<tr><td colspan="3" class="empty">No agent has shared a Vantage property yet.</td></tr>';
+    return;
+  }
+  body.innerHTML = vantageShares.map(s => {
+    const url = location.origin + '/adam/vantage/s/' + s.id;
+    const seen = s.lastViewedAt ? fmtWhen(s.lastViewedAt) : null;
+    return `<tr>
+      <td><div class="addr">${esc(s.agentName)} <span class="sub"><a href="tel:${esc(s.agentMobile)}">${esc(fmtMobile(s.agentMobile))}</a></span></div>
+        <div class="sub">${esc(s.address)} · shared ${esc(fmtWhen(s.createdAt).date)}</div></td>
+      <td class="when">${seen ? `${s.views} view${s.views === 1 ? '' : 's'}<div class="sub">Last ${esc(seen.date)}</div>` : '<span class="sub">Not opened yet</span>'}</td>
+      <td class="actions">
+        <a href="${esc(url)}" target="_blank" rel="noopener">Open ↗</a>
+        <button class="del" onclick="deleteRecord('vantage/shares', '${esc(s.id)}', 'Remove ${esc(jsStr(s.agentName))}\'s share of ${esc(jsStr(s.address))}? Their link will stop working.')">Remove share</button>
+      </td>
+    </tr>`;
+  }).join('');
 }
 
 function renderListings(){
@@ -684,7 +728,7 @@ function renderListings(){
         <div><div class="addr">${esc(l.address)}${l.suburb ? ', ' + esc(l.suburb) : ''}</div>
         <div class="sub">${esc([l.priceGuide, facts, l.photos.length + ' photo' + (l.photos.length === 1 ? '' : 's')].filter(Boolean).join(' · '))}</div></div>
       </div></td>
-      <td><span class="status ${esc(l.status)}">${esc(STATUS_LABEL[l.status] || l.status)}</span></td>
+      <td><span class="status ${esc(l.status)}">${esc(STATUS_LABEL[l.status] || l.status)}</span>${l.vantage ? ' <span class="status vantage">Vantage</span>' : ''}</td>
       <td class="actions">
         <button onclick="editListing('${esc(l.id)}')">Edit</button>
         <button class="del" onclick="deleteListing('${esc(l.id)}')">Delete</button>
@@ -750,7 +794,9 @@ function editListing(id){
   const set = (el, v) => document.getElementById(el).value = v || '';
   set('omAddress', l.address); set('omSuburb', l.suburb); set('omPrice', l.priceGuide); set('omLand', l.land);
   set('omBeds', l.beds); set('omBaths', l.baths); set('omCars', l.cars); set('omDesc', l.description);
+  set('omHeadline', l.headline); set('omFloor', l.floor); set('omHighlights', l.highlights); set('omLocation', l.location); set('omVideo', l.videoUrl);
   document.getElementById('omStatus').value = l.status || 'available';
+  document.getElementById('omVantage').checked = !!l.vantage;
   document.getElementById('omMsg').textContent = '';
   document.getElementById('editor').classList.remove('hidden');
   document.getElementById('addListingBtn').classList.add('hidden');
@@ -836,7 +882,8 @@ async function saveListing(e){
   const payload = {
     address: get('omAddress'), suburb: get('omSuburb'), priceGuide: get('omPrice'), land: get('omLand'),
     beds: get('omBeds'), baths: get('omBaths'), cars: get('omCars'), description: get('omDesc'),
-    status: get('omStatus'), photos: editPhotos,
+    headline: get('omHeadline'), floor: get('omFloor'), highlights: get('omHighlights'), location: get('omLocation'), videoUrl: get('omVideo'),
+    status: get('omStatus'), photos: editPhotos, vantage: document.getElementById('omVantage').checked,
   };
   const res = await fetch('/adam/api/off-market/listings' + (editingId ? '/' + editingId : ''), {
     method: editingId ? 'PUT' : 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)
@@ -1179,7 +1226,7 @@ function deleteChecklist(){
  */
 let clients = [];
 const loginUrl = () => location.origin + '/adam/login';
-const SOURCE_LABEL = {self:'Signed up themselves', admin:'Added by you', appraisal:'From an appraisal'};
+const SOURCE_LABEL = {self:'Signed up themselves', admin:'Added by you', appraisal:'From an appraisal', vantage:'Vantage sign-up'};
 const fmtMobile = m => /^04\d{8}$/.test(m || '') ? `${m.slice(0, 4)} ${m.slice(4, 7)} ${m.slice(7)}` : (m || '');
 
 function assignedTo(appraisalId){
@@ -1225,7 +1272,7 @@ function renderClients(){
   const qDigits = q.replace(/\D/g, '');
   const source = document.getElementById('clientSource').value;
   const rows = clients.filter(c =>
-    (!source || c.source === source) &&
+    (!source || c.source === source || (source === 'vantage-agents' && c.vantage)) &&
     (!q || c.name.toLowerCase().includes(q) || (c.email || '').includes(q) || (qDigits.length >= 3 && c.mobile.includes(qDigits.replace(/^61/, '0')))));
 
   const body = document.getElementById('clientRows');
@@ -1240,7 +1287,7 @@ function renderClients(){
     return `<tr>
       <td><div class="addr">${esc(c.name)}</div>
         <div class="sub"><a href="tel:${esc(c.mobile)}">${esc(fmtMobile(c.mobile))}</a>${c.email ? ' · ' + esc(c.email) : ''}</div></td>
-      <td><span class="status src-${esc(c.source)}">${esc(SOURCE_LABEL[c.source] || c.source)}</span>
+      <td><span class="status src-${esc(c.source)}">${esc(SOURCE_LABEL[c.source] || c.source)}</span>${c.vantage && c.source !== 'vantage' ? ' <span class="status vantage">Vantage agent</span>' : ''}
         <div class="sub">${esc(joined.date)}</div>
         <div class="sub">${login ? 'Last login ' + esc(login.date) : 'Hasn’t logged in yet'}</div></td>
       <td><div class="sub">${linked.length ? linked.length + ' appraisal' + (linked.length === 1 ? '' : 's') + ': ' + esc(linked.join(', ')) : 'No appraisal'}</div>

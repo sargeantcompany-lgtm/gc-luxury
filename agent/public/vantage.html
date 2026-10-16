@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Vantage — Adam Sargeant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/adam/client.css">
+<style>
+  header h1 em{font-style:normal;font-weight:500;box-shadow:inset 0 -.12em 0 var(--accent);}
+  .agent-bar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 26px;font-size:14px;color:var(--grey);}
+  .agent-bar a{color:var(--ink);}
+  .exclusive{display:inline-block;font-family:var(--display);font-size:10px;font-weight:600;letter-spacing:.24em;text-transform:uppercase;background:var(--black);color:var(--accent);padding:4px 10px;margin:0 0 14px;}
+  .share-box{margin-top:14px;background:var(--soft);padding:14px;font-size:13px;}
+  .share-box input{width:100%;font:inherit;font-size:14px;padding:10px 12px;border:1px solid var(--line);background:#fff;margin:8px 0;}
+  .share-box .row-btns{display:flex;gap:8px;flex-wrap:wrap;}
+  .share-box .btn{flex:1 1 auto;}
+  .back{display:inline-block;margin:0 0 18px;font-size:14px;color:var(--ink);}
+  .info .headline{font-family:var(--display);font-size:14px;letter-spacing:.06em;color:var(--grey);margin:-6px 0 14px;}
+
+  /* Full brochure layout */
+  .bro{background:var(--white);}
+  .bro-cover{position:relative;background:#DDD;}
+  .bro-cover img{width:100%;aspect-ratio:16/9;object-fit:cover;}
+  .bro-intro{display:flex;justify-content:space-between;align-items:flex-end;gap:20px 40px;flex-wrap:wrap;padding:clamp(24px,4vw,48px) clamp(20px,4vw,48px) 0;}
+  .bro-headline{font-family:var(--display);font-weight:400;text-transform:uppercase;letter-spacing:.04em;font-size:clamp(26px,3.6vw,44px);line-height:1.1;margin:0 0 8px;}
+  .bro-address{font-family:var(--display);font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:var(--grey);margin:0 0 10px;}
+  .bro-intro .facts{margin:0;border:0;padding:0;}
+  .bro-actions{padding:24px clamp(20px,4vw,48px) 0;margin:0;}
+  .bro > .share-box{margin:16px clamp(20px,4vw,48px) 0;}
+  .bro-story{padding:clamp(24px,4vw,44px) clamp(20px,4vw,48px) 8px;max-width:860px;}
+  .bro-story p{font-size:16px;line-height:1.8;color:#2E2E2E;margin:0 0 18px;}
+  .bro-story p:first-child{font-family:var(--display);font-size:clamp(19px,2vw,24px);line-height:1.5;color:var(--ink);}
+  .bro-video{position:relative;aspect-ratio:16/9;margin:20px clamp(20px,4vw,48px) 8px;background:#000;}
+  .bro-video iframe{position:absolute;inset:0;width:100%;height:100%;border:0;}
+  .bro-video-link{padding:8px clamp(20px,4vw,48px);}
+  .bro-section{padding:clamp(24px,4vw,40px) clamp(20px,4vw,48px);}
+  .bro-section h3{font-family:var(--display);font-weight:400;text-transform:uppercase;letter-spacing:.08em;font-size:clamp(20px,2.2vw,26px);margin:0 0 16px;padding-bottom:12px;border-bottom:1px solid var(--line);}
+  .bro-section > p{margin:0 0 12px;font-size:15px;color:#3A3A3A;}
+  .bro-list{columns:2;column-gap:40px;margin:0;padding:0;list-style:none;}
+  .bro-list li{break-inside:avoid;position:relative;padding:0 0 10px 18px;font-size:15px;line-height:1.6;color:#2E2E2E;}
+  .bro-list li::before{content:"";position:absolute;left:0;top:.62em;width:7px;height:7px;background:var(--accent);box-shadow:0 0 0 1px var(--ink);}
+  .bro .photo-grid{padding:0 clamp(20px,4vw,48px);}
+  @media (max-width:700px){ .bro-list{columns:1;} }
+  /* Brochure: no branding or contact details anywhere on the page */
+  .brochure .mark,.brochure footer{display:none;}
+  .brochure .topbar{margin-bottom:clamp(20px,4vw,40px);}
+  .photo-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:clamp(8px,1.4vw,16px);}
+  .photo-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;}
+  @media (max-width:560px){ .photo-grid{grid-template-columns:1fr;} }
+  @media print{
+    body{background:#fff;}
+    header{padding:20px 0;background:#fff;color:#000;}
+    header .lede{color:#333;}
+    .actions,.counter,.topbar{display:none !important;}
+    main{padding:16px 0;}
+    .listing{break-inside:avoid;}
+    .slides{display:block;overflow:visible;}
+    .slides img:not(:first-child){display:none;}
+    .photo-grid img{break-inside:avoid;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="topbar">
+      <a class="mark" href="/">Adam Sargeant</a>
+      <button class="logout hidden" id="logoutBtn" onclick="logout()">Log out</button>
+    </div>
+    <p class="eyebrow" id="eyebrow">The Vantage Network</p>
+    <h1 id="title">Vantage<span>Exclusive Off-Market</span></h1>
+    <p class="lede" id="lede">Private, off-market properties shared only with agents in Adam's Vantage Network. Log in to see them and share them with your clients.</p>
+  </div>
+</header>
+
+<main>
+  <div class="wrap" id="app"><div class="empty">Loading…</div></div>
+</main>
+
+<footer>
+  <img src="/adam/ray-white-logo.png" alt="Ray White">
+  <span>Adam Sargeant · Ray White Malan + Co · Vantage · Private &amp; confidential · <a href="tel:0407739919" style="color:inherit;">0407 739 919</a></span>
+</footer>
+
+<script>
+const ADAM = '0407739919';
+const STATUS_LABEL = {available:'Available', under_offer:'Under offer', sold:'Sold'};
+const app = document.getElementById('app');
+
+function esc(s){
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+const fmtMobile = m => m && m.length === 10 ? `${m.slice(0,4)} ${m.slice(4,7)} ${m.slice(7)}` : (m || '');
+const whereOf = l => [l.address, l.suburb].filter(Boolean).join(', ');
+const shareUrl = id => location.origin + '/adam/vantage/s/' + id;
+
+// /adam/vantage            -> agent's list
+// /adam/vantage/:id        -> one listing (agent)
+// /adam/vantage/s/:token   -> a listing an agent shared with their client
+const parts = location.pathname.replace(/\/+$/, '').split('/').slice(3);
+const sharedToken = parts[0] === 's' ? parts[1] : null;
+const listingId = !sharedToken && parts[0] ? parts[0] : null;
+
+// "Riverstone House | Main River" -> big line + second line; else the address.
+function titleFor(l){
+  const [a, b] = String(l.headline || '').split('|').map(x => x.trim());
+  if (a) return esc(a) + (b ? `<span>${esc(b)}</span>` : '');
+  return esc(l.address) + (l.suburb ? `<span>${esc(l.suburb)}</span>` : '');
+}
+
+function setHeader(eyebrow, titleHtml, lede){
+  document.getElementById('eyebrow').textContent = eyebrow;
+  document.getElementById('title').innerHTML = titleHtml;
+  document.getElementById('lede').textContent = lede;
+}
+
+function gallery(l, token){
+  const n = (l.photos || []).length;
+  const src = p => '/adam/api/off-market/photos/' + p + (token ? '?t=' + encodeURIComponent(token) : '');
+  return `<div class="gallery">
+    ${n ? `<div class="slides">${l.photos.map((p, i) => `<img src="${esc(src(p))}" alt="${esc(whereOf(l))} photo ${i + 1}" loading="${i ? 'lazy' : 'eager'}">`).join('')}</div>`
+        : '<div class="no-photo">Photos on request</div>'}
+    <span class="badge ${esc(l.status)}">${esc(STATUS_LABEL[l.status] || '')}</span>
+    ${n > 1 ? `<span class="counter">${n} photos — swipe</span>` : ''}
+  </div>`;
+}
+
+function facts(l){
+  const f = [['beds', 'Bed'], ['baths', 'Bath'], ['cars', 'Car']]
+    .filter(([k]) => l[k])
+    .map(([k, label]) => `<span><b>${esc(l[k])}</b>${label}${l[k] === '1' ? '' : 's'}</span>`);
+  if (l.land) f.push(`<span><b>${esc(l.land)}</b>Land</span>`);
+  if (l.floor) f.push(`<span><b>${esc(l.floor)}</b>Floor</span>`);
+  return f.length ? `<div class="facts">${f.join('')}</div>` : '';
+}
+
+const linesOf = s => String(s || '').split(/\r?\n/).map(x => x.trim().replace(/^[-•*]\s*/, '')).filter(Boolean);
+const paragraphsOf = s => String(s || '').split(/\r?\n\s*\r?\n/).map(x => x.trim()).filter(Boolean);
+
+// YouTube and Vimeo links play on the page; anything else is a plain link.
+function videoEmbed(url){
+  const yt = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/))([\w-]{11})/);
+  if (yt) return 'https://www.youtube-nocookie.com/embed/' + yt[1] + '?rel=0';
+  const vm = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+  if (vm) return 'https://player.vimeo.com/video/' + vm[1];
+  return null;
+}
+
+// Short card, used in the agent's list of properties.
+function listingCard(l, opts){
+  const o = opts || {};
+  const blurb = paragraphsOf(l.description)[0] || '';
+  return `<article class="listing">
+    ${gallery(l, o.token)}
+    <div class="info">
+      <span class="exclusive">Vantage Exclusive</span>
+      ${l.suburb ? `<p class="suburb">${esc(l.suburb)}</p>` : ''}
+      <h3>${esc(l.address)}</h3>
+      ${l.headline ? `<p class="headline">${esc(l.headline)}</p>` : ''}
+      ${l.priceGuide ? `<p class="price">${esc(l.priceGuide)}</p>` : ''}
+      ${facts(l)}
+      ${blurb ? `<p class="desc">${esc(blurb.length > 260 ? blurb.slice(0, 260).trim() + '…' : blurb)}</p>` : ''}
+      <div class="actions">${o.actions || ''}</div>
+      ${o.after || ''}
+    </div>
+  </article>`;
+}
+
+// The full brochure layout: cover photo, intro, story, video, highlights,
+// the rest of the photos, location. Used for the agent's property page and
+// for the shared brochure (which passes the share token for photos).
+function fullListing(l, opts){
+  const o = opts || {};
+  const photos = l.photos || [];
+  const src = p => '/adam/api/off-market/photos/' + p + (o.token ? '?t=' + encodeURIComponent(o.token) : '');
+  const embed = l.videoUrl ? videoEmbed(l.videoUrl) : null;
+  const highlights = linesOf(l.highlights);
+  const location = linesOf(l.location);
+  const locIntro = location.length && /:$/.test(location[0]) ? location.shift() : '';
+  return `<article class="bro">
+    <div class="bro-cover">
+      ${photos.length ? `<img src="${esc(src(photos[0]))}" alt="${esc(whereOf(l))}">` : '<div class="no-photo">Photos on request</div>'}
+      <span class="badge ${esc(l.status)}">${esc(STATUS_LABEL[l.status] || '')}</span>
+    </div>
+    <div class="bro-intro">
+      <div>
+        <span class="exclusive">${o.token ? 'Off-Market' : 'Vantage Exclusive'}</span>
+        <h2 class="bro-headline">${esc(l.address)}</h2>
+        ${l.suburb ? `<p class="bro-address">${esc(l.suburb)}</p>` : ''}
+        ${l.priceGuide ? `<p class="price">${esc(l.priceGuide)}</p>` : ''}
+      </div>
+      ${facts(l)}
+    </div>
+    ${o.actions ? `<div class="actions bro-actions">${o.actions}</div>` : ''}
+    ${o.after || ''}
+    ${l.description ? `<div class="bro-story">${paragraphsOf(l.description).map(p => `<p>${esc(p)}</p>`).join('')}</div>` : ''}
+    ${l.videoUrl ? (embed
+      ? `<div class="bro-video"><iframe src="${esc(embed)}" title="Property video" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy"></iframe></div>`
+      : `<p class="bro-video-link"><a class="btn solid" href="${esc(l.videoUrl)}" target="_blank" rel="noopener">Watch the video</a></p>`) : ''}
+    ${highlights.length ? `<section class="bro-section"><h3>Highlights</h3><ul class="bro-list">${highlights.map(h => `<li>${esc(h)}</li>`).join('')}</ul></section>` : ''}
+    ${photos.length > 1 ? `<div class="photo-grid">${photos.slice(1).map((p, i) =>
+      `<img src="${esc(src(p))}" alt="${esc(whereOf(l))} photo ${i + 2}" loading="lazy">`).join('')}</div>` : ''}
+    ${location.length || locIntro ? `<section class="bro-section"><h3>Location</h3>${locIntro ? `<p>${esc(locIntro)}</p>` : ''}<ul class="bro-list bro-list--loc">${location.map(h => `<li>${esc(h)}</li>`).join('')}</ul></section>` : ''}
+  </article>`;
+}
+
+function agentActions(l, inList){
+  const sms = `sms:${ADAM}?&body=${encodeURIComponent(`Hi Adam, I'm a Vantage agent with a client for ${whereOf(l)}.`)}`;
+  return `${inList ? `<a class="btn solid" href="/adam/vantage/${esc(l.id)}">View property</a>` : ''}
+    <button class="btn accent" onclick="share('${esc(l.id)}', this)">Share brochure</button>
+    <a class="btn" href="tel:${ADAM}">Call Adam</a>
+    <a class="btn" href="${esc(sms)}">Text Adam</a>`;
+}
+
+/* ---------- Login (same first name + mobile as the client login) ---------- */
+function showLogin(message){
+  setHeader('The Vantage Network', 'Vantage<span>Agent Login</span>',
+    "Exclusive off-market properties for agents in Adam's Vantage Network. Log in to see them and share them with your clients.");
+  document.body.classList.add('form-page');
+  app.innerHTML = `<form class="form-card" id="loginForm" novalidate style="margin:0 auto;">
+    <h2>Log in or register</h2>
+    <p>${esc(message || 'Enter your first name and mobile number. New to Vantage? The same details register you.')}</p>
+    <label for="firstName">First name</label>
+    <input id="firstName" autocomplete="given-name" autocapitalize="words" required>
+    <label for="mobile">Mobile number</label>
+    <input id="mobile" type="tel" inputmode="tel" autocomplete="tel" placeholder="0412 345 678" required>
+    <button class="btn solid" type="submit">Continue</button>
+    <p class="err" id="err" role="alert"></p>
+    <p class="help">Listings here are confidential and shared agent to agent. Any trouble, call Adam on <a href="tel:${ADAM}">0407 739 919</a>.</p>
+  </form>`;
+  document.getElementById('loginForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const err = document.getElementById('err');
+    err.textContent = '';
+    const res = await fetch('/adam/api/client/login', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({firstName: document.getElementById('firstName').value, mobile: document.getElementById('mobile').value, vantage: true})
+    });
+    if (res.ok){ document.body.classList.remove('form-page'); return loadAgent(); }
+    const data = await res.json().catch(() => ({}));
+    err.textContent = data.error || 'Could not log in — please try again.';
+  });
+}
+
+/* ---------- Agent views ---------- */
+let agentData = null;
+
+async function loadAgent(){
+  const res = await fetch('/adam/api/vantage');
+  if (res.status === 401) return showLogin();
+  if (res.status === 403) return showLogin('You already have an account with Adam. Confirm your first name and mobile to add Vantage to it.');
+  if (!res.ok){ app.innerHTML = '<div class="empty">Could not load Vantage — please refresh.</div>'; return; }
+  agentData = await res.json();
+  document.getElementById('logoutBtn').classList.remove('hidden');
+  const first = (agentData.name || '').split(/\s/)[0];
+  const bar = `<div class="agent-bar"><span>Logged in as <b>${esc(agentData.name)}</b> · ${esc(fmtMobile(agentData.mobile))}</span>
+    <span>Questions? <a href="tel:${ADAM}">Call Adam on 0407 739 919</a></span></div>`;
+
+  if (listingId){
+    const l = agentData.listings.find(x => x.id === listingId);
+    if (!l){ app.innerHTML = bar + '<a class="back" href="/adam/vantage">&larr; All Vantage properties</a><div class="empty">This property is no longer available.</div>'; return; }
+    setHeader('Vantage Exclusive', titleFor(l), whereOf(l) + ' — off-market, shared only with Vantage agents.');
+    document.title = `${whereOf(l)} — Vantage`;
+    app.innerHTML = bar + '<a class="back" href="/adam/vantage">&larr; All Vantage properties</a>' +
+      fullListing(l, {actions: agentActions(l, false), after: `<div id="share-${esc(l.id)}"></div>`});
+    return;
+  }
+
+  setHeader('The Vantage Network', `Welcome${first ? ', ' + esc(first) : ''}<span>Vantage Exclusives</span>`,
+    "Off-market properties shared only with Vantage agents. Share any of them with your clients as a brochure link — it has no contact details, so your client stays yours.");
+  app.innerHTML = bar + (agentData.listings.length
+    ? agentData.listings.map(l => listingCard(l, {actions: agentActions(l, true), after: `<div id="share-${esc(l.id)}"></div>`})).join('')
+    : '<div class="empty">There are no Vantage properties right now. New ones will appear here as soon as they\'re ready to share.</div>');
+}
+
+async function share(id, btn){
+  btn.disabled = true;
+  const res = await fetch('/adam/api/vantage/share', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({listingId: id})});
+  btn.disabled = false;
+  if (res.status === 401 || res.status === 403) return showLogin();
+  const data = await res.json().catch(() => ({}));
+  const box = document.getElementById('share-' + id);
+  if (!res.ok){ box.innerHTML = `<div class="share-box">${esc(data.error || 'Could not create a link — please try again.')}</div>`; return; }
+  const url = shareUrl(data.id);
+  const msg = `Here's an exclusive off-market property I can show you: ${data.address} — ${url}`;
+  box.innerHTML = `<div class="share-box">
+    <b>Your brochure link for this property</b> — a clean brochure with photos and details and no contact information, so you can send it straight to your clients. It's the same link each time.
+    <input readonly value="${esc(url)}" onclick="this.select()">
+    <div class="row-btns">
+      <button class="btn solid" onclick="copyLink(this, '${esc(url)}')">Copy link</button>
+      <a class="btn" href="${esc(url)}" target="_blank" rel="noopener">Preview brochure</a>
+      <a class="btn" href="sms:?&body=${esc(encodeURIComponent(msg))}">Text it</a>
+      <a class="btn" href="mailto:?subject=${esc(encodeURIComponent('Off-market property: ' + data.address))}&body=${esc(encodeURIComponent(msg))}">Email it</a>
+    </div>
+  </div>`;
+}
+
+async function copyLink(btn, url){
+  try { await navigator.clipboard.writeText(url); btn.textContent = 'Copied'; }
+  catch (e) { btn.textContent = 'Select the link above'; }
+  setTimeout(() => { btn.textContent = 'Copy link'; }, 2000);
+}
+
+async function logout(){
+  await fetch('/adam/api/client/logout', {method:'POST'});
+  location.assign('/adam/vantage');
+}
+
+/* ---------- Brochure (what an agent's client sees, no login) ----------
+ * Deliberately has no contact details - no agent, no Adam, no Ray White -
+ * so agents can pass it to their own clients. */
+async function loadShared(){
+  document.body.classList.add('brochure');
+  const res = await fetch('/adam/api/vantage/shared/' + encodeURIComponent(sharedToken));
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok){
+    setHeader('Private Property', 'Off-Market<span>Property</span>', '');
+    app.innerHTML = `<div class="empty">${esc(data.error || 'This link is no longer active.')} Please contact the agent who sent it to you.</div>`;
+    return;
+  }
+  const l = data.listing;
+  setHeader('Private Off-Market Property', titleFor(l),
+    "This property isn't advertised. It has been shared with you privately — please keep the details to yourself.");
+  document.title = l.headline || whereOf(l);
+  app.innerHTML = fullListing(l, {token: sharedToken,
+    actions: '<button class="btn" onclick="window.print()">Print / save as PDF</button>'});
+}
+
+if (sharedToken) loadShared(); else loadAgent();
+</script>
+</body>
+</html>
