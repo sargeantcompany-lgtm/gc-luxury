@@ -689,6 +689,17 @@ let editPhotos = [];    // photo file names, in display order
 const STATUS_LABEL = {available:'Available', under_offer:'Under offer', sold:'Sold', hidden:'Hidden'};
 const photoUrl = name => '/adam/api/off-market/photos/' + name;
 const accessUrl = id => location.origin + '/adam/off-market/' + id;
+const propertyUrl = l => location.origin + '/adam/property/' + l.shareToken;
+
+// A fresh token, so the old client link for this property stops working.
+async function newPropertyLink(id){
+  const l = omListings.find(x => x.id === id);
+  if (!l || !confirm(`Make a new client link for ${l.address}? The current link will stop working for anyone you've already sent it to.`)) return;
+  const res = await fetch('/adam/api/off-market/listings/' + encodeURIComponent(id) + '/new-link', {method:'POST'});
+  if (res.status === 401) return showLogin();
+  if (!res.ok){ alert('Could not make a new link — please try again.'); return; }
+  loadOffMarket();
+}
 
 async function loadOffMarket(){
   const [l, a, s] = await Promise.all([fetch('/adam/api/off-market/listings'), fetch('/adam/api/off-market/access'), fetch('/adam/api/vantage/shares')]);
@@ -739,8 +750,12 @@ function renderListings(){
         <div><div class="addr">${esc(l.address)}${l.suburb ? ', ' + esc(l.suburb) : ''}</div>
         <div class="sub">${esc([l.priceGuide, facts, l.photos.length + ' photo' + (l.photos.length === 1 ? '' : 's')].filter(Boolean).join(' · '))}</div></div>
       </div></td>
-      <td><span class="status ${esc(l.status)}">${esc(STATUS_LABEL[l.status] || l.status)}</span>${l.vantage ? ' <span class="status vantage">Vantage</span>' : ''}</td>
+      <td><span class="status ${esc(l.status)}">${esc(STATUS_LABEL[l.status] || l.status)}</span>${l.vantage ? ' <span class="status vantage">Vantage</span>' : ''}
+        <div class="sub">${l.status === 'hidden' ? 'Client link off while hidden' : l.shareLastViewedAt ? `Client link: ${l.shareViews} view${l.shareViews === 1 ? '' : 's'}, last ${esc(fmtWhen(l.shareLastViewedAt).date)}` : 'Client link not opened yet'}</div></td>
       <td class="actions">
+        ${l.shareToken && l.status !== 'hidden' ? `<a href="${esc(propertyUrl(l))}" target="_blank" rel="noopener">Open ↗</a>
+        <button onclick="copyLink(this, '${esc(propertyUrl(l))}')">Copy client link</button>
+        <button onclick="newPropertyLink('${esc(l.id)}')">New link</button>` : ''}
         <button onclick="editListing('${esc(l.id)}')">Edit</button>
         <button class="del" onclick="deleteListing('${esc(l.id)}')">Delete</button>
       </td>

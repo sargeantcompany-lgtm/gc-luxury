@@ -485,8 +485,63 @@ async function handleSaveListing(req, res, id) {
   } else {
     record = { id: `${slugify(fields.address) || "property"}-${randomSuffix()}`, createdAt: now, updatedAt: now, ...fields };
   }
+  ensureShareToken(record);
   writeRecord(OM_LISTINGS_DIR, record);
   sendJSON(res, 200, record);
+}
+
+/* Client links: every listing has its own link (/property/:shareToken) that
+ * Adam can send to any client - one property, no login. The token is the
+ * secret, so "New link" (a fresh token) switches the old link off.
+ */
+function newShareToken(listing) {
+  return `${slugify(listing.address) || "property"}-${crypto.randomBytes(8).toString("hex")}`;
+}
+
+// Listings saved before client links existed get their token on first use.
+function ensureShareToken(listing) {
+  if (listing.shareToken) return false;
+  listing.shareToken = newShareToken(listing);
+  listing.shareViews = 0;
+  listing.shareLastViewedAt = null;
+  return true;
+}
+
+function adminListings() {
+  return readJSONDir(OM_LISTINGS_DIR).map((l) => {
+    if (ensureShareToken(l)) writeRecord(OM_LISTINGS_DIR, l);
+    return l;
+  });
+}
+
+function findByShareToken(token) {
+  if (!/^[a-z0-9-]+$/i.test(token || "")) return null;
+  return readJSONDir(OM_LISTINGS_DIR).find((l) => l.shareToken && safeEqual(l.shareToken, token)) || null;
+}
+
+function handleNewShareLink(res, id) {
+  const listing = readRecord(OM_LISTINGS_DIR, id);
+  if (!listing) return sendJSON(res, 404, { error: "Listing not found" });
+  listing.shareToken = newShareToken(listing);
+  listing.shareViews = 0;
+  listing.shareLastViewedAt = null;
+  writeRecord(OM_LISTINGS_DIR, listing);
+  sendJSON(res, 200, listing);
+}
+
+function handleViewProperty(res, token) {
+  const listing = findByShareToken(token);
+  if (!listing || listing.status === "hidden") return sendJSON(res, 404, { error: "This link is no longer active" });
+  listing.shareViews = (listing.shareViews || 0) + 1;
+  listing.shareLastViewedAt = new Date().toISOString();
+  writeRecord(OM_LISTINGS_DIR, listing);
+  const { id, address, suburb, priceGuide, beds, baths, cars, land, floor, headline, description, highlights, location, videoUrl, status, photos } = listing;
+  sendJSON(res, 200, { listing: { id, address, suburb, priceGuide, beds, baths, cars, land, floor, headline, description, highlights, location, videoUrl, status, photos } });
+}
+
+function shareTokenCanSeePhoto(token, name) {
+  const listing = findByShareToken(token);
+  return !!(listing && listing.status !== "hidden" && (listing.photos || []).includes(name));
 }
 
 function handleDeleteListing(res, id) {
@@ -517,7 +572,7 @@ async function handleUploadPhoto(req, res) {
 
 function handleGetPhoto(req, res, name, token) {
   if (!isPhotoName(name)) return send(res, 404, "Not found");
-  if (!isAdmin(req) && !currentClient(req) && !readRecord(OM_ACCESS_DIR, token || "") && !shareCanSeePhoto(token, name)) {
+  if (!isAdmin(req) && !currentClient(req) && !readRecord(OM_ACCESS_DIR, token || "") && !shareCanSeePhoto(token, name) && !shareTokenCanSeePhoto(token, name)) {
     return send(res, 403, "Forbidden");
   }
   fs.readFile(path.join(OM_PHOTOS_DIR, name), (err, data) => {
@@ -1058,21 +1113,25 @@ module.exports = function handleAgent(req, res) {
   if (pathname.startsWith("/api/off-market/")) {
     const viewMatch = pathname.match(/^\/api\/off-market\/view\/([a-z0-9-]+)$/i);
     if (viewMatch && req.method === "GET") return handleViewOffMarket(res, viewMatch[1]);
+    const propertyMatch = pathname.match(/^\/api\/off-market\/property\/([a-z0-9-]+)$/i);
+    if (propertyMatch && req.method === "GET") return handleViewProperty(res, propertyMatch[1]);
     const photoMatch = pathname.match(/^\/api\/off-market\/photos\/([^/]+)$/);
     if (photoMatch && req.method === "GET") return handleGetPhoto(req, res, photoMatch[1], url.searchParams.get("t"));
 
     if (!isAdmin(req)) return sendJSON(res, 401, { error: "Admin login required" });
-    if (pathname === "/api/off-market/listings" && req.method === "GET") return sendJSON(res, 200, readJSONDir(OM_LISTINGS_DIR));
+    if (pathname === "/api/off-market/listings" && req.method === "GET") return sendJSON(res, 200, adminListings());
     if (pathname === "/api/off-market/listings" && req.method === "POST") return handleSaveListing(req, res, null);
     const listingMatch = pathname.match(/^\/api\/off-market\/listings\/([a-z0-9-]+)$/i);
     if (listingMatch && req.method === "PUT") return handleSaveListing(req, res, listingMatch[1]);
     if (listingMatch && req.method === "DELETE") return handleDeleteListing(res, listingMatch[1]);
+    const newLinkMatch = pathname.match(/^\/api\/off-market\/listings\/([a-z0-9-]+)\/new-link$/i);
+    if (newLinkMatch && req.method === "POST") return handleNewShareLink(res, newLinkMatch[1]);
     if (pathname === "/api/off-market/photos" && req.method === "POST") return handleUploadPhoto(req, res);
     if (pathname === "/api/off-market/access" && req.method === "GET") return sendJSON(res, 200, readJSONDir(OM_ACCESS_DIR));
     if (pathname === "/api/off-market/access" && req.method === "POST") return handleCreateAccess(req, res);
     return sendJSON(res, 404, { error: "Not found" });
   }
-  if (/^\/off-market\/[a-z0-9-]+$/i.test(pathname)) {
+  if (/^\/(off-market|property)\/[a-z0-9-]+$/i.test(pathname)) {
     pathname = "/off-market.html";
   }
 

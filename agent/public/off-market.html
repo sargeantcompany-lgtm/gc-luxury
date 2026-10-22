@@ -107,7 +107,7 @@
     <a class="mark" href="/">Adam Sargeant</a>
     <p class="eyebrow">Private Off-Market Collection</p>
     <h1>Off-Market<span id="forName">Properties</span></h1>
-    <p class="lede">These homes aren't advertised online. They're being shared privately with a small group of buyers, so please keep the details to yourself.</p>
+    <p class="lede" id="lede">These homes aren't advertised online. They're being shared privately with a small group of buyers, so please keep the details to yourself.</p>
   </div>
 </header>
 
@@ -145,7 +145,10 @@
 
 <script>
 const PHONE = '0407739919';
-const token = (location.pathname.match(/^\/adam\/off-market\/([a-z0-9-]+)$/i) || [])[1] || '';
+// /adam/off-market/:token is a person's link to the whole collection;
+// /adam/property/:token is a single property's client link.
+const [, mode, token = ''] = location.pathname.match(/^\/adam\/(off-market|property)\/([a-z0-9-]+)$/i) || [];
+const single = mode === 'property';
 const STATUS_LABEL = {available:'Available', under_offer:'Under offer', sold:'Sold'};
 
 function esc(s){
@@ -216,11 +219,23 @@ function wireReadMore(article){
 (async function boot(){
   let data;
   try{
-    const res = await fetch('/adam/api/off-market/view/' + encodeURIComponent(token));
+    const res = await fetch('/adam/api/off-market/' + (single ? 'property/' : 'view/') + encodeURIComponent(token));
     if (!res.ok) throw new Error('inactive');
     data = await res.json();
   }catch(e){
     return document.getElementById('invalid').classList.remove('hidden');
+  }
+
+  if (single){
+    const l = data.listing;
+    document.title = `${[l.address, l.suburb].filter(Boolean).join(', ')} — Adam Sargeant`;
+    document.querySelector('header .eyebrow').textContent = 'Private Off-Market Property';
+    document.getElementById('forName').textContent = l.suburb || 'Property';
+    document.getElementById('lede').textContent = "This home isn't advertised online. It's being shared privately with a small group of buyers, so please keep the details to yourself.";
+    const list = document.getElementById('listings');
+    list.innerHTML = renderListing(l);
+    list.querySelectorAll('.listing').forEach(a => { wireGallery(a); wireReadMore(a); });
+    return;
   }
 
   document.getElementById('forName').textContent = 'For ' + data.name;
