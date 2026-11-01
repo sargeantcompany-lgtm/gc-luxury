@@ -6,14 +6,20 @@ const status = document.getElementById("form-status");
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
 
+  // Not every form has every field (appraisal.html has an address instead of price/locations).
+  const val = (name) => (form.elements[name] ? form.elements[name].value.trim() : "");
+
+  // appraisal.html tags its enquiries so they're recognisable in the CRM notes.
+  const lead = [form.dataset.subject, val("address") && `Address: ${val("address")}`].filter(Boolean);
+
   const payload = {
-    fullName: form.fullName.value.trim(),
-    email: form.email.value.trim(),
-    phone: form.phone.value.trim(),
-    propertyType: form.propertyType.value.trim(),
-    priceRange: form.priceRange.value.trim(),
-    locations: form.locations.value.trim(),
-    message: form.message.value.trim(),
+    fullName: val("fullName"),
+    email: val("email"),
+    phone: val("phone"),
+    propertyType: val("propertyType"),
+    priceRange: val("priceRange"),
+    locations: val("locations"),
+    message: [...lead, val("message")].filter(Boolean).join("\n"),
   };
 
   const submitBtn = form.querySelector(".submit-btn");
