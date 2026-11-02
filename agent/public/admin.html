@@ -312,7 +312,7 @@
   <div class="top">
     <div class="brand"><span>Ray White Broadbeach</span>Adam Sargeant — Admin</div>
     <div class="top-actions">
-      <a href="/adam/appraisal-tool.html">+ New Appraisal</a>
+      <a href="/adam/appraisal-tool.html">+ New Summer Auction Appraisal</a>
       <button class="ghost" onclick="logout()">Log out</button>
     </div>
   </div>
@@ -538,7 +538,7 @@ function renderAppraisals(){
     const w = fmtWhen(a.createdAt);
     const url = location.origin + '/adam/a/' + a.id;
     return `<tr>
-      <td><div class="addr">${esc(a.address || '(no address)')}</div><div class="sub">${esc(a.clientName || '')}${assignedTo(a.id)}</div></td>
+      <td><div class="addr">${esc(a.address || '(no address)')}</div><div class="sub">${esc(a.clientName || '')}${assignedTo(a.id)}</div>${a.summerSignup ? `<div class="sub"><span class="status src-appraisal">✓ Summer Auction sign-up</span> ${esc(a.summerSignup.name)} · ${esc(a.summerSignup.mobile)} · ${esc(fmtWhen(a.summerSignup.at).date)}</div>` : ''}</td>
       <td class="when">${esc(w.date)}<div class="sub">${esc(w.time)}</div></td>
       <td class="actions">
         <a href="${esc(url)}" target="_blank" rel="noopener">Open ↗</a>

@@ -48,6 +48,10 @@ The Property Listing & Sales Checklist (one per property listed) is defined once
 
 `server/connector/ogFetch.js` scrapes a listing URL's Open Graph tags / JSON-LD for title, description, images, and price, used by the Connector admin UI to prefill a new listing from a pasted URL.
 
+### Form emails
+
+Every public form (contact, appraisal request, offers, client portal and Vantage sign-ups, Summer Auction sign-up, Connector join and valuation requests) saves first, then emails `NOTIFY_EMAIL` through `sendFormEmail` in `server/notify.js`, using Resend's HTTP API. A failed send is only logged, and the form still succeeds.
+
 ### Deployment
 
 Single Railway service (`railway.toml`, Nixpacks): `npm install && npm run build` then `npm start`. One Express process serves the static site, both built SPAs, and both APIs — there's no separate deploy target per frontend.

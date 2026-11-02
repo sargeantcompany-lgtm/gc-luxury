@@ -2,6 +2,8 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const checklists = require("../listingChecklists");
+const db = require("../db");
+const { sendFormEmail } = require("../notify");
 
 // Adam Sargeant appraisal / offer / off-market site, served under /adam by
 // server/index.js (ported from the standalone appraisal-proposal-tool app).
@@ -188,7 +190,98 @@ function handleGetAppraisal(req, res, id) {
     } catch (e) {
       return sendJSON(res, 500, { error: "Corrupt record" });
     }
-    sendJSON(res, 200, record.data);
+    // The sign-up lives on the record, so the client's link shows they've done it.
+    sendJSON(res, 200, record.summerSignup ? { ...record.data, summerSignup: record.summerSignup } : record.data);
+  });
+}
+
+// End of 20 December, Gold Coast time. Same date in appraisal-tool.html.
+const SUMMER_SIGNUP_CLOSES = Date.parse("2026-12-20T23:59:59+10:00");
+const SITE_URL = "https://gcluxury.com.au";
+
+// Adds the sign-up to the CRM, on the existing contact if the mobile is known.
+async function saveSummerSignupToCrm(record) {
+  const { name, mobile } = record.summerSignup;
+  const brand = await db.query("SELECT id FROM brands WHERE name = $1", ["GC Luxury"]);
+  const brandId = brand.rows[0]?.id || null;
+  const digits = mobile.replace(/\D/g, "");
+  const existing = await db.query(
+    "SELECT id FROM contacts WHERE brand_id = $1 AND regexp_replace(phone, '\\D', '', 'g') = $2 LIMIT 1",
+    [brandId, digits]
+  );
+  let contactId = existing.rows[0]?.id;
+  if (!contactId) {
+    const [firstName, ...rest] = name.split(/\s+/);
+    const created = await db.query(
+      `INSERT INTO contacts (brand_id, first_name, last_name, phone, address, source, pipeline_stage)
+       VALUES ($1, $2, $3, $4, $5, 'Summer Auction Appraisal', 'New')
+       RETURNING id`,
+      [brandId, firstName, rest.join(" "), mobile, record.address]
+    );
+    contactId = created.rows[0].id;
+  }
+  await db.query(
+    "INSERT INTO contact_notes (contact_id, note, created_by) VALUES ($1, $2, $3)",
+    [contactId, `Signed up for the Summer Auction: ${record.address}\n${SITE_URL}/adam/a/${record.id}`, "Summer Auction Appraisal"]
+  );
+  await db.query(
+    `INSERT INTO activity_log (contact_id, brand_id, type, description)
+     VALUES ($1, $2, 'summer_auction_signup', $3)`,
+    [contactId, brandId, `Summer Auction sign-up from ${name}: ${record.address}`]
+  );
+}
+
+function emailSummerSignup(record) {
+  const { name, mobile } = record.summerSignup;
+  return sendFormEmail({
+    subject: `Summer Auction sign-up: ${record.address || name}`,
+    title: "New Summer Auction sign-up",
+    subtitle: record.address,
+    rows: [
+      ["Name", name],
+      ["Mobile", mobile],
+      ["Property", record.address],
+      ["Appraisal", `${SITE_URL}/adam/a/${record.id}`],
+    ],
+  });
+}
+
+// The sign-up is already saved by now, so a failure here is logged and doesn't
+// reach the client. It still shows on the Appraisals Sent tab in /admin.
+function announceSummerSignup(record) {
+  emailSummerSignup(record);
+  saveSummerSignupToCrm(record).catch((e) => console.error(`Summer Auction sign-up ${record.id}: CRM save failed:`, e));
+}
+
+// The "Sign up for the Summer Auction" button on a client's appraisal link.
+// Public like the link itself; the unguessable id is the access control.
+async function handleSummerSignup(req, res, id) {
+  let body;
+  try {
+    body = JSON.parse(await readBody(req));
+  } catch (e) {
+    return sendJSON(res, 400, { error: "Invalid request" });
+  }
+  const name = str(body && body.name, 120);
+  const mobile = str(body && body.mobile, 30);
+  if (!name || !/[0-9]/.test(mobile)) return sendJSON(res, 400, { error: "Name and mobile are required" });
+
+  let record;
+  try {
+    record = JSON.parse(fs.readFileSync(appraisalPath(id), "utf8"));
+  } catch (e) {
+    return sendJSON(res, 404, { error: "Not found" });
+  }
+  if (!record.data || !record.data.summerAuction) return sendJSON(res, 400, { error: "Not a Summer Auction appraisal" });
+  // Already signed up: nothing to change, and no second alert.
+  if (record.summerSignup) return sendJSON(res, 200, { ok: true });
+  if (Date.now() > SUMMER_SIGNUP_CLOSES) return sendJSON(res, 403, { error: "Summer Auction sign-ups have closed" });
+
+  record.summerSignup = { name, mobile, at: new Date().toISOString() };
+  fs.writeFile(appraisalPath(id), JSON.stringify(record), (err) => {
+    if (err) return sendJSON(res, 500, { error: "Could not save sign-up" });
+    sendJSON(res, 200, { ok: true });
+    announceSummerSignup(record);
   });
 }
 
@@ -200,7 +293,7 @@ function handleListAppraisals(req, res) {
       try {
         const record = JSON.parse(fs.readFileSync(path.join(APPRAISALS_DIR, f), "utf8"));
         const mobile = record.data && record.data.client && record.data.client.mobile;
-        return { id: record.id, createdAt: record.createdAt, address: record.address, clientName: record.clientName, mobile: normMobile(mobile) };
+        return { id: record.id, createdAt: record.createdAt, address: record.address, clientName: record.clientName, mobile: normMobile(mobile), summerSignup: record.summerSignup || null };
       } catch (e) {
         return null;
       }
@@ -315,21 +408,6 @@ function validateOffer(body) {
   return { offer, errors };
 }
 
-/* Email notification to the agent when an offer arrives, sent through
- * Resend's HTTP API (Railway's Hobby plan blocks outbound SMTP). Uses Node's
- * built-in fetch, so still no dependencies. Disabled unless RESEND_API_KEY and
- * NOTIFY_EMAIL are set; a failed send is logged but never fails the offer.
- */
-const RESEND_API_KEY = process.env.RESEND_API_KEY || "";
-const NOTIFY_EMAIL = process.env.NOTIFY_EMAIL || "";
-// Without a verified domain, Resend only allows this sender, and only to the
-// Resend account's own email address.
-const EMAIL_FROM = process.env.EMAIL_FROM || "Offers <onboarding@resend.dev>";
-
-function escHTML(s) {
-  return String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-}
-
 function fmtMoney(n) {
   return n || n === 0 ? "$" + Number(n).toLocaleString("en-AU") : "—";
 }
@@ -338,8 +416,7 @@ function yesNoDays(yn, days) {
   return yn === "yes" ? `Yes — ${days} days` : yn === "no" ? "No" : "—";
 }
 
-async function notifyOffer(o) {
-  if (!RESEND_API_KEY || !NOTIFY_EMAIL) return;
+function notifyOffer(o) {
   const rows = [
     ["Property", o.address],
     ["Buyer/s full names", o.buyerNames],
@@ -357,31 +434,13 @@ async function notifyOffer(o) {
     ["Signed (typed name)", o.signature],
     ["Submitted", new Date(o.createdAt).toLocaleString("en-AU", { timeZone: "Australia/Brisbane", dateStyle: "full", timeStyle: "short" })],
   ];
-  const html = `<div style="font-family:Arial,Helvetica,sans-serif;color:#1A1A1A;max-width:620px;">
-    <h2 style="margin:0 0 4px;">New offer: ${escHTML(fmtMoney(o.purchasePrice))}</h2>
-    <p style="margin:0 0 18px;color:#555;">${escHTML(o.address)}</p>
-    <table cellpadding="8" cellspacing="0" style="border-collapse:collapse;width:100%;font-size:14px;">
-      ${rows.map(([k, v]) => `<tr><td style="border-bottom:1px solid #E3E1DC;color:#6E6E6E;width:190px;vertical-align:top;">${escHTML(k)}</td><td style="border-bottom:1px solid #E3E1DC;white-space:pre-wrap;">${escHTML(v)}</td></tr>`).join("")}
-    </table>
-    <p style="font-size:12px;color:#888;margin-top:18px;">Reply to this email to respond to the buyer directly.</p>
-  </div>`;
-
-  try {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        from: EMAIL_FROM,
-        to: NOTIFY_EMAIL.split(",").map((s) => s.trim()).filter(Boolean),
-        reply_to: o.email,
-        subject: `New offer ${fmtMoney(o.purchasePrice)} — ${o.address}`,
-        html,
-      }),
-    });
-    if (!res.ok) console.error("Offer email failed:", res.status, await res.text());
-  } catch (e) {
-    console.error("Offer email failed:", e.message);
-  }
+  return sendFormEmail({
+    subject: `New offer ${fmtMoney(o.purchasePrice)} — ${o.address}`,
+    title: `New offer: ${fmtMoney(o.purchasePrice)}`,
+    subtitle: o.address,
+    rows,
+    replyTo: o.email,
+  });
 }
 
 async function handleSubmitOffer(req, res) {
@@ -831,6 +890,13 @@ async function handleClientLogin(req, res) {
   writeRecord(CLIENTS_DIR, client);
   startClientSession(req, res, client);
   sendJSON(res, 200, { ok: true, registered });
+  if (registered) {
+    sendFormEmail({
+      subject: `New ${body.vantage === true ? "Vantage" : "client portal"} sign-up: ${client.name}`,
+      title: `New ${body.vantage === true ? "Vantage" : "client portal"} sign-up`,
+      rows: [["First name", client.name], ["Mobile", client.mobile]],
+    });
+  }
 }
 
 // Everything a logged-in client may see: only their own appraisals and
@@ -1141,6 +1207,10 @@ module.exports = function handleAgent(req, res) {
   if (pathname === "/api/appraisals" && req.method === "GET") {
     if (!isAdmin(req)) return sendJSON(res, 401, { error: "Admin login required" });
     return handleListAppraisals(req, res);
+  }
+  const signupMatch = pathname.match(/^\/api\/appraisals\/([a-z0-9-]+)\/summer-signup$/i);
+  if (signupMatch && req.method === "POST") {
+    return handleSummerSignup(req, res, signupMatch[1]);
   }
   const apiMatch = pathname.match(/^\/api\/appraisals\/([a-z0-9-]+)$/i);
   if (apiMatch && req.method === "GET") {

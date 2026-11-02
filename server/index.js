@@ -6,6 +6,7 @@ const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const { ensureSchema, query } = require("./db");
+const { sendFormEmail } = require("./notify");
 
 const brandsRouter = require("./crm/routes/brands");
 const contactsRouter = require("./crm/routes/contacts");
@@ -157,6 +158,24 @@ app.post("/api/enquiries", async (req, res) => {
 
     console.log("New enquiry saved as contact:", contactId);
     res.status(201).json({ status: "ok" });
+
+    // appraisal.html tags its enquiries in the message (see client/app.js).
+    const kind = (message || "").startsWith("Appraisal request") ? "appraisal request" : "website enquiry";
+    sendFormEmail({
+      subject: `New ${kind}: ${fullName}`,
+      title: `New ${kind}`,
+      subtitle: fullName,
+      rows: [
+        ["Name", fullName],
+        ["Email", email],
+        ["Phone", phone],
+        ["Property type", propertyType],
+        ["Price range", priceRange],
+        ["Preferred location(s)", locations],
+        ["Message", message],
+      ],
+      replyTo: email,
+    });
   } catch (err) {
     console.error("Failed to save enquiry:", err);
     res.status(500).json({ status: "error", message: "Failed to save enquiry." });

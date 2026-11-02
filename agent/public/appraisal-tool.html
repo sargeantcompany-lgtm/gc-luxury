@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>Appraisal &amp; Proposal Builder</title>
+<title>Summer Auction Appraisal Builder</title>
 <style>
   :root{
     --gold:#FFE512;
@@ -339,7 +339,7 @@
 <!-- =================================================================== -->
 <div id="builder">
   <div class="builder-header">
-    <h1>Appraisal &amp; Proposal Builder</h1>
+    <h1>Summer Auction Appraisal Builder</h1>
     <p>Fill this in once per property, then generate a mobile-friendly link you can text straight to your client. Each generated appraisal is saved so you can find it again below.</p>
   </div>
 
@@ -386,7 +386,7 @@
     <h2>Introduction</h2>
     <div class="field">
       <label>Opening paragraph</label>
-      <textarea id="introPara">Thank you for the opportunity to prepare this Appraisal &amp; Proposal for your home. It has been prepared to provide you with a clear, evidence-based view of your property's position in the current market, together with a proposal for how we would take it to market on your behalf, should you choose to sell. This document has been structured to answer four key questions:</textarea>
+      <textarea id="introPara">Thank you for the opportunity to prepare this Summer Auction Appraisal for your home. It has been prepared to provide you with a clear, evidence-based view of your property's position in the current market, together with a proposal for taking it to market in our Summer Auction Experience at The Star Gold Coast on Saturday 30 January 2027, should you choose to sell. This document has been structured to answer five key questions:</textarea>
     </div>
   </div>
 
@@ -402,7 +402,7 @@
     <h2>2. Recommended Process</h2>
     <div class="field">
       <label>Strategy paragraph</label>
-      <textarea id="processPara">Based on current market conditions, we recommend a campaign built on the Ray White approach: generating genuine competition among buyers through a clearly defined timeline, wide-reaching marketing exposure, and structured pricing feedback throughout the campaign.</textarea>
+      <textarea id="processPara">If you decide to go to market, we recommend the Summer Auction Experience: a four-week campaign launching Monday 4 January and finishing under the hammer on Saturday 30 January 2027. It's built on the Ray White approach: generating genuine competition among buyers through a clearly defined timeline, wide-reaching marketing exposure, and structured pricing feedback throughout the campaign.</textarea>
     </div>
     <div class="row2">
       <div class="field">
@@ -410,8 +410,8 @@
         <input type="text" id="campaignStart" class="cal-input" readonly placeholder="Select a Monday" onclick="openCalendar('campaignStart', 1)">
       </div>
       <div class="field">
-        <label>Auction Date (Thursday)</label>
-        <input type="text" id="auctionDate" class="cal-input" readonly placeholder="Select a Thursday" onclick="openCalendar('auctionDate', 4)">
+        <label>Auction Date (Saturday)</label>
+        <input type="text" id="auctionDate" class="cal-input" readonly placeholder="Select a Saturday" onclick="openCalendar('auctionDate', 6)">
       </div>
     </div>
     <div id="calendarPopover" class="calendar-popover hidden"></div>
@@ -424,14 +424,14 @@
     <label style="font-size:12.5px;font-weight:600;color:var(--grey);text-transform:uppercase;">Campaign Timeline</label>
     <div id="timelineRows"></div>
     <button type="button" class="add-btn" onclick="addTimelineRow()">+ Add timeline step</button>
-    <p style="font-size:12.5px;color:var(--grey);margin:10px 0 0;">Clients also get a click-to-expand explainer covering Private Treaty vs Auction — fixed content, nothing to fill in here.</p>
+    <p style="font-size:12.5px;color:var(--grey);margin:10px 0 0;">Clients also get the Summer Auction Experience and Why Auction sections with our campaign stats, plus the sign-up button — fixed content, nothing to fill in here.</p>
   </div>
 
   <div class="card">
     <h2>3. Investment &amp; Cost Breakdown</h2>
     <div class="field">
       <label>Introductory line</label>
-      <textarea id="costsIntro" style="min-height:40px;">The table below sets out the full marketing investment for your campaign and what each item covers.</textarea>
+      <textarea id="costsIntro" style="min-height:40px;">The table below sets out the full marketing investment for your Summer Auction campaign, including the event fee, and what each item covers.</textarea>
     </div>
 
     <label style="font-size:12.5px;font-weight:600;color:var(--grey);text-transform:uppercase;">Marketing Package</label>
@@ -465,7 +465,7 @@
     <h2>5. Summary</h2>
     <div class="field">
       <label>Summary paragraph</label>
-      <textarea id="summaryPara">In summary, this proposal sets out our recommended process, marketing investment and the team behind your campaign. We're confident this approach will achieve the best possible outcome for your sale, and we look forward to the opportunity to bring it to life together.</textarea>
+      <textarea id="summaryPara">In summary, this proposal sets out why the Summer Auction Experience is the right stage for your home, the campaign leading up to auction day, the marketing investment and the team behind it. We're confident this approach will achieve the best possible outcome for your sale, and we look forward to the opportunity to bring it to life together.</textarea>
     </div>
   </div>
 
@@ -473,15 +473,15 @@
     <h2>Closing</h2>
     <div class="field">
       <label>Closing paragraph / call to action</label>
-      <textarea id="closingPara">I'd welcome the opportunity to meet with you to walk through this Appraisal &amp; Proposal in detail and discuss next steps. Please get in touch at your convenience.</textarea>
+      <textarea id="closingPara">I'd welcome the opportunity to meet with you to walk through this Summer Auction Appraisal in detail and discuss next steps. Please get in touch at your convenience.</textarea>
     </div>
   </div>
 
-  <button class="btn-primary" onclick="generate()">Generate Appraisal &amp; Get Shareable Link</button>
+  <button class="btn-primary" onclick="generate()">Generate Summer Auction Appraisal &amp; Get Shareable Link</button>
 
   <div id="shareBox" class="hidden">
     <h3>✓ Ready to send</h3>
-    <p style="font-size:13px;color:var(--grey);margin:0 0 8px;">Copy this link and text it to your client — it opens straight to the finished Appraisal &amp; Proposal, formatted for their phone.</p>
+    <p style="font-size:13px;color:var(--grey);margin:0 0 8px;">Copy this link and text it to your client — it opens straight to the finished Summer Auction Appraisal, formatted for their phone.</p>
     <input id="shareUrl" readonly>
     <div class="share-actions">
       <button class="btn-secondary" onclick="copyLink()">Copy Link</button>
@@ -607,6 +607,9 @@ function addWhyRow(v=''){
 }
 
 /* ---------------- Malan + Co marketing schedule presets ---------------- */
+// The event fee takes the place of the auctioneer fee in every package.
+// From the "What is the cost?" FAQ on client/summer-auctions.html.
+const SUMMER_EVENT_FEE = {item:'Summer Auction Experience Event Fee', desc:'The Star Gold Coast, Saturday 30 January 2027', amount:'$895'};
 const TIERS = {
   // Matches the Malan + Co Marketing Budget Master (Silver), plus video and reel.
   Silver: [
@@ -621,7 +624,7 @@ const TIERS = {
     {item:'realestate.com.au Premiere+', desc:'With Pro AMAX social boost', amount:'$3,098'},
     {item:'Domain Platinum', desc:'Plus 2-week social boost', amount:'$1,519'},
     {item:'Social Media Marketing', desc:'Meta and Google ad spend', amount:'$1,000'},
-    {item:'Online Auctioneer Fee', desc:'Incurred as soon as an auction is booked', amount:'$705'},
+    SUMMER_EVENT_FEE,
     {item:'Gold Coast Bulletin Campaign', desc:'Full page print', amount:'$920'},
   ],
   Gold: [
@@ -633,7 +636,7 @@ const TIERS = {
     {item:'Sundry Marketing', desc:'In-house printing, open home prep, social media marketing', amount:'$300'},
     {item:'realestate.com.au Premiere+', desc:'With Pro AMAX social boost', amount:'$3,098'},
     {item:'Domain Platinum', desc:'Plus 2-week social boost', amount:'$1,519'},
-    {item:'Auctioneer Fee', desc:'Online/onsite auction', amount:'$705'},
+    SUMMER_EVENT_FEE,
     {item:'Gold Coast Bulletin Campaign', desc:'Full page print — 1 week', amount:'$920'},
   ],
   Platinum: [
@@ -645,7 +648,7 @@ const TIERS = {
     {item:'Sundry Marketing', desc:'In-house printing, open home prep, social media marketing', amount:'$500'},
     {item:'realestate.com.au Premiere+', desc:'With Pro AMAX social boost', amount:'$3,098'},
     {item:'Domain Platinum', desc:'Plus 2-week social boost', amount:'$1,519'},
-    {item:'Auctioneer Fee', desc:'Online/onsite auction', amount:'$770'},
+    SUMMER_EVENT_FEE,
     {item:'Gold Coast Bulletin Campaign', desc:'Full page print — 2 weeks', amount:'$1,840'},
   ],
 };
@@ -655,11 +658,24 @@ function applyTier(tier){
 }
 
 /* ---------------- Seed defaults ---------------- */
+// Summer Auction Experience 2027 dates, same as the calendar on client/summer-auctions.html.
+function seedDate(id, iso){
+  const input = document.getElementById(id);
+  input.value = formatDatePretty(iso);
+  input.dataset.iso = iso;
+}
+seedDate('campaignStart', '2027-01-04');
+seedDate('auctionDate', '2027-01-30');
+document.getElementById('auctionDate').dataset.manual = '1';
+
 [
-  {when:'Week 1', what:'Presentation works, professional photography, styling &amp; campaign preparation'},
-  {when:'Week 2–5', what:'Campaign live — buyer inspections, enquiry management, weekly pricing feedback'},
-  {when:'Week 6', what:'Offers negotiated / auction day — creating competition between buyers'},
-  {when:'Week 6–8', what:'Contract to settlement'},
+  {when:'Dec – Jan', what:'Listing prep — signboard, photography, copy, floor plans, videography, advertising booked and social media campaigns ordered'},
+  {when:'Week 1', what:'Mon 4 Jan suggested launch day. Open homes Sat 9 and Sun 10 Jan'},
+  {when:'Week 2', what:'Market feedback collected and assessed Mon 11, vendor progress report emailed Tue 12, vendor meeting Wed 13. Open homes Thu 14, Sat 16 and Sun 17 Jan'},
+  {when:'Week 3', what:'Market feedback collected and assessed Mon 18, vendor progress report emailed Tue 19, vendor meeting Wed 20. Open homes Thu 21, Sat 23 and Sun 24 Jan'},
+  {when:'Week 4', what:'Market feedback collected and assessed Mon 25, auction strategy report emailed Tue 26, vendor meeting Wed 27, reserve set meeting with the auctioneer Thu 28. Final open home Fri 29 Jan'},
+  {when:'Sat 30 Jan', what:'Summer Auction Experience at The Star Gold Coast'},
+  {when:'After auction', what:'Contract to settlement'},
 ].forEach(addTimelineRow);
 
 applyTier('Gold');
@@ -670,6 +686,7 @@ applyTier('Gold');
 function collect(){
   const val = id => document.getElementById(id).value.trim();
   return {
+    summerAuction: true,
     agent:{ name:val('agentName'), agency:val('agentAgency'), phone:val('agentPhone'), email:val('agentEmail'), licence:val('agentLicence') },
     client:{ name:val('clientName'), mobile:val('clientMobile'), address:val('propAddress') },
     property:{ land:val('propLand'), floor:val('propFloor'), config:val('propConfig') },
@@ -719,7 +736,161 @@ function moneyToNumber(s){
   return isNaN(n) ? 0 : n;
 }
 
+/* Content and stats are from client/summer-auctions.html; keep the two in step. */
+function renderSummerAuctionSections(){
+  return `
+      <div class="cv-section">
+        <span class="cv-badge">02 · Summer Auction</span>
+        <h2>The Summer Auction Experience</h2>
+        <div class="cv-price-box">
+          <div class="po-row"><span>Date</span><span>Saturday 30 January 2027</span></div>
+          <div class="po-row"><span>Venue</span><span>The Star Gold Coast</span></div>
+          <div class="po-row"><span>Attend</span><span>In room and online</span></div>
+        </div>
+        <p>Our annual Summer Auction Experience is one of the most important dates on the Gold Coast selling calendar. This property showcase is renowned for exceptional results, with a host of Gold Coast homes sold under the hammer. Backed by a well-orchestrated marketing campaign, sellers benefit from more publicity and exposure to more buyers.</p>
+
+        <p class="stat-strip-label">Our Last Summer Auction Experience</p>
+        <div class="stat-grid">
+          <div class="stat-tile"><div class="stat-num">118</div><div class="stat-label">Auctions</div></div>
+          <div class="stat-tile"><div class="stat-num">407</div><div class="stat-label">Total registered bidders</div></div>
+          <div class="stat-tile"><div class="stat-num">76%</div><div class="stat-label">Auction clearance rate</div></div>
+        </div>
+        <p style="font-size:12.5px;color:var(--grey);">Ray White Malan + Co, November 2023 – November 2024. And in 2027 we're raising the bar.</p>
+
+        <p class="stat-strip-label">Why January</p>
+        <p>Every year we meet more buyers at our open homes in January than in any other month, thanks to the influx of interstate travellers and investors. This January we forecast more than 2,000 inspections across the Gold Coast. If you want your property in front of the most buyers to secure a premium price, January remains the best month to sell.</p>
+
+        <p class="stat-strip-label">What It Does For You</p>
+        <ul class="cv-bullets">
+          <li><strong>An unrivalled spotlight.</strong> Our database and marketing program target the largest group of active and passive buyers in the country — first home buyers, downsizers, interstate buyers, investors and business owners.</li>
+          <li><strong>Competition for the highest price.</strong> There's no better way to secure a high sale price than competition, and that's what the auction process is designed to do best.</li>
+          <li><strong>Gold Coast market saturation.</strong> With over 100 properties brought to market across the Gold Coast, we achieve unprecedented exposure to every active buyer in our marketplace.</li>
+          <li><strong>The power of the network.</strong> 110 years of Ray White process, data and strategy creating competition for real estate across Australia and New Zealand.</li>
+        </ul>
+
+        <p class="stat-strip-label" style="margin-top:18px;">Your Auctioneer</p>
+        <p>Jordan Curd was named REIQ Auctioneer of the Year (Queensland) for 2025 and is trusted by agents and sellers to deliver confident, high-performance outcomes, leading strategies designed to maximise competition, clarity and sale results.</p>
+      </div>
+
+      <div class="cv-section">
+        <span class="cv-badge">03 · Why Auction</span>
+        <h2>The Power of Auction</h2>
+        <p>Sell faster and maximise your price. Data suggests selling under the hammer secures clients 11% more than selling privately. With more bidders creating healthy competition, auction is the best way to obtain a premium price.</p>
+
+        <p class="stat-strip-label">Average Days on Market</p>
+        <div class="stat-grid">
+          <div class="stat-tile"><div class="stat-num">26</div><div class="stat-label">Auction</div></div>
+          <div class="stat-tile"><div class="stat-num">54</div><div class="stat-label">Private treaty</div></div>
+        </div>
+
+        <p class="stat-strip-label">When Our Auction Properties Sell</p>
+        <div class="stat-grid">
+          <div class="stat-tile"><div class="stat-num">18%</div><div class="stat-label">Prior to auction</div></div>
+          <div class="stat-tile"><div class="stat-num">40%</div><div class="stat-label">Auction day</div></div>
+          <div class="stat-tile"><div class="stat-num">25%</div><div class="stat-label">Within 14 days of auction</div></div>
+          <div class="stat-tile"><div class="stat-num">83%</div><div class="stat-label">Chance of selling within 45 days of listing</div></div>
+        </div>
+
+        <p class="stat-strip-label">Ray White Queensland — Last 12 Months</p>
+        <div class="stat-grid">
+          <div class="stat-tile"><div class="stat-num">6,588</div><div class="stat-label">Properties auctioned across Queensland</div></div>
+          <div class="stat-tile"><div class="stat-num">4.4</div><div class="stat-label">Average bidders at each auction property</div></div>
+          <div class="stat-tile"><div class="stat-num">71%</div><div class="stat-label">Average clearance rate</div></div>
+          <div class="stat-tile"><div class="stat-num">28.6</div><div class="stat-label">Average days on market</div></div>
+        </div>
+
+        <p class="stat-strip-label">Why Auction Works</p>
+        <ul class="cv-bullets">
+          <li><strong>Commitment.</strong> Your property is put up for sale on a specified date, preceded by a high-impact marketing campaign that shows your commitment to selling.</li>
+          <li><strong>Exposure.</strong> With over 100 properties being brought to market, we have shared exposure to every active buyer across our marketplace.</li>
+          <li><strong>Proven.</strong> Auctions are a well-established and proven practice for selling real estate.</li>
+          <li><strong>One place, one time.</strong> Potential buyers are in one place at one time with a strong desire to purchase on the day.</li>
+          <li><strong>No price ceiling.</strong> Competitive bidding means there is no price barrier. When buyers know others are genuinely interested, they pay their best price rather than negotiating to secure their lowest.</li>
+          <li><strong>Certainty.</strong> A definite, unconditional sale is made under the hammer, assuming the reserve price is reached.</li>
+          <li><strong>Urgency.</strong> A set date of sale encourages potential buyers to act quickly.</li>
+          <li><strong>A professional.</strong> The auctioneer is a professional negotiator who undergoes extensive training, backed by a brand with over 110 years of experience.</li>
+          <li><strong>You stay in control.</strong> The reserve is set just before the event, guided by the offers and feedback from the campaign. If it isn't reached, you can pass in and the highest bidder is usually invited to negotiate with you. You make the final decision on price.</li>
+        </ul>
+        <a class="cv-link-btn" href="/summer-auctions.html" target="_blank" rel="noopener" style="margin-top:14px;">See the Full Summer Auction Details ↗</a>
+      </div>`;
+}
+
+/* Set from the /a/:id link. Self-contained ?d= links have no record to save a sign-up on. */
+let appraisalId = '';
+
+// End of 20 December, Gold Coast time. Same date in server/agent/index.js.
+const SUMMER_SIGNUP_CLOSES = Date.parse('2026-12-20T23:59:59+10:00');
+function summerSignupsClosed(){
+  return Date.now() > SUMMER_SIGNUP_CLOSES;
+}
+
+function summerSignupDoneHTML(){
+  return `<div class="cv-price-box" style="margin:0;"><p style="margin:0;font-weight:700;">✓ You're signed up for the Summer Auction</p><p style="margin:6px 0 0;">Adam will call you to confirm the next steps.</p></div>`;
+}
+
+function renderSummerSignup(data){
+  let body;
+  if (data.summerSignup){
+    body = summerSignupDoneHTML();
+  } else if (summerSignupsClosed()){
+    body = `<p>Sign-ups for the Summer Auction closed on 20 December 2026. Call ${esc(data.agent.name)} to talk about your options.</p>
+        <a class="cv-link-btn" href="tel:${esc(data.agent.phone)}">Call ${esc(data.agent.name)}</a>`;
+  } else if (!appraisalId){
+    body = `<a class="cv-link-btn" href="tel:${esc(data.agent.phone)}">Call ${esc(data.agent.name)} to Sign Up</a>`;
+  } else {
+    body = `
+        <p>Ready to go to market? Check your details and press the button. It registers your home for the Summer Auction Experience on Saturday 30 January 2027, and Adam will call you to confirm the next steps. <strong>Sign-ups close Sunday 20 December 2026.</strong></p>
+        <div class="row2">
+          <div class="field"><label>Your Name</label><input id="signupName" value="${esc(data.client.name)}" autocomplete="name"></div>
+          <div class="field"><label>Your Mobile</label><input id="signupMobile" type="tel" inputmode="tel" value="${esc(data.client.mobile)}" autocomplete="tel"></div>
+        </div>
+        <button type="button" id="signupBtn" class="btn-primary" onclick="submitSummerSignup()">Sign Me Up for the Summer Auction</button>
+        <p id="signupError" class="hidden" style="color:#B42318;font-size:13.5px;margin:10px 0 0;"></p>
+        <p style="font-size:12.5px;color:var(--grey);margin:10px 0 0;">This registers your interest and is not a selling agreement.</p>`;
+  }
+  return `
+      <div class="cv-section" id="summerSignup">
+        <span class="cv-badge">05 · Sign Up</span>
+        <h2>Sign Up for the Summer Auction</h2>
+        <div id="summerSignupBody">${body}</div>
+      </div>`;
+}
+
+async function submitSummerSignup(){
+  const name = document.getElementById('signupName').value.trim();
+  const mobile = document.getElementById('signupMobile').value.trim();
+  const btn = document.getElementById('signupBtn');
+  const error = document.getElementById('signupError');
+  const fail = msg => { error.textContent = msg; error.classList.remove('hidden'); };
+  error.classList.add('hidden');
+  if (!name || !mobile) return fail('Please enter your name and mobile.');
+  btn.disabled = true;
+  try{
+    const res = await fetch('/adam/api/appraisals/' + appraisalId + '/summer-signup', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ name, mobile })
+    });
+    if (res.status === 403){
+      btn.disabled = false;
+      return fail('Sign-ups for the Summer Auction have closed. Please call Adam on 0407 739 919.');
+    }
+    if (!res.ok) throw new Error('signup failed');
+    document.getElementById('summerSignupBody').innerHTML = summerSignupDoneHTML();
+    const cta = document.getElementById('summerSignupCta');
+    if (cta) cta.remove();
+  }catch(e){
+    console.error('Could not save Summer Auction sign-up', e);
+    btn.disabled = false;
+    fail('Sorry, that did not go through. Please try again or call Adam on 0407 739 919.');
+  }
+}
+
 function renderClientView(data){
+  // Appraisals saved before the Summer Auction version keep their original layout.
+  const summer = !!data.summerAuction;
+  const docName = summer ? 'Summer Auction Appraisal' : 'Appraisal & Proposal';
+  const no = summer ? {process:'04', investment:'06', why:'07', summary:'08'} : {process:'02', investment:'03', why:'04', summary:'05'};
   const initials = (data.agent.name||'').split(' ').map(w=>w[0]||'').join('').toUpperCase();
   let costTotal = data.costs.items.reduce((sum,c)=>sum+moneyToNumber(c.amount),0);
   const payLaterTotal = Math.round(costTotal*1.0765*100)/100;
@@ -740,7 +911,7 @@ function renderClientView(data){
     <div class="cv-header">
       <img src="/adam/ray-white-logo.png" alt="Ray White" class="cv-logo">
       <div class="agency">${esc(data.agent.agency)}</div>
-      <h1>Appraisal &amp; Proposal</h1>
+      <h1>${esc(docName)}</h1>
       <div class="agent-line">${esc(data.client.address)}${data.property.config ? ' · ' + esc(data.property.config) : ''}</div>
       <div class="cv-agent-row">
         <img src="/adam/adam-sargeant.jpg" alt="${esc(data.agent.name)}" class="cv-avatar">
@@ -752,7 +923,8 @@ function renderClientView(data){
       <p style="font-size:14.5px;color:#333;">${esc(data.intro)}</p>
       <ul class="cv-bullets" style="margin-bottom:8px;">
         <li>Your property's current market position, with a full appraisal report</li>
-        <li>The recommended process to take it to market</li>
+        ${summer ? '<li>What the Summer Auction Experience is, and why auction works</li>' : ''}
+        <li>${summer ? 'Your campaign dates and timeline if you go to market, and how to sign up' : 'The recommended process to take it to market'}</li>
         <li>The investment required, with a full breakdown</li>
         <li>Why choose myself and my team</li>
       </ul>
@@ -765,22 +937,24 @@ function renderClientView(data){
         </div>
         ${data.price.igniteLink ? `<a class="cv-link-btn" href="${esc(data.price.igniteLink)}" target="_blank" rel="noopener">View Full Appraisal Report ↗</a>` : ''}
       </div>
+${summer ? renderSummerAuctionSections() : ''}
 
       <div class="cv-section">
-        <span class="cv-badge">02 · Process</span>
-        <button type="button" class="cv-section-toggle" onclick="toggleSection('bodyProcess', this)">
-          <h2>Our Recommended Strategy</h2>
+        <span class="cv-badge">${no.process} · ${summer ? 'Your Campaign' : 'Process'}</span>
+        <button type="button" class="cv-section-toggle${summer ? ' open' : ''}" onclick="toggleSection('bodyProcess', this)">
+          <h2>${summer ? 'Your Four-Week Campaign to Auction Day' : 'Our Recommended Strategy'}</h2>
           <span class="cv-chevron">▾</span>
         </button>
-        <div id="bodyProcess" class="hidden">
+        <div id="bodyProcess"${summer ? '' : ' class="hidden"'}>
         ${data.process.startDate || data.process.auctionDate ? `<div class="cv-price-box" style="margin-bottom:16px;">
+          ${summer ? '<div class="po-row"><span>Listing Prep</span><span>December – January</span></div>' : ''}
           ${data.process.startDate ? `<div class="po-row"><span>Campaign Launch</span><span>${esc(formatDatePretty(data.process.startDate))}</span></div>` : ''}
           ${data.process.auctionDate ? `<div class="po-row"><span>Auction Day</span><span>${esc(formatDatePretty(data.process.auctionDate))}</span></div>` : ''}
         </div>` : ''}
         <p>${esc(data.process.para)}</p>
         ${timelineItems ? `<ul class="timeline">${timelineItems}</ul>` : ''}
 
-        <p class="stat-strip-label" style="margin-top:18px;">How We'll Sell Your Home</p>
+        ${summer ? '' : `<p class="stat-strip-label" style="margin-top:18px;">How We'll Sell Your Home</p>
         <div class="method-row">
           <button type="button" class="cv-method-btn" onclick="toggleDisclosure('methodPrivateTreaty', this)">Private Treaty ▾</button>
           <button type="button" class="cv-method-btn" onclick="toggleDisclosure('methodAuction', this)">Auction ▾</button>
@@ -822,14 +996,15 @@ function renderClientView(data){
             <li>The auctioneer is a professional negotiator with extensive training, backed by a brand with over 110 years of experience</li>
             <li>You have the right to set the reserve price</li>
           </ul>
-        </div>
+        </div>`}
 
         ${data.process.stagingQuoteLink ? `<a class="cv-link-btn" href="${esc(data.process.stagingQuoteLink)}" target="_blank" rel="noopener" style="margin-top:16px;">View Staging Quote ↗</a>` : ''}
         </div>
       </div>
+${summer ? renderSummerSignup(data) : ''}
 
       <div class="cv-section">
-        <span class="cv-badge">03 · Investment</span>
+        <span class="cv-badge">${no.investment} · Investment</span>
         <button type="button" class="cv-section-toggle" onclick="toggleSection('bodyInvestment', this)">
           <h2>Cost Breakdown</h2>
           <span class="cv-chevron">▾</span>
@@ -850,7 +1025,7 @@ function renderClientView(data){
       </div>
 
       <div class="cv-section">
-        <span class="cv-badge">04 · Why Us</span>
+        <span class="cv-badge">${no.why} · Why Us</span>
         <h2>Why Choose ${esc(data.agent.name)} &amp; Team</h2>
         <p>${esc(data.why.para)}</p>
 
@@ -894,12 +1069,13 @@ function renderClientView(data){
       </div>
 
       ${data.summary ? `<div class="cv-section">
-        <span class="cv-badge">05 · Summary</span>
+        <span class="cv-badge">${no.summary} · Summary</span>
         <h2>Summary</h2>
         <p>${esc(data.summary)}</p>
       </div>` : ''}
 
       <p style="font-size:14.5px;">${esc(data.closing)}</p>
+      ${summer && !data.summerSignup && !summerSignupsClosed() ? '<a class="cv-cta" id="summerSignupCta" href="#summerSignup">Sign Up for the Summer Auction</a>' : ''}
       <a class="cv-cta" href="tel:${esc(data.agent.phone)}">Call ${esc(data.agent.name)} — ${esc(data.agent.phone)}</a>
       <p class="print-note">Tip: use your phone's Share/Print menu to save this as a PDF.</p>
     </div>
@@ -907,7 +1083,7 @@ function renderClientView(data){
       <div class="agent-name">${esc(data.agent.name)}</div>
       <div>${esc(data.agent.agency)} · ${esc(data.agent.licence)}</div>
       <div>${esc(data.agent.phone)} · ${esc(data.agent.email)}</div>
-      <div class="cv-disclaimer">This Appraisal &amp; Proposal is an estimate of value and a marketing proposal only. It does not constitute a formal valuation for lending, taxation, insurance, or legal purposes.</div>
+      <div class="cv-disclaimer">This ${esc(docName)} is an estimate of value and a marketing proposal only. It does not constitute a formal valuation for lending, taxation, insurance, or legal purposes.</div>
     </div>
   `;
 }
@@ -968,7 +1144,7 @@ function showClientView(data){
   const wrap = document.getElementById('clientViewWrap');
   wrap.classList.remove('hidden');
   wrap.innerHTML = renderClientView(data);
-  document.title = 'Appraisal & Proposal – ' + (data.client.address || '');
+  document.title = (data.summerAuction ? 'Summer Auction Appraisal' : 'Appraisal & Proposal') + ' – ' + (data.client.address || '');
 }
 
 function showClientViewNotFound(){
@@ -977,7 +1153,7 @@ function showClientViewNotFound(){
   wrap.classList.remove('hidden');
   wrap.innerHTML = '<div style="padding:70px 24px;text-align:center;color:#555;max-width:400px;margin:0 auto;">' +
     '<h2 style="color:#222;font-size:20px;margin:0 0 10px;">Appraisal not found</h2>' +
-    '<p style="font-size:14px;">This link may be out of date. Please contact your agent for an updated Appraisal &amp; Proposal.</p></div>';
+    '<p style="font-size:14px;">This link may be out of date. Please contact your agent for an updated appraisal.</p></div>';
 }
 
 function loadSavedAppraisals(){
@@ -1013,6 +1189,7 @@ function loadSavedAppraisals(){
 (function boot(){
   const pathMatch = location.pathname.match(/^\/adam\/a\/([a-z0-9-]+)$/i);
   if (pathMatch){
+    appraisalId = pathMatch[1];
     fetch('/adam/api/appraisals/' + pathMatch[1])
       .then(res => { if (!res.ok) throw new Error('not found'); return res.json(); })
       .then(showClientView)

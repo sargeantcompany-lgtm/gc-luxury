@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { query } = require("../../db");
+const { sendFormEmail } = require("../../notify");
 const {
   createSession, setSessionCookie, clearSessionCookie, destroySession,
   requireBuyer, parseCookies, hashPassword, verifyPassword, SESSION_COOKIE,
@@ -38,6 +39,13 @@ router.post("/join", async (req, res) => {
     const { token, expiresAt } = await createSession(buyer.id);
     setSessionCookie(res, token, expiresAt);
     res.status(201).json({ buyer: sanitizeBuyer(buyer) });
+
+    sendFormEmail({
+      subject: `New Connector buyer: ${name}`,
+      title: "New Connector buyer sign-up",
+      rows: [["Name", name], ["Email", email], ["Phone", phone], ["Joined via", src]],
+      replyTo: email,
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -207,6 +215,16 @@ router.post("/valuations/:listingId", requireBuyer, async (req, res) => {
       [req.buyer.id, req.params.listingId]
     );
     res.status(201).json({ request: result.rows[0] });
+
+    const listing = await query("SELECT address FROM listings WHERE id = $1", [req.params.listingId]).catch(() => ({ rows: [] }));
+    const address = listing.rows[0]?.address;
+    sendFormEmail({
+      subject: `Valuation request: ${address || req.buyer.name}`,
+      title: "New Connector valuation request",
+      subtitle: address,
+      rows: [["Buyer", req.buyer.name], ["Email", req.buyer.email], ["Phone", req.buyer.phone], ["Property", address]],
+      replyTo: req.buyer.email,
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
