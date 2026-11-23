@@ -99,6 +99,7 @@ async function importWorkingListContacts(contacts, options = {}) {
   try {
     await client.query("BEGIN");
     for (const contact of contacts) {
+      const listName = contact.listName || "Owners & Mobiles";
       const legacy = await client.query(`
         UPDATE working_list_people AS person
         SET details = CASE WHEN $3 = '' THEN person.details ELSE $3 END,
@@ -106,26 +107,28 @@ async function importWorkingListContacts(contacts, options = {}) {
             address = $5,
             updated_at = NOW()
         WHERE person.name = $1 AND person.phone = $2 AND person.address = ''
+          AND person.list_name = $6
           AND $5 <> ''
           AND NOT EXISTS (
             SELECT 1 FROM working_list_people AS existing
             WHERE existing.name = $1 AND existing.phone = $2 AND existing.address = $5
+              AND existing.list_name = $6
           )
         RETURNING person.id
-      `, [contact.name, contact.phone, contact.details, contact.suburb, contact.address]);
+      `, [contact.name, contact.phone, contact.details, contact.suburb, contact.address, listName]);
 
       if (!legacy.rowCount) {
         await client.query(`
-          INSERT INTO working_list_people (name, phone, details, suburb, address)
-          VALUES ($1, $2, $3, NULLIF($4, ''), $5)
-          ON CONFLICT (name, phone, address) DO UPDATE
+          INSERT INTO working_list_people (name, phone, details, suburb, address, list_name)
+          VALUES ($1, $2, $3, NULLIF($4, ''), $5, $6)
+          ON CONFLICT (name, phone, address, list_name) DO UPDATE
           SET details = CASE
                 WHEN EXCLUDED.details = '' THEN working_list_people.details
                 ELSE EXCLUDED.details
               END,
               suburb = EXCLUDED.suburb,
               updated_at = NOW()
-        `, [contact.name, contact.phone, contact.details, contact.suburb, contact.address]);
+        `, [contact.name, contact.phone, contact.details, contact.suburb, contact.address, listName]);
       }
       imported += 1;
     }

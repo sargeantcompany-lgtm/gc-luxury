@@ -320,11 +320,15 @@ ALTER TABLE working_list_people ADD COLUMN IF NOT EXISTS email VARCHAR(255);
 ALTER TABLE working_list_people ADD COLUMN IF NOT EXISTS details TEXT DEFAULT '';
 ALTER TABLE working_list_people ADD COLUMN IF NOT EXISTS suburb VARCHAR(120);
 ALTER TABLE working_list_people ADD COLUMN IF NOT EXISTS address TEXT NOT NULL DEFAULT '';
+ALTER TABLE working_list_people ADD COLUMN IF NOT EXISTS list_name VARCHAR(120) NOT NULL DEFAULT 'Owners & Mobiles';
 DROP INDEX IF EXISTS idx_working_list_person_name_phone;
-CREATE UNIQUE INDEX IF NOT EXISTS idx_working_list_person_name_phone_address
-    ON working_list_people(name, phone, address);
+DROP INDEX IF EXISTS idx_working_list_person_name_phone_address;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_working_list_person_identity
+    ON working_list_people(name, phone, address, list_name);
 CREATE INDEX IF NOT EXISTS idx_working_list_person_suburb
     ON working_list_people(suburb);
+CREATE INDEX IF NOT EXISTS idx_working_list_person_list_suburb
+    ON working_list_people(list_name, suburb);
 
 CREATE TABLE IF NOT EXISTS working_list_templates (
     id SERIAL PRIMARY KEY,

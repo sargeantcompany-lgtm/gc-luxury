@@ -20,6 +20,8 @@ export default function WorkingList() {
   const { show } = useToast();
   const [people, setPeople] = useState([]);
   const [total, setTotal] = useState(0);
+  const [lists, setLists] = useState([]);
+  const [selectedListName, setSelectedListName] = useState('Owners & Mobiles');
   const [groups, setGroups] = useState([]);
   const [groupTotal, setGroupTotal] = useState(0);
   const [selectedGroup, setSelectedGroup] = useState('all');
@@ -35,11 +37,11 @@ export default function WorkingList() {
   const messageInput = useRef(null);
   const ownerFileInput = useRef(null);
 
-  async function load(query = search, reset = true, group = selectedGroup) {
+  async function load(query = search, reset = true, group = selectedGroup, listName = selectedListName) {
     setLoading(true);
     try {
       const nextOffset = reset ? 0 : offset;
-      const data = await workingListApi.people({ search: query, group, limit: 50, offset: nextOffset });
+      const data = await workingListApi.people({ search: query, group, listName, limit: 50, offset: nextOffset });
       setPeople((current) => reset ? data.people : [...current, ...data.people]);
       setTotal(data.total);
       setOffset(nextOffset + data.people.length);
@@ -50,9 +52,9 @@ export default function WorkingList() {
     }
   }
 
-  async function loadGroups() {
+  async function loadGroups(listName = selectedListName) {
     try {
-      const data = await workingListApi.groups();
+      const data = await workingListApi.groups(listName);
       setGroups(data.groups);
       setGroupTotal(data.total);
     } catch (error) {
@@ -66,10 +68,14 @@ export default function WorkingList() {
 
     setImporting(true);
     try {
-      const result = await workingListApi.importContacts(file);
+      const result = await workingListApi.importContacts(file, selectedListName);
       setSelectedGroup('all');
-      await Promise.all([loadGroups(), load(search, true, 'all')]);
-      show(`Imported ${result.imported} owner/address contacts; skipped ${result.skipped} rows without an owner or mobile.`, 'success');
+      await Promise.all([
+        loadGroups(selectedListName),
+        load(search, true, 'all', selectedListName),
+        workingListApi.lists().then((data) => setLists(data.lists)),
+      ]);
+      show(`Imported ${result.imported} contacts into ${result.listName}; skipped ${result.skipped} rows without an owner or mobile.`, 'success');
     } catch (error) {
       show(error.message, 'error');
     } finally {
@@ -80,16 +86,18 @@ export default function WorkingList() {
 
   useEffect(() => {
     Promise.all([
-      workingListApi.people({ group: 'all', limit: 50 }),
+      workingListApi.people({ group: 'all', listName: 'Owners & Mobiles', limit: 50 }),
       workingListApi.template(today),
-      workingListApi.groups(),
+      workingListApi.groups('Owners & Mobiles'),
+      workingListApi.lists(),
     ])
-      .then(([peopleData, template, groupData]) => {
+      .then(([peopleData, template, groupData, listData]) => {
         setPeople(peopleData.people);
         setTotal(peopleData.total);
         setOffset(peopleData.people.length);
         setGroups(groupData.groups);
         setGroupTotal(groupData.total);
+        setLists(listData.lists);
         setMessage(template.message);
         setSavedMessage(template.message);
       })
@@ -113,17 +121,24 @@ export default function WorkingList() {
   function openForm(person = null) {
     setEditing(person?.id || 'new');
     setForm(person
-      ? { name: person.name || '', phone: person.phone || '', email: person.email || '', suburb: person.suburb || '', address: person.address || '', details: person.details || '' }
-      : { name: '', phone: '', email: '', suburb: '', address: '', details: '' });
+      ? { name: person.name || '', phone: person.phone || '', email: person.email || '', suburb: person.suburb || '', address: person.address || '', details: person.details || '', listName: person.list_name || selectedListName }
+      : { name: '', phone: '', email: '', suburb: '', address: '', details: '', listName: selectedListName });
   }
 
   async function savePerson(event) {
     event.preventDefault();
     try {
+      const listName = form.listName.trim();
       if (editing === 'new') await workingListApi.create(form);
       else await workingListApi.update(editing, form);
       setEditing(null);
-      await Promise.all([loadGroups(), load(search, true, selectedGroup)]);
+      setSelectedListName(listName);
+      setSelectedGroup('all');
+      await Promise.all([
+        workingListApi.lists().then((data) => setLists(data.lists)),
+        loadGroups(listName),
+        load(search, true, 'all', listName),
+      ]);
       show('Contact saved', 'success');
     } catch (error) {
       show(error.message, 'error');
@@ -134,7 +149,11 @@ export default function WorkingList() {
     if (!window.confirm(`Delete ${person.name}?`)) return;
     try {
       await workingListApi.delete(person.id);
-      await Promise.all([loadGroups(), load(search, true, selectedGroup)]);
+      await Promise.all([
+        workingListApi.lists().then((data) => setLists(data.lists)),
+        loadGroups(),
+        load(search, true, selectedGroup),
+      ]);
       show('Contact deleted', 'success');
     } catch (error) {
       show(error.message, 'error');
@@ -198,6 +217,19 @@ export default function WorkingList() {
     load(search, true, group);
   };
 
+  function selectList(listName) {
+    setSelectedListName(listName);
+    setSelectedGroup('all');
+    loadGroups(listName);
+    load(search, true, 'all', listName);
+  }
+
+  function createList() {
+    const listName = window.prompt('Name the SMS list:');
+    if (!listName?.trim()) return;
+    selectList(listName.trim());
+  }
+
   return (
     <div className="page">
       <div className="page-header">
@@ -214,7 +246,7 @@ export default function WorkingList() {
             style={{ display: 'none' }}
           />
           <button className="btn btn-secondary" type="button" onClick={() => ownerFileInput.current?.click()} disabled={importing}>
-            {importing ? 'Importing...' : 'Import owners CSV'}
+            {importing ? 'Importing...' : 'Import CSV to selected list'}
           </button>
           <button className="btn btn-primary" type="button" onClick={() => openForm()}>Add contact</button>
         </div>
@@ -274,6 +306,25 @@ export default function WorkingList() {
         </div>
 
         <div className="card-body" style={{ paddingTop: 0 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'end', gap: 8, marginBottom: 16 }}>
+            <div className="form-group" style={{ margin: 0, minWidth: 240 }}>
+              <label className="form-label" htmlFor="working-list-select">SMS list</label>
+              <select
+                id="working-list-select"
+                className="form-input"
+                value={selectedListName}
+                onChange={(event) => selectList(event.target.value)}
+              >
+                {!lists.some((list) => list.name === selectedListName) && (
+                  <option value={selectedListName}>{selectedListName} (new)</option>
+                )}
+                {lists.map((list) => (
+                  <option key={list.name} value={list.name}>{list.name} ({list.count})</option>
+                ))}
+              </select>
+            </div>
+            <button className="btn btn-secondary" type="button" onClick={createList}>New SMS list</button>
+          </div>
           <div className="form-hint" style={{ marginBottom: 8 }}>Contact categories · tap a name to open a text</div>
           <div role="group" aria-label="Contact categories" style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             <button
@@ -352,6 +403,7 @@ export default function WorkingList() {
               <div className="form-group"><label className="form-label">Email</label><input className="form-input" type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} /></div>
               <div className="form-group"><label className="form-label">Suburb</label><input className="form-input" value={form.suburb} onChange={(event) => setForm({ ...form, suburb: event.target.value })} /></div>
               <div className="form-group"><label className="form-label">Property address</label><input className="form-input" value={form.address} onChange={(event) => setForm({ ...form, address: event.target.value })} /></div>
+              <div className="form-group"><label className="form-label">SMS list</label><input className="form-input" required maxLength="120" value={form.listName} onChange={(event) => setForm({ ...form, listName: event.target.value })} /></div>
               <div className="form-group"><label className="form-label">Details</label><textarea className="form-textarea" rows="5" value={form.details} onChange={(event) => setForm({ ...form, details: event.target.value })} /></div>
             </div>
             <div className="modal-footer">

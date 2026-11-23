@@ -137,11 +137,13 @@ export const gcBlogApi = {
 
 // ── GC Luxury Working List ──────────────────────────────────────
 export const workingListApi = {
-  groups: () => api.get('/working-list/groups'),
+  lists: () => api.get('/working-list/lists'),
+  groups: (listName) => api.get('/working-list/groups', { params: { listName } }),
   people: (params) => api.get('/working-list/people', { params }),
-  importContacts: (file) => {
+  importContacts: (file, listName) => {
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('listName', listName);
     return api.post('/working-list/import', formData);
   },
   create: (data) => api.post('/working-list/people', data),

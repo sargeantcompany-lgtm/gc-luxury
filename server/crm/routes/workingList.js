@@ -11,6 +11,7 @@ const {
 
 const router = express.Router();
 const SUMMER_AUCTION_PAGE_KEY = "summer-auction-experience-letter";
+const DEFAULT_LIST_NAME = "Owners & Mobiles";
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 },
@@ -26,9 +27,13 @@ function uploadOwnerFile(req, res, next) {
   });
 }
 
-function peopleFilters(search, group) {
-  const conditions = [];
-  const params = [];
+function cleanListName(value) {
+  return String(value || DEFAULT_LIST_NAME).replace(/\s+/g, " ").trim();
+}
+
+function peopleFilters(search, group, listName) {
+  const conditions = ["list_name = $1"];
+  const params = [listName];
 
   if (group === "__small__") {
     conditions.push(`(
@@ -36,6 +41,7 @@ function peopleFilters(search, group) {
       OR COALESCE(NULLIF(BTRIM(suburb), ''), '') IN (
         SELECT COALESCE(NULLIF(BTRIM(suburb), ''), '')
         FROM working_list_people
+        WHERE list_name = $1
         GROUP BY 1
         HAVING COUNT(*) < 10
       )
@@ -90,14 +96,30 @@ function summerAuctionPageUrl(req, token) {
   return new URL(path, `${protocol}://${host}`).toString();
 }
 
+router.get("/lists", async (req, res) => {
+  try {
+    const result = await query(`
+      SELECT list_name AS name, COUNT(*)::int AS count
+      FROM working_list_people
+      GROUP BY list_name
+      ORDER BY list_name ASC
+    `);
+    res.json({ lists: result.rows });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 router.get("/groups", async (req, res) => {
   try {
+    const listName = cleanListName(req.query.listName);
     const result = await query(`
       SELECT COALESCE(NULLIF(BTRIM(suburb), ''), '') AS suburb, COUNT(*)::int AS count
       FROM working_list_people
+      WHERE list_name = $1
       GROUP BY 1
       ORDER BY 1 ASC
-    `);
+    `, [listName]);
     const groups = result.rows
       .filter((row) => row.suburb && row.count >= 10)
       .map((row) => ({ key: row.suburb, label: row.suburb, count: row.count }));
@@ -113,6 +135,7 @@ router.get("/groups", async (req, res) => {
     }
 
     res.json({
+      listName,
       total: result.rows.reduce((sum, row) => sum + row.count, 0),
       groups,
     });
@@ -134,13 +157,20 @@ router.post("/import", uploadOwnerFile, async (req, res) => {
     return res.status(400).json({ error: error.message });
   }
 
+  const listName = cleanListName(req.body.listName);
+  if (!listName || listName.length > 120) {
+    return res.status(400).json({ error: "List name must be between 1 and 120 characters." });
+  }
+
   try {
-    const imported = await importWorkingListContacts(parsed.contacts);
+    const contacts = parsed.contacts.map((contact) => ({ ...contact, listName }));
+    const imported = await importWorkingListContacts(contacts);
     res.status(201).json({
       imported,
       skipped: parsed.skipped,
       sourceRows: parsed.sourceRows,
-      ...summarizeWorkingListContacts(parsed.contacts),
+      listName,
+      ...summarizeWorkingListContacts(contacts),
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -151,12 +181,13 @@ router.get("/people", async (req, res) => {
   try {
     const search = String(req.query.search || "").trim();
     const group = String(req.query.group || "all");
+    const listName = cleanListName(req.query.listName);
     const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 50));
     const offset = Math.max(0, Number(req.query.offset) || 0);
-    const { where, params } = peopleFilters(search, group);
+    const { where, params } = peopleFilters(search, group, listName);
 
     const people = await query(`
-      SELECT id, name, phone, email, details, suburb, address, updated_at
+      SELECT id, name, phone, email, details, suburb, address, list_name, updated_at
       FROM working_list_people
       ${where}
       ORDER BY suburb ASC NULLS LAST, name ASC, address ASC
@@ -183,16 +214,18 @@ router.post("/people", async (req, res) => {
     const details = String(req.body.details || "").trim();
     const suburb = String(req.body.suburb || "").trim();
     const address = String(req.body.address || "").trim();
+    const listName = cleanListName(req.body.listName);
     if (!name || !phone) return res.status(400).json({ error: "Name and phone are required" });
+    if (!listName || listName.length > 120) return res.status(400).json({ error: "List name must be between 1 and 120 characters." });
 
     const result = await query(`
-      INSERT INTO working_list_people (name, phone, email, details, suburb, address)
-      VALUES ($1, $2, NULLIF($3, ''), $4, NULLIF($5, ''), $6)
-      ON CONFLICT (name, phone, address) DO UPDATE
+      INSERT INTO working_list_people (name, phone, email, details, suburb, address, list_name)
+      VALUES ($1, $2, NULLIF($3, ''), $4, NULLIF($5, ''), $6, $7)
+      ON CONFLICT (name, phone, address, list_name) DO UPDATE
       SET email = EXCLUDED.email, details = EXCLUDED.details,
           suburb = EXCLUDED.suburb, updated_at = NOW()
-      RETURNING id, name, phone, email, details, suburb, address, updated_at
-    `, [name, phone, email, details, suburb, address]);
+      RETURNING id, name, phone, email, details, suburb, address, list_name, updated_at
+    `, [name, phone, email, details, suburb, address, listName]);
     res.status(201).json(result.rows[0]);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -207,15 +240,17 @@ router.put("/people/:id", async (req, res) => {
     const details = String(req.body.details || "").trim();
     const suburb = String(req.body.suburb || "").trim();
     const address = String(req.body.address || "").trim();
+    const listName = cleanListName(req.body.listName);
     if (!name || !phone) return res.status(400).json({ error: "Name and phone are required" });
+    if (!listName || listName.length > 120) return res.status(400).json({ error: "List name must be between 1 and 120 characters." });
 
     const result = await query(`
       UPDATE working_list_people
       SET name = $1, phone = $2, email = NULLIF($3, ''), details = $4,
-          suburb = NULLIF($5, ''), address = $6, updated_at = NOW()
-      WHERE id = $7
-      RETURNING id, name, phone, email, details, suburb, address, updated_at
-    `, [name, phone, email, details, suburb, address, req.params.id]);
+          suburb = NULLIF($5, ''), address = $6, list_name = $7, updated_at = NOW()
+      WHERE id = $8
+      RETURNING id, name, phone, email, details, suburb, address, list_name, updated_at
+    `, [name, phone, email, details, suburb, address, listName, req.params.id]);
 
     if (!result.rowCount) return res.status(404).json({ error: "Contact not found" });
     res.json(result.rows[0]);
