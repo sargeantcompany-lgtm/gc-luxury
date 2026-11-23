@@ -301,3 +301,51 @@ UPDATE contacts SET brand_id = (SELECT id FROM brands WHERE name = 'GC Luxury')
   WHERE brand_id IS NULL OR brand_id IN (SELECT id FROM brands WHERE name IN ('Real Estate', 'Houzeey'));
 DELETE FROM templates WHERE brand_id IN (SELECT id FROM brands WHERE name IN ('Real Estate', 'Houzeey'));
 DELETE FROM brands WHERE name IN ('Real Estate', 'Houzeey');
+
+-- ============================================
+-- GC Luxury Working List
+-- Separate outreach contacts, today's SMS text, and send history.
+-- ============================================
+CREATE TABLE IF NOT EXISTS working_list_people (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(200) NOT NULL,
+    phone VARCHAR(50) NOT NULL,
+    email VARCHAR(255),
+    details TEXT NOT NULL DEFAULT '',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE working_list_people ADD COLUMN IF NOT EXISTS email VARCHAR(255);
+ALTER TABLE working_list_people ADD COLUMN IF NOT EXISTS details TEXT DEFAULT '';
+ALTER TABLE working_list_people ADD COLUMN IF NOT EXISTS suburb VARCHAR(120);
+ALTER TABLE working_list_people ADD COLUMN IF NOT EXISTS address TEXT NOT NULL DEFAULT '';
+DROP INDEX IF EXISTS idx_working_list_person_name_phone;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_working_list_person_name_phone_address
+    ON working_list_people(name, phone, address);
+CREATE INDEX IF NOT EXISTS idx_working_list_person_suburb
+    ON working_list_people(suburb);
+
+CREATE TABLE IF NOT EXISTS working_list_templates (
+    id SERIAL PRIMARY KEY,
+    send_date DATE NOT NULL UNIQUE,
+    message TEXT NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS working_list_private_pages (
+    page_key VARCHAR(100) PRIMARY KEY,
+    token VARCHAR(64) NOT NULL UNIQUE,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS working_list_send_log (
+    id SERIAL PRIMARY KEY,
+    person_id INTEGER NOT NULL REFERENCES working_list_people(id) ON DELETE CASCADE,
+    phone VARCHAR(50) NOT NULL,
+    message TEXT NOT NULL,
+    sent_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_working_list_send_log_person
+    ON working_list_send_log(person_id, sent_at DESC);

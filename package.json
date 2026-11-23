@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node server/index.js",
     "build": "cd admin-frontend && npm install && npm run build && cd ../connector-frontend && npm install && npm run build",
+    "import-working-list": "node server/importWorkingList.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

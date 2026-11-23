@@ -17,6 +17,7 @@ const settingsRouter = require("./crm/routes/settings");
 const gcListingsRouter = require("./crm/routes/gcListings");
 const gcBlogRouter = require("./crm/routes/gcBlog");
 const listingChecklistsRouter = require("./crm/routes/listingChecklists");
+const workingListRouter = require("./crm/routes/workingList");
 const { requireAdmin: requireCrmAdmin } = require("./crm/adminAuth");
 const connectorBuyerRouter = require("./connector/routes/buyer");
 const connectorAdminListingsRouter = require("./connector/routes/adminListings");
@@ -58,6 +59,26 @@ app.get("/pre-list-kit.html", (req, res) => res.redirect(301, "/going-to-the-mar
 app.get("/how-to-sell.html", (req, res) => res.redirect(301, "/going-to-the-market.html"));
 // Placeholder until the Vantage page is built.
 app.get("/vantage", (req, res) => res.redirect(302, "/vantage-network.html"));
+app.get("/summer-auction-experience/:token", async (req, res) => {
+  const token = String(req.params.token || "");
+  if (!/^[a-f0-9]{64}$/.test(token)) return res.sendStatus(404);
+
+  try {
+    const result = await query(
+      "SELECT 1 FROM working_list_private_pages WHERE page_key = $1 AND token = $2",
+      ["summer-auction-experience-letter", token]
+    );
+    if (!result.rowCount) return res.sendStatus(404);
+
+    res.set("X-Robots-Tag", "noindex, nofollow, noarchive");
+    res.set("Cache-Control", "private, no-store");
+    res.set("Referrer-Policy", "no-referrer");
+    res.sendFile(path.join(__dirname, "private-pages", "summer-auction-experience-letter.html"));
+  } catch (error) {
+    console.error("Could not load the private Summer Auction Experience page:", error);
+    res.sendStatus(500);
+  }
+});
 app.use(express.static(CLIENT_DIR));
 
 // CRM admin (built React app), served under /admin
@@ -78,6 +99,7 @@ app.use("/api/templates", requireCrmAdmin, templatesRouter);
 app.use("/api/activity", requireCrmAdmin, activityRouter);
 app.use("/api/settings", requireCrmAdmin, settingsRouter);
 app.use("/api/listing-checklists", requireCrmAdmin, listingChecklistsRouter);
+app.use("/api/working-list", requireCrmAdmin, workingListRouter);
 
 // GC Luxury public listings - GET is public (read by the marketing site),
 // write routes are admin-gated inside the router itself.

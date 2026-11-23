@@ -58,6 +58,14 @@ const icons = {
       <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
     </svg>
   ),
+  working: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <rect x="3" y="4" width="18" height="16" rx="2"/>
+      <line x1="7" y1="8" x2="17" y2="8"/>
+      <line x1="7" y1="12" x2="17" y2="12"/>
+      <line x1="7" y1="16" x2="12" y2="16"/>
+    </svg>
+  ),
   settings: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <circle cx="12" cy="12" r="3"/>
@@ -88,6 +96,7 @@ const navSections = [
   {
     title: 'Outreach',
     items: [
+      { to: '/working-list', label: 'Working List', icon: 'working' },
       { to: '/gc-listings', label: 'GC Listings', icon: 'listings' },
       { to: '/gc-blog', label: 'GC Blog', icon: 'templates' },
     ],

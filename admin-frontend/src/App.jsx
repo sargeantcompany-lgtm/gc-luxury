@@ -13,6 +13,7 @@ import ListingChecklists from './pages/ListingChecklists';
 import RayWhite from './pages/RayWhite';
 import ActivityLog from './pages/ActivityLog';
 import Settings from './pages/Settings';
+import WorkingList from './pages/WorkingList';
 
 export default function App() {
   return (
@@ -29,6 +30,7 @@ export default function App() {
             <Route path="templates" element={<Navigate to="/dashboard" replace />} />
             <Route path="gc-listings" element={<GcListings />} />
             <Route path="gc-blog" element={<GcBlog />} />
+            <Route path="working-list" element={<WorkingList />} />
             <Route path="listing-checklists" element={<ListingChecklists />} />
             <Route path="listing-checklists/:id" element={<ListingChecklists />} />
             <Route path="appraisals" element={<RayWhite key="appraisals" page="appraisals" />} />

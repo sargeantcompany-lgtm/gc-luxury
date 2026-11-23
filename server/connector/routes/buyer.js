@@ -112,6 +112,22 @@ router.put("/brief", requireBuyer, async (req, res) => {
       [req.buyer.id, propertyType || null, priceMin || null, priceMax || null, areas || null, mustHaves || null]
     );
     res.json({ brief: result.rows[0] });
+
+    sendFormEmail({
+      subject: `Connector buyer brief: ${req.buyer.name}`,
+      title: "Connector buyer brief saved",
+      rows: [
+        ["Buyer", req.buyer.name],
+        ["Email", req.buyer.email],
+        ["Phone", req.buyer.phone],
+        ["Property type", propertyType],
+        ["Price min", priceMin],
+        ["Price max", priceMax],
+        ["Areas", areas],
+        ["Must-haves", mustHaves],
+      ],
+      replyTo: req.buyer.email,
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

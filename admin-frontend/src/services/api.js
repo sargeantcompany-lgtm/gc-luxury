@@ -135,6 +135,25 @@ export const gcBlogApi = {
   delete: (id) => api.delete(`/gc-blog/${id}`),
 };
 
+// ── GC Luxury Working List ──────────────────────────────────────
+export const workingListApi = {
+  groups: () => api.get('/working-list/groups'),
+  people: (params) => api.get('/working-list/people', { params }),
+  importContacts: (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post('/working-list/import', formData);
+  },
+  create: (data) => api.post('/working-list/people', data),
+  update: (id, data) => api.put(`/working-list/people/${id}`, data),
+  delete: (id) => api.delete(`/working-list/people/${id}`),
+  template: (date) => api.get('/working-list/template', { params: { date } }),
+  saveTemplate: (data) => api.put('/working-list/template', data),
+  summerAuctionLink: () => api.get('/working-list/summer-auction-link'),
+  rotateSummerAuctionLink: () => api.post('/working-list/summer-auction-link/rotate'),
+  logSend: (id, message) => api.post(`/working-list/people/${id}/send`, { message }),
+};
+
 // ── Listing Checklists ───────────────────────────────────────────
 export const listingChecklistsApi = {
   list: () => api.get('/listing-checklists'),

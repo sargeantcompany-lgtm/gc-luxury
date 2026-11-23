@@ -28,9 +28,12 @@ export default function RayWhite({ page }) {
     <div>
       <div className="page-header">
         <h1 className="page-title">{title}</h1>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           {page === 'appraisals' && (
-            <a className="btn btn-primary btn-sm" href="/adam/appraisal-tool.html" target="_blank" rel="noopener">+ New Appraisal</a>
+            <>
+              <a className="btn btn-primary btn-sm" href="/adam/appraisal-tool.html" target="_blank" rel="noopener">+ New Appraisal</a>
+              <a className="btn btn-primary btn-sm" href="/adam/appraisal-tool.html?type=summer" target="_blank" rel="noopener">+ New Summer Auction Appraisal</a>
+            </>
           )}
           <a className="btn btn-secondary btn-sm" href={`/adam/admin`} target="_blank" rel="noopener">Open full page ↗</a>
         </div>

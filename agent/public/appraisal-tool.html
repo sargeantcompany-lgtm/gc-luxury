@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>Summer Auction Appraisal Builder</title>
+<title>Appraisal &amp; Proposal Builder</title>
 <style>
   :root{
     --gold:#FFE512;
@@ -339,8 +339,9 @@
 <!-- =================================================================== -->
 <div id="builder">
   <div class="builder-header">
-    <h1>Summer Auction Appraisal Builder</h1>
+    <h1 id="builderTitle">Appraisal &amp; Proposal Builder</h1>
     <p>Fill this in once per property, then generate a mobile-friendly link you can text straight to your client. Each generated appraisal is saved so you can find it again below.</p>
+    <p><a id="builderSwitch" href="/adam/appraisal-tool.html?type=summer" style="color:inherit;font-weight:700;">Switch to the Summer Auction builder →</a></p>
   </div>
 
   <div class="card">
@@ -375,10 +376,14 @@
     <div class="row2">
       <div class="field" style="grid-column:1 / -1;"><label>Property Address</label><input id="propAddress" value="" placeholder="5 Rowes Court, Bundall QLD 4217"></div>
     </div>
-    <div class="row3">
+    <div class="row2">
       <div class="field"><label>Land Area</label><input id="propLand" value="" placeholder="850m² (Lot 201, RP125160)"></div>
       <div class="field"><label>Floor Area</label><input id="propFloor" value="" placeholder="316m²"></div>
-      <div class="field"><label>Configuration</label><input id="propConfig" value="" placeholder="5 bed | 3 bath | 4 car"></div>
+    </div>
+    <div class="row3">
+      <div class="field"><label>Bedrooms</label><input id="propBeds" inputmode="numeric" value="" placeholder="5"></div>
+      <div class="field"><label>Bathrooms</label><input id="propBaths" inputmode="numeric" value="" placeholder="3"></div>
+      <div class="field"><label>Garage</label><input id="propGarage" inputmode="numeric" value="" placeholder="4"></div>
     </div>
   </div>
 
@@ -386,7 +391,7 @@
     <h2>Introduction</h2>
     <div class="field">
       <label>Opening paragraph</label>
-      <textarea id="introPara">Thank you for the opportunity to prepare this Summer Auction Appraisal for your home. It has been prepared to provide you with a clear, evidence-based view of your property's position in the current market, together with a proposal for taking it to market in our Summer Auction Experience at The Star Gold Coast on Saturday 30 January 2027, should you choose to sell. This document has been structured to answer five key questions:</textarea>
+      <textarea id="introPara">Thank you for the opportunity to prepare this Appraisal &amp; Proposal for your home. It has been prepared to provide you with a clear, evidence-based view of your property's position in the current market, together with a proposal for how we would take it to market on your behalf, should you choose to sell. This document has been structured to answer four key questions:</textarea>
     </div>
   </div>
 
@@ -402,7 +407,7 @@
     <h2>2. Recommended Process</h2>
     <div class="field">
       <label>Strategy paragraph</label>
-      <textarea id="processPara">If you decide to go to market, we recommend the Summer Auction Experience: a four-week campaign launching Monday 4 January and finishing under the hammer on Saturday 30 January 2027. It's built on the Ray White approach: generating genuine competition among buyers through a clearly defined timeline, wide-reaching marketing exposure, and structured pricing feedback throughout the campaign.</textarea>
+      <textarea id="processPara">Based on current market conditions, we recommend a campaign built on the Ray White approach: generating genuine competition among buyers through a clearly defined timeline, wide-reaching marketing exposure, and structured pricing feedback throughout the campaign.</textarea>
     </div>
     <div class="row2">
       <div class="field">
@@ -410,8 +415,8 @@
         <input type="text" id="campaignStart" class="cal-input" readonly placeholder="Select a Monday" onclick="openCalendar('campaignStart', 1)">
       </div>
       <div class="field">
-        <label>Auction Date (Saturday)</label>
-        <input type="text" id="auctionDate" class="cal-input" readonly placeholder="Select a Saturday" onclick="openCalendar('auctionDate', 6)">
+        <label id="auctionDateLabel">Auction Date (Thursday)</label>
+        <input type="text" id="auctionDate" class="cal-input" readonly placeholder="Select a Thursday" onclick="openCalendar('auctionDate', SUMMER ? 6 : 4)">
       </div>
     </div>
     <div id="calendarPopover" class="calendar-popover hidden"></div>
@@ -424,14 +429,14 @@
     <label style="font-size:12.5px;font-weight:600;color:var(--grey);text-transform:uppercase;">Campaign Timeline</label>
     <div id="timelineRows"></div>
     <button type="button" class="add-btn" onclick="addTimelineRow()">+ Add timeline step</button>
-    <p style="font-size:12.5px;color:var(--grey);margin:10px 0 0;">Clients also get the Summer Auction Experience and Why Auction sections with our campaign stats, plus the sign-up button — fixed content, nothing to fill in here.</p>
+    <p id="processNote" style="font-size:12.5px;color:var(--grey);margin:10px 0 0;">Clients also get a click-to-expand explainer covering Private Treaty vs Auction — fixed content, nothing to fill in here.</p>
   </div>
 
   <div class="card">
     <h2>3. Investment &amp; Cost Breakdown</h2>
     <div class="field">
       <label>Introductory line</label>
-      <textarea id="costsIntro" style="min-height:40px;">The table below sets out the full marketing investment for your Summer Auction campaign, including the event fee, and what each item covers.</textarea>
+      <textarea id="costsIntro" style="min-height:40px;">The table below sets out the full marketing investment for your campaign and what each item covers.</textarea>
     </div>
 
     <label style="font-size:12.5px;font-weight:600;color:var(--grey);text-transform:uppercase;">Marketing Package</label>
@@ -465,7 +470,7 @@
     <h2>5. Summary</h2>
     <div class="field">
       <label>Summary paragraph</label>
-      <textarea id="summaryPara">In summary, this proposal sets out why the Summer Auction Experience is the right stage for your home, the campaign leading up to auction day, the marketing investment and the team behind it. We're confident this approach will achieve the best possible outcome for your sale, and we look forward to the opportunity to bring it to life together.</textarea>
+      <textarea id="summaryPara">In summary, this proposal sets out our recommended process, marketing investment and the team behind your campaign. We're confident this approach will achieve the best possible outcome for your sale, and we look forward to the opportunity to bring it to life together.</textarea>
     </div>
   </div>
 
@@ -473,15 +478,15 @@
     <h2>Closing</h2>
     <div class="field">
       <label>Closing paragraph / call to action</label>
-      <textarea id="closingPara">I'd welcome the opportunity to meet with you to walk through this Summer Auction Appraisal in detail and discuss next steps. Please get in touch at your convenience.</textarea>
+      <textarea id="closingPara">I'd welcome the opportunity to meet with you to walk through this Appraisal &amp; Proposal in detail and discuss next steps. Please get in touch at your convenience.</textarea>
     </div>
   </div>
 
-  <button class="btn-primary" onclick="generate()">Generate Summer Auction Appraisal &amp; Get Shareable Link</button>
+  <button class="btn-primary" id="generateBtn" onclick="generate()">Generate Appraisal &amp; Get Shareable Link</button>
 
   <div id="shareBox" class="hidden">
     <h3>✓ Ready to send</h3>
-    <p style="font-size:13px;color:var(--grey);margin:0 0 8px;">Copy this link and text it to your client — it opens straight to the finished Summer Auction Appraisal, formatted for their phone.</p>
+    <p style="font-size:13px;color:var(--grey);margin:0 0 8px;">Copy this link and text it to your client — it opens straight to the finished <span id="shareDocName">Appraisal &amp; Proposal</span>, formatted for their phone.</p>
     <input id="shareUrl" readonly>
     <div class="share-actions">
       <button class="btn-secondary" onclick="copyLink()">Copy Link</button>
@@ -497,6 +502,9 @@
 <div id="clientViewWrap" class="hidden"></div>
 
 <script>
+/* ---------------- Two builders on one page: normal, and Summer Auction (?type=summer) ---------------- */
+const SUMMER = new URLSearchParams(location.search).get('type') === 'summer';
+
 /* ---------------- Repeating row templates ---------------- */
 function rowShell(inner){
   const div = document.createElement('div');
@@ -607,9 +615,10 @@ function addWhyRow(v=''){
 }
 
 /* ---------------- Malan + Co marketing schedule presets ---------------- */
-// The event fee takes the place of the auctioneer fee in every package.
+// On the Summer builder the event fee takes the place of the auctioneer fee in every package.
 // From the "What is the cost?" FAQ on client/summer-auctions.html.
 const SUMMER_EVENT_FEE = {item:'Summer Auction Experience Event Fee', desc:'The Star Gold Coast, Saturday 30 January 2027', amount:'$895'};
+const auctionFee = fee => SUMMER ? SUMMER_EVENT_FEE : fee;
 const TIERS = {
   // Matches the Malan + Co Marketing Budget Master (Silver), plus video and reel.
   Silver: [
@@ -624,7 +633,7 @@ const TIERS = {
     {item:'realestate.com.au Premiere+', desc:'With Pro AMAX social boost', amount:'$3,098'},
     {item:'Domain Platinum', desc:'Plus 2-week social boost', amount:'$1,519'},
     {item:'Social Media Marketing', desc:'Meta and Google ad spend', amount:'$1,000'},
-    SUMMER_EVENT_FEE,
+    auctionFee({item:'Online Auctioneer Fee', desc:'Incurred as soon as an auction is booked', amount:'$705'}),
     {item:'Gold Coast Bulletin Campaign', desc:'Full page print', amount:'$920'},
   ],
   Gold: [
@@ -636,7 +645,7 @@ const TIERS = {
     {item:'Sundry Marketing', desc:'In-house printing, open home prep, social media marketing', amount:'$300'},
     {item:'realestate.com.au Premiere+', desc:'With Pro AMAX social boost', amount:'$3,098'},
     {item:'Domain Platinum', desc:'Plus 2-week social boost', amount:'$1,519'},
-    SUMMER_EVENT_FEE,
+    auctionFee({item:'Auctioneer Fee', desc:'Online/onsite auction', amount:'$705'}),
     {item:'Gold Coast Bulletin Campaign', desc:'Full page print — 1 week', amount:'$920'},
   ],
   Platinum: [
@@ -648,7 +657,7 @@ const TIERS = {
     {item:'Sundry Marketing', desc:'In-house printing, open home prep, social media marketing', amount:'$500'},
     {item:'realestate.com.au Premiere+', desc:'With Pro AMAX social boost', amount:'$3,098'},
     {item:'Domain Platinum', desc:'Plus 2-week social boost', amount:'$1,519'},
-    SUMMER_EVENT_FEE,
+    auctionFee({item:'Auctioneer Fee', desc:'Online/onsite auction', amount:'$770'}),
     {item:'Gold Coast Bulletin Campaign', desc:'Full page print — 2 weeks', amount:'$1,840'},
   ],
 };
@@ -658,25 +667,53 @@ function applyTier(tier){
 }
 
 /* ---------------- Seed defaults ---------------- */
-// Summer Auction Experience 2027 dates, same as the calendar on client/summer-auctions.html.
 function seedDate(id, iso){
   const input = document.getElementById(id);
   input.value = formatDatePretty(iso);
   input.dataset.iso = iso;
 }
-seedDate('campaignStart', '2027-01-04');
-seedDate('auctionDate', '2027-01-30');
-document.getElementById('auctionDate').dataset.manual = '1';
 
-[
-  {when:'Dec – Jan', what:'Listing prep — signboard, photography, copy, floor plans, videography, advertising booked and social media campaigns ordered'},
-  {when:'Week 1', what:'Mon 4 Jan suggested launch day. Open homes Sat 9 and Sun 10 Jan'},
-  {when:'Week 2', what:'Market feedback collected and assessed Mon 11, vendor progress report emailed Tue 12, vendor meeting Wed 13. Open homes Thu 14, Sat 16 and Sun 17 Jan'},
-  {when:'Week 3', what:'Market feedback collected and assessed Mon 18, vendor progress report emailed Tue 19, vendor meeting Wed 20. Open homes Thu 21, Sat 23 and Sun 24 Jan'},
-  {when:'Week 4', what:'Market feedback collected and assessed Mon 25, auction strategy report emailed Tue 26, vendor meeting Wed 27, reserve set meeting with the auctioneer Thu 28. Final open home Fri 29 Jan'},
-  {when:'Sat 30 Jan', what:'Summer Auction Experience at The Star Gold Coast'},
-  {when:'After auction', what:'Contract to settlement'},
-].forEach(addTimelineRow);
+const SUMMER_TEXT = {
+  introPara: "Thank you for the opportunity to prepare this Summer Auction Appraisal for your home. It has been prepared to provide you with a clear, evidence-based view of your property's position in the current market, together with a proposal for taking it to market in our Summer Auction Experience at The Star Gold Coast on Saturday 30 January 2027, should you choose to sell. This document has been structured to answer five key questions:",
+  processPara: "If you decide to go to market, we recommend the Summer Auction Experience: a four-week campaign launching Monday 4 January and finishing under the hammer on Saturday 30 January 2027. It's built on the Ray White approach: generating genuine competition among buyers through a clearly defined timeline, wide-reaching marketing exposure, and structured pricing feedback throughout the campaign.",
+  costsIntro: "The table below sets out the full marketing investment for your Summer Auction campaign, including the event fee, and what each item covers.",
+  summaryPara: "In summary, this proposal sets out why the Summer Auction Experience is the right stage for your home, the campaign leading up to auction day, the marketing investment and the team behind it. We're confident this approach will achieve the best possible outcome for your sale, and we look forward to the opportunity to bring it to life together.",
+  closingPara: "I'd welcome the opportunity to meet with you to walk through this Summer Auction Appraisal in detail and discuss next steps. Please get in touch at your convenience.",
+};
+
+function applySummerBuilder(){
+  document.title = 'Summer Auction Appraisal Builder';
+  document.getElementById('builderTitle').textContent = 'Summer Auction Appraisal Builder';
+  const other = document.getElementById('builderSwitch');
+  other.href = '/adam/appraisal-tool.html';
+  other.textContent = 'Switch to the normal Appraisal & Proposal builder →';
+  document.getElementById('auctionDateLabel').textContent = 'Auction Date (Saturday)';
+  document.getElementById('auctionDate').placeholder = 'Select a Saturday';
+  document.getElementById('processNote').textContent = "Clients also get the Summer Auction Experience and Why Auction sections with our campaign stats, plus the sign-up button — fixed content, nothing to fill in here.";
+  document.getElementById('generateBtn').textContent = 'Generate Summer Auction Appraisal & Get Shareable Link';
+  document.getElementById('shareDocName').textContent = 'Summer Auction Appraisal';
+  Object.entries(SUMMER_TEXT).forEach(([id, text]) => { document.getElementById(id).value = text; });
+  // Summer Auction Experience 2027 dates, same as the calendar on client/summer-auctions.html.
+  seedDate('campaignStart', '2027-01-04');
+  seedDate('auctionDate', '2027-01-30');
+  document.getElementById('auctionDate').dataset.manual = '1';
+}
+if (SUMMER) applySummerBuilder();
+
+(SUMMER ? [
+    {when:'Dec – Jan', what:'Listing prep — signboard, photography, copy, floor plans, videography, advertising booked and social media campaigns ordered'},
+    {when:'Week 1', what:'Mon 4 Jan suggested launch day. Open homes Sat 9 and Sun 10 Jan'},
+    {when:'Week 2', what:'Market feedback collected and assessed Mon 11, vendor progress report emailed Tue 12, vendor meeting Wed 13. Open homes Thu 14, Sat 16 and Sun 17 Jan'},
+    {when:'Week 3', what:'Market feedback collected and assessed Mon 18, vendor progress report emailed Tue 19, vendor meeting Wed 20. Open homes Thu 21, Sat 23 and Sun 24 Jan'},
+    {when:'Week 4', what:'Market feedback collected and assessed Mon 25, auction strategy report emailed Tue 26, vendor meeting Wed 27, reserve set meeting with the auctioneer Thu 28. Final open home Fri 29 Jan'},
+    {when:'Sat 30 Jan', what:'Summer Auction Experience at The Star Gold Coast'},
+    {when:'After auction', what:'Contract to settlement'},
+] : [
+    {when:'Week 1', what:'Presentation works, professional photography, styling &amp; campaign preparation'},
+    {when:'Week 2–5', what:'Campaign live — buyer inspections, enquiry management, weekly pricing feedback'},
+    {when:'Week 6', what:'Offers negotiated / auction day — creating competition between buyers'},
+    {when:'Week 6–8', what:'Contract to settlement'},
+]).forEach(addTimelineRow);
 
 applyTier('Gold');
 
@@ -686,10 +723,10 @@ applyTier('Gold');
 function collect(){
   const val = id => document.getElementById(id).value.trim();
   return {
-    summerAuction: true,
+    summerAuction: SUMMER,
     agent:{ name:val('agentName'), agency:val('agentAgency'), phone:val('agentPhone'), email:val('agentEmail'), licence:val('agentLicence') },
     client:{ name:val('clientName'), mobile:val('clientMobile'), address:val('propAddress') },
-    property:{ land:val('propLand'), floor:val('propFloor'), config:val('propConfig') },
+    property:{ land:val('propLand'), floor:val('propFloor'), config:[[val('propBeds'),'bed'], [val('propBaths'),'bath'], [val('propGarage'),'car']].filter(([n])=>n).map(([n,unit])=>n+' '+unit).join(' | ') },
     intro: val('introPara'),
     price:{ igniteLink:val('igniteLink') },
     process:{

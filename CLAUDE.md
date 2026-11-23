@@ -15,6 +15,12 @@ cd connector-frontend && npm install && npm run dev   # Connector dev server, ht
 
 There is no test suite (`npm test` is an unimplemented stub) and no lint script configured — don't invent commands for either.
 
+Working List owner CSVs use `Address`, `Owner`, and `Mobile` columns. Suburbs with 10+ entries get
+their own category; smaller suburbs share an “Other suburbs” category. Preview locally with
+`npm run import-working-list -- "C:\path\to\owners.csv" --dry-run`; import with the same command
+without `--dry-run`. The Working List also has an admin-only CSV/XLSX upload control. Each
+owner/mobile/property-address combination is a tap-to-text row.
+
 Required env vars (see `.env.example`): `DATABASE_URL` (Postgres), `PORT`, `CRM_ADMIN_KEY`, `CONNECTOR_ADMIN_KEY`.
 
 **Dev-proxy gotcha**: `admin-frontend/vite.config.js` proxies `/api` to `localhost:3001`, but `connector-frontend/vite.config.js` proxies to `localhost:3000`, and the server's own default `PORT` is `3000`. If you're running the admin dev server against a local `npm start`, either set `PORT=3001` or fix the proxy target — they're currently inconsistent.
@@ -48,9 +54,13 @@ The Property Listing & Sales Checklist (one per property listed) is defined once
 
 `server/connector/ogFetch.js` scrapes a listing URL's Open Graph tags / JSON-LD for title, description, images, and price, used by the Connector admin UI to prefill a new listing from a pasted URL.
 
+### Appraisal builders
+
+`agent/public/appraisal-tool.html` is two builders on one page: `/adam/appraisal-tool.html` makes a normal Appraisal & Proposal, and `?type=summer` makes a Summer Auction Appraisal. The choice is saved on the appraisal as `summerAuction`, and the client view (`/adam/a/:id`) renders from that, so both must keep working.
+
 ### Form emails
 
-Every public form (contact, appraisal request, offers, client portal and Vantage sign-ups, Summer Auction sign-up, Connector join and valuation requests) saves first, then emails `NOTIFY_EMAIL` through `sendFormEmail` in `server/notify.js`, using Resend's HTTP API. A failed send is only logged, and the form still succeeds.
+Every public form (contact, appraisal request, offers, client portal and Vantage sign-ups, Summer Auction sign-up, Connector join, buyer brief and valuation requests) saves first, then emails `NOTIFY_EMAIL` through `sendFormEmail` in `server/notify.js`, using Resend's HTTP API. A failed send is only logged, and the form still succeeds.
 
 ### Deployment
 

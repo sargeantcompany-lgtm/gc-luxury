@@ -38,7 +38,7 @@
   }
   .top .brand{font-weight:800;font-size:16px;}
   .top .brand span{color:var(--gold);font-size:11px;letter-spacing:.14em;text-transform:uppercase;display:block;font-weight:600;}
-  .top-actions{display:flex;gap:10px;align-items:center;}
+  .top-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px;align-items:center;}
   .top-actions a,.top-actions button{
     font:inherit;font-size:13px;font-weight:700;
     color:var(--ink);background:var(--gold);border:0;border-radius:6px;
@@ -312,7 +312,8 @@
   <div class="top">
     <div class="brand"><span>Ray White Broadbeach</span>Adam Sargeant — Admin</div>
     <div class="top-actions">
-      <a href="/adam/appraisal-tool.html">+ New Summer Auction Appraisal</a>
+      <a href="/adam/appraisal-tool.html">+ New Appraisal</a>
+      <a href="/adam/appraisal-tool.html?type=summer">+ New Summer Auction Appraisal</a>
       <button class="ghost" onclick="logout()">Log out</button>
     </div>
   </div>
