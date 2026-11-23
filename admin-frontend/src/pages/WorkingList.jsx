@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { workingListApi } from '../services/api';
 import { useToast } from '../components/Toast';
+import './WorkingList.css';
 
 const today = new Date().toISOString().slice(0, 10);
 
@@ -29,16 +30,18 @@ export default function WorkingList() {
   const [message, setMessage] = useState('');
   const [savedMessage, setSavedMessage] = useState('');
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [importing, setImporting] = useState(false);
   const [offset, setOffset] = useState(0);
   const [summerAuctionLink, setSummerAuctionLink] = useState('');
-  const [form, setForm] = useState({ name: '', phone: '', email: '', suburb: '', address: '', details: '' });
+  const [form, setForm] = useState({ name: '', phone: '', email: '', suburb: '', address: '', details: '', listName: 'Owners & Mobiles' });
   const [editing, setEditing] = useState(null);
   const messageInput = useRef(null);
   const ownerFileInput = useRef(null);
 
   async function load(query = search, reset = true, group = selectedGroup, listName = selectedListName) {
-    setLoading(true);
+    if (reset) setLoading(true);
+    else setLoadingMore(true);
     try {
       const nextOffset = reset ? 0 : offset;
       const data = await workingListApi.people({ search: query, group, listName, limit: 50, offset: nextOffset });
@@ -48,7 +51,8 @@ export default function WorkingList() {
     } catch (error) {
       show(error.message, 'error');
     } finally {
-      setLoading(false);
+      if (reset) setLoading(false);
+      else setLoadingMore(false);
     }
   }
 
@@ -231,13 +235,13 @@ export default function WorkingList() {
   }
 
   return (
-    <div className="page">
+    <div className="page working-list-page">
       <div className="page-header">
         <div>
           <h1>Working List</h1>
           <p className="page-subtitle">Daily GC Luxury text outreach</p>
         </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-end', gap: 8 }}>
+        <div className="working-list-header-actions">
           <input
             ref={ownerFileInput}
             type="file"
@@ -263,7 +267,7 @@ export default function WorkingList() {
         <div className="card-body" style={{ display: 'grid', gap: 10 }}>
           <div className="form-group">
             <label className="form-label">Summer Auction Experience Letter — private link</label>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div className="working-list-link-row">
               <input className="form-input" value={summerAuctionLink} readOnly aria-label="Private Summer Auction page link" />
               <button className="btn btn-secondary" type="button" onClick={copySummerAuctionLink} disabled={!summerAuctionLink}>Copy</button>
               <button className="btn btn-ghost" type="button" onClick={rotateSummerAuctionLink}>New link</button>
@@ -291,9 +295,9 @@ export default function WorkingList() {
         <div className="card-header">
           <div>
             <div className="card-title">Owner SMS contacts</div>
-            <div className="form-hint">{total.toLocaleString()} owner/property contacts</div>
+            <div className="form-hint">{total.toLocaleString()} contacts · {selectedListName}</div>
           </div>
-          <form onSubmit={searchPeople} style={{ display: 'flex', gap: 8 }}>
+          <form onSubmit={searchPeople} className="working-list-search">
             <input
               className="form-input"
               type="search"
@@ -306,27 +310,34 @@ export default function WorkingList() {
         </div>
 
         <div className="card-body" style={{ paddingTop: 0 }}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'end', gap: 8, marginBottom: 16 }}>
-            <div className="form-group" style={{ margin: 0, minWidth: 240 }}>
-              <label className="form-label" htmlFor="working-list-select">SMS list</label>
-              <select
-                id="working-list-select"
-                className="form-input"
-                value={selectedListName}
-                onChange={(event) => selectList(event.target.value)}
-              >
-                {!lists.some((list) => list.name === selectedListName) && (
-                  <option value={selectedListName}>{selectedListName} (new)</option>
-                )}
-                {lists.map((list) => (
-                  <option key={list.name} value={list.name}>{list.name} ({list.count})</option>
-                ))}
-              </select>
+          <div className="working-list-list-tools">
+            <div className="working-list-list-tabs" role="group" aria-label="SMS lists">
+              {!lists.some((list) => list.name === selectedListName) && (
+                <button
+                  type="button"
+                  aria-pressed="true"
+                  className="working-list-list-tab active"
+                  onClick={() => selectList(selectedListName)}
+                >
+                  <span>{selectedListName} (new)</span><b>0</b>
+                </button>
+              )}
+              {lists.map((list) => (
+                <button
+                  key={list.name}
+                  type="button"
+                  aria-pressed={selectedListName === list.name}
+                  className={`working-list-list-tab${selectedListName === list.name ? ' active' : ''}`}
+                  onClick={() => selectList(list.name)}
+                >
+                  <span>{list.name}</span><b>{list.count.toLocaleString()}</b>
+                </button>
+              ))}
             </div>
-            <button className="btn btn-secondary" type="button" onClick={createList}>New SMS list</button>
+            <button className="btn btn-secondary working-list-new-list" type="button" onClick={createList}>+ New SMS list</button>
           </div>
-          <div className="form-hint" style={{ marginBottom: 8 }}>Contact categories · tap a name to open a text</div>
-          <div role="group" aria-label="Contact categories" style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          <div className="form-hint working-list-category-hint">Contact categories · tap a name to open a text</div>
+          <div className="working-list-groups" role="group" aria-label="Contact categories">
             <button
               className={selectedGroup === 'all' ? 'btn btn-primary btn-sm' : 'btn btn-secondary btn-sm'}
               type="button"
@@ -350,7 +361,7 @@ export default function WorkingList() {
         {loading ? (
           <div className="card-body">Loading...</div>
         ) : (
-          <div className="table-wrap">
+          <div className="table-wrap working-list-people-table">
             <table>
               <thead>
                 <tr><th>Name</th><th>Phone</th><th>Suburb</th><th>Address</th><th>Details</th><th></th></tr>
@@ -383,9 +394,45 @@ export default function WorkingList() {
           </div>
         )}
 
+        {!loading && (
+          <div className="working-list-people-mobile">
+            {people.map((person) => (
+              <article className="working-list-person-card" key={person.id}>
+                <button
+                  type="button"
+                  className="working-list-send-button"
+                  onClick={() => sendText(person)}
+                  aria-label={`Text ${person.name} at ${person.phone}`}
+                >
+                  <span>{person.name}</span>
+                  <small>Tap to text · {person.phone}</small>
+                </button>
+                <dl className="working-list-person-details">
+                  <div><dt>Suburb</dt><dd>{person.suburb || 'Other / unassigned'}</dd></div>
+                  {person.address && <div><dt>Property</dt><dd>{person.address}</dd></div>}
+                  {person.details && <div><dt>Details</dt><dd>{person.details}</dd></div>}
+                </dl>
+                <div className="working-list-person-actions">
+                  <button className="btn btn-secondary" type="button" onClick={() => openForm(person)}>Edit</button>
+                  <button className="btn btn-ghost" type="button" onClick={() => deletePerson(person)}>Delete</button>
+                </div>
+              </article>
+            ))}
+            {!people.length && <p className="working-list-empty">No contacts found</p>}
+          </div>
+        )}
+
+        {!loading && (
+          <div className="working-list-pagination-summary">
+            Showing {people.length.toLocaleString()} of {total.toLocaleString()} contacts in this view
+          </div>
+        )}
+
         {people.length < total && (
           <div className="card-body" style={{ textAlign: 'center' }}>
-            <button className="btn btn-secondary" type="button" onClick={() => load(search, false, selectedGroup)}>Load more</button>
+            <button className="btn btn-secondary working-list-load-more" type="button" onClick={() => load(search, false, selectedGroup)} disabled={loading || loadingMore}>
+              {loading || loadingMore ? 'Loading contacts…' : `Load next 50 contacts · ${(total - people.length).toLocaleString()} remaining`}
+            </button>
           </div>
         )}
       </div>
