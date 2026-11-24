@@ -5,11 +5,16 @@
 
 .working-list-header-actions,
 .working-list-link-row,
+.working-list-message-actions,
 .working-list-search,
 .working-list-list-tools {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.working-list-message-actions {
+  flex-wrap: wrap;
 }
 
 .working-list-header-actions {
@@ -149,6 +154,10 @@
   .working-list-link-row .btn {
     min-height: 44px;
     justify-content: center;
+  }
+
+  .working-list-message-actions .btn {
+    min-height: 44px;
   }
 
   .working-list-search {

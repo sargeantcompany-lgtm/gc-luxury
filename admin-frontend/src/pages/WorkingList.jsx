@@ -180,16 +180,19 @@ export default function WorkingList() {
     window.location.href = `sms:${phone}?&body=${encodeURIComponent(text)}`;
   }
 
-  function insertSummerAuctionLink() {
+  function insertMessagePlaceholder(placeholder) {
     const input = messageInput.current;
     const start = input?.selectionStart ?? message.length;
     const end = input?.selectionEnd ?? message.length;
-    const placeholder = '{{link}}';
     setMessage(`${message.slice(0, start)}${placeholder}${message.slice(end)}`);
     requestAnimationFrame(() => {
       input?.focus();
       input?.setSelectionRange(start + placeholder.length, start + placeholder.length);
     });
+  }
+
+  function insertSummerAuctionLink() {
+    insertMessagePlaceholder('{{link}}');
   }
 
   async function copySummerAuctionLink() {
@@ -283,9 +286,14 @@ export default function WorkingList() {
             onChange={(event) => setMessage(event.target.value)}
             placeholder="Write the text you want to send today"
           />
-          <button className="btn btn-ghost" type="button" onClick={insertSummerAuctionLink} disabled={!summerAuctionLink}>
-            Insert private page link
-          </button>
+          <div className="working-list-message-actions">
+            <button className="btn btn-secondary" type="button" onClick={() => insertMessagePlaceholder('{{name}}')}>
+              Insert first name
+            </button>
+            <button className="btn btn-ghost" type="button" onClick={insertSummerAuctionLink} disabled={!summerAuctionLink}>
+              Insert private page link
+            </button>
+          </div>
           <button className="btn btn-secondary" type="button" onClick={saveTemplate} disabled={message === savedMessage}>
             Save today's text
           </button>
