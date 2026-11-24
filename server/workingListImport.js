@@ -70,6 +70,64 @@ function parseWorkingListBuffer(buffer) {
   return { contacts: [...contacts.values()], skipped, sourceRows: Math.max(0, rows.length - 1) };
 }
 
+function parseBuyerWorkingListBuffer(buffer) {
+  const workbook = XLSX.read(buffer, { type: "buffer" });
+  const sheet = workbook.Sheets[workbook.SheetNames[0]];
+  if (!sheet) throw new Error("The file does not contain a worksheet.");
+
+  const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
+  const headers = (rows[0] || []).map((value) => clean(value).toLowerCase());
+  if (
+    headers.length < 8 ||
+    headers[7] !== "entered" ||
+    headers.slice(0, 7).some(Boolean)
+  ) {
+    throw new Error("The Buyers list must use the original Working List sheet export.");
+  }
+
+  const contacts = new Map();
+  let skipped = 0;
+  let duplicates = 0;
+  for (const row of rows.slice(1)) {
+    const name = clean(row[0]);
+    const email = clean(row[2]);
+    const details = row.slice(3, 7).map(clean).filter(Boolean).join(" · ");
+    const phones = [...new Set(
+      clean(row[1])
+        .split(/[;,|/]/)
+        .map(normalizePhone)
+        .filter((phone) => phone && !/^(?:notprovided|na|none|#)$/i.test(phone.replace(/\s/g, "")))
+    )];
+
+    if (!name || !phones.length) {
+      skipped += 1;
+      continue;
+    }
+
+    for (const phone of phones) {
+      const key = JSON.stringify([name.toLowerCase(), phone]);
+      const previous = contacts.get(key);
+      if (previous) {
+        duplicates += 1;
+        contacts.set(key, {
+          ...previous,
+          email: email || previous.email,
+          details: [...new Set([previous.details, details].filter(Boolean))].join(" · "),
+        });
+      } else {
+        contacts.set(key, { name, phone, email, details, suburb: "", address: "" });
+      }
+    }
+  }
+
+  return {
+    contacts: [...contacts.values()],
+    skipped,
+    duplicates,
+    sourceRows: Math.max(0, rows.length - 1),
+  };
+}
+
 function summarizeWorkingListContacts(contacts) {
   const suburbCounts = new Map();
   for (const contact of contacts) {
@@ -102,33 +160,35 @@ async function importWorkingListContacts(contacts, options = {}) {
       const listName = contact.listName || "Owners & Mobiles";
       const legacy = await client.query(`
         UPDATE working_list_people AS person
-        SET details = CASE WHEN $3 = '' THEN person.details ELSE $3 END,
-            suburb = NULLIF($4, ''),
-            address = $5,
+        SET email = COALESCE(NULLIF($3, ''), person.email),
+            details = CASE WHEN $4 = '' THEN person.details ELSE $4 END,
+            suburb = NULLIF($5, ''),
+            address = $6,
             updated_at = NOW()
         WHERE person.name = $1 AND person.phone = $2 AND person.address = ''
-          AND person.list_name = $6
-          AND $5 <> ''
+          AND person.list_name = $7
+          AND $6 <> ''
           AND NOT EXISTS (
             SELECT 1 FROM working_list_people AS existing
-            WHERE existing.name = $1 AND existing.phone = $2 AND existing.address = $5
-              AND existing.list_name = $6
+            WHERE existing.name = $1 AND existing.phone = $2 AND existing.address = $6
+              AND existing.list_name = $7
           )
         RETURNING person.id
-      `, [contact.name, contact.phone, contact.details, contact.suburb, contact.address, listName]);
+      `, [contact.name, contact.phone, contact.email || "", contact.details, contact.suburb, contact.address, listName]);
 
       if (!legacy.rowCount) {
         await client.query(`
-          INSERT INTO working_list_people (name, phone, details, suburb, address, list_name)
-          VALUES ($1, $2, $3, NULLIF($4, ''), $5, $6)
+          INSERT INTO working_list_people (name, phone, email, details, suburb, address, list_name)
+          VALUES ($1, $2, NULLIF($3, ''), $4, NULLIF($5, ''), $6, $7)
           ON CONFLICT (name, phone, address, list_name) DO UPDATE
-          SET details = CASE
+          SET email = COALESCE(NULLIF(EXCLUDED.email, ''), working_list_people.email),
+              details = CASE
                 WHEN EXCLUDED.details = '' THEN working_list_people.details
                 ELSE EXCLUDED.details
               END,
               suburb = EXCLUDED.suburb,
               updated_at = NOW()
-        `, [contact.name, contact.phone, contact.details, contact.suburb, contact.address, listName]);
+        `, [contact.name, contact.phone, contact.email || "", contact.details, contact.suburb, contact.address, listName]);
       }
       imported += 1;
     }
@@ -145,5 +205,6 @@ async function importWorkingListContacts(contacts, options = {}) {
 module.exports = {
   importWorkingListContacts,
   parseWorkingListBuffer,
+  parseBuyerWorkingListBuffer,
   summarizeWorkingListContacts,
 };

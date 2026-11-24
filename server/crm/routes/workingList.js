@@ -5,6 +5,7 @@ const multer = require("multer");
 const { query } = require("../../db");
 const {
   importWorkingListContacts,
+  parseBuyerWorkingListBuffer,
   parseWorkingListBuffer,
   summarizeWorkingListContacts,
 } = require("../../workingListImport");
@@ -12,6 +13,7 @@ const {
 const router = express.Router();
 const SUMMER_AUCTION_PAGE_KEY = "summer-auction-experience-letter";
 const DEFAULT_LIST_NAME = "Owners & Mobiles";
+const BUYERS_LIST_NAME = "Buyers";
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 },
@@ -120,18 +122,21 @@ router.get("/groups", async (req, res) => {
       GROUP BY 1
       ORDER BY 1 ASC
     `, [listName]);
-    const groups = result.rows
-      .filter((row) => row.suburb && row.count >= 10)
-      .map((row) => ({ key: row.suburb, label: row.suburb, count: row.count }));
-    const otherCount = result.rows
-      .filter((row) => !row.suburb || row.count < 10)
-      .reduce((sum, row) => sum + row.count, 0);
-    if (otherCount) {
-      groups.push({
-        key: "__small__",
-        label: "Other suburbs (<10 each)",
-        count: otherCount,
-      });
+    const groups = [];
+    if (listName !== BUYERS_LIST_NAME) {
+      groups.push(...result.rows
+        .filter((row) => row.suburb && row.count >= 10)
+        .map((row) => ({ key: row.suburb, label: row.suburb, count: row.count })));
+      const otherCount = result.rows
+        .filter((row) => !row.suburb || row.count < 10)
+        .reduce((sum, row) => sum + row.count, 0);
+      if (otherCount) {
+        groups.push({
+          key: "__small__",
+          label: "Other suburbs (<10 each)",
+          count: otherCount,
+        });
+      }
     }
 
     res.json({
@@ -150,27 +155,32 @@ router.post("/import", uploadOwnerFile, async (req, res) => {
     return res.status(400).json({ error: "Only CSV and XLSX files are supported." });
   }
 
-  let parsed;
-  try {
-    parsed = parseWorkingListBuffer(req.file.buffer);
-  } catch (error) {
-    return res.status(400).json({ error: error.message });
-  }
-
   const listName = cleanListName(req.body.listName);
   if (!listName || listName.length > 120) {
     return res.status(400).json({ error: "List name must be between 1 and 120 characters." });
   }
 
+  let parsed;
+  try {
+    parsed = listName === BUYERS_LIST_NAME
+      ? parseBuyerWorkingListBuffer(req.file.buffer)
+      : parseWorkingListBuffer(req.file.buffer);
+  } catch (error) {
+    return res.status(400).json({ error: error.message });
+  }
+
   try {
     const contacts = parsed.contacts.map((contact) => ({ ...contact, listName }));
     const imported = await importWorkingListContacts(contacts);
+    const summary = summarizeWorkingListContacts(contacts);
     res.status(201).json({
       imported,
       skipped: parsed.skipped,
+      duplicates: parsed.duplicates || 0,
       sourceRows: parsed.sourceRows,
       listName,
-      ...summarizeWorkingListContacts(contacts),
+      total: summary.total,
+      groups: listName === BUYERS_LIST_NAME ? [] : summary.groups,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });

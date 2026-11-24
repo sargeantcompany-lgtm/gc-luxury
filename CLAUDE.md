@@ -20,6 +20,9 @@ their own category; smaller suburbs share an “Other suburbs” category. Previ
 `npm run import-working-list -- "C:\path\to\owners.csv" --dry-run`; import with the same command
 without `--dry-run`. The Working List also has an admin-only CSV/XLSX upload control. Each
 owner/mobile/property-address combination is a tap-to-text row.
+The separate “Buyers” list accepts the legacy `Working list.xlsx - Sheet2.csv` layout
+(name, mobile, email in the first three columns), keeps buyer contacts together without suburb
+categories, and retains the remaining buyer details on each contact.
 Working List contacts are grouped into separate named SMS lists (the existing list is
 “Owners & Mobiles”); each list has its own suburb categories and can contain the same contact
 as another list. Select or create a list in Outreach HQ before importing a CSV/XLSX file.

@@ -79,7 +79,8 @@ export default function WorkingList() {
         load(search, true, 'all', selectedListName),
         workingListApi.lists().then((data) => setLists(data.lists)),
       ]);
-      show(`Imported ${result.imported} contacts into ${result.listName}; skipped ${result.skipped} rows without an owner or mobile.`, 'success');
+      const duplicates = result.duplicates ? `; combined ${result.duplicates} repeated entries` : '';
+      show(`Imported ${result.imported} contacts into ${result.listName}; skipped ${result.skipped} rows without a usable name and mobile${duplicates}.`, 'success');
     } catch (error) {
       show(error.message, 'error');
     } finally {
@@ -336,7 +337,11 @@ export default function WorkingList() {
             </div>
             <button className="btn btn-secondary working-list-new-list" type="button" onClick={createList}>+ New SMS list</button>
           </div>
-          <div className="form-hint working-list-category-hint">Contact categories · tap a name to open a text</div>
+          <div className="form-hint working-list-category-hint">
+            {selectedListName === 'Buyers'
+              ? 'Buyer contacts stay together · tap a name to open a text'
+              : 'Contact categories · tap a name to open a text'}
+          </div>
           <div className="working-list-groups" role="group" aria-label="Contact categories">
             <button
               className={selectedGroup === 'all' ? 'btn btn-primary btn-sm' : 'btn btn-secondary btn-sm'}
@@ -364,7 +369,13 @@ export default function WorkingList() {
           <div className="table-wrap working-list-people-table">
             <table>
               <thead>
-                <tr><th>Name</th><th>Phone</th><th>Suburb</th><th>Address</th><th>Details</th><th></th></tr>
+                <tr>
+                  <th>Name</th><th>Phone</th>
+                  {selectedListName === 'Buyers'
+                    ? <th>Email</th>
+                    : <><th>Suburb</th><th>Address</th></>}
+                  <th>Details</th><th></th>
+                </tr>
               </thead>
               <tbody>
                 {people.map((person) => (
@@ -379,8 +390,9 @@ export default function WorkingList() {
                       </button>
                     </td>
                     <td>{person.phone}</td>
-                    <td>{person.suburb || 'Other / unassigned'}</td>
-                    <td>{person.address || ''}</td>
+                    {selectedListName === 'Buyers'
+                      ? <td>{person.email || ''}</td>
+                      : <><td>{person.suburb || 'Other / unassigned'}</td><td>{person.address || ''}</td></>}
                     <td style={{ maxWidth: 480 }}>{person.details || ''}</td>
                     <td style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>
                       <button className="btn btn-ghost btn-sm" type="button" onClick={() => openForm(person)}>Edit</button>
@@ -388,7 +400,7 @@ export default function WorkingList() {
                     </td>
                   </tr>
                 ))}
-                {!people.length && <tr><td colSpan="6" style={{ textAlign: 'center', padding: 32, color: 'var(--text-muted)' }}>No contacts found</td></tr>}
+                {!people.length && <tr><td colSpan={selectedListName === 'Buyers' ? 5 : 6} style={{ textAlign: 'center', padding: 32, color: 'var(--text-muted)' }}>No contacts found</td></tr>}
               </tbody>
             </table>
           </div>
@@ -408,8 +420,9 @@ export default function WorkingList() {
                   <small>Tap to text · {person.phone}</small>
                 </button>
                 <dl className="working-list-person-details">
-                  <div><dt>Suburb</dt><dd>{person.suburb || 'Other / unassigned'}</dd></div>
+                  {selectedListName !== 'Buyers' && <div><dt>Suburb</dt><dd>{person.suburb || 'Other / unassigned'}</dd></div>}
                   {person.address && <div><dt>Property</dt><dd>{person.address}</dd></div>}
+                  {person.email && <div><dt>Email</dt><dd>{person.email}</dd></div>}
                   {person.details && <div><dt>Details</dt><dd>{person.details}</dd></div>}
                 </dl>
                 <div className="working-list-person-actions">
