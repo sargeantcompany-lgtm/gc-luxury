@@ -282,3 +282,15 @@
     width: 100%;
   }
 }
+
+/* Contacts texted in the last 3 months show in red. */
+.working-list-sent-note {
+  color: #dc2626;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.working-list-send-button.is-sent,
+.working-list-send-button.is-sent small {
+  color: #dc2626;
+}

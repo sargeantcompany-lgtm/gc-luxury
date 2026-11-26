@@ -209,7 +209,14 @@ router.get("/people", async (req, res) => {
     const { where, params } = peopleFilters(search, group, listName);
 
     const people = await query(`
-      SELECT id, name, phone, email, details, suburb, address, list_name, updated_at
+      SELECT id, name, phone, email, details, suburb, address, list_name, updated_at,
+        -- Last text to this mobile in the past 3 months (any list), so it shows red.
+        (
+          SELECT MAX(log.sent_at)
+          FROM working_list_send_log AS log
+          WHERE log.phone = working_list_people.phone
+            AND log.sent_at > NOW() - INTERVAL '3 months'
+        ) AS last_sent_at
       FROM working_list_people
       ${where}
       ORDER BY suburb ASC NULLS LAST, name ASC, address ASC
