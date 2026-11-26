@@ -11,6 +11,11 @@ function personalise(message, name, link) {
     .replaceAll('{{link}}', link);
 }
 
+function sentLabel(person) {
+  if (!person.last_sent_at) return '';
+  return `Texted ${new Date(person.last_sent_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}`;
+}
+
 function smsPhone(phone) {
   let digits = String(phone || '').replace(/[^+0-9]/g, '');
   if (digits.startsWith('0')) digits = '+61' + digits.slice(1);
@@ -173,6 +178,8 @@ export default function WorkingList() {
     const text = personalise(message, person.name, summerAuctionLink);
     try {
       await workingListApi.logSend(person.id, text);
+      const sentAt = new Date().toISOString();
+      setPeople((current) => current.map((p) => (p.phone === person.phone ? { ...p, last_sent_at: sentAt } : p)));
     } catch (error) {
       show(error.message, 'error');
     }
@@ -392,10 +399,11 @@ export default function WorkingList() {
                       <button
                         type="button"
                         onClick={() => sendText(person)}
-                        style={{ border: 0, background: 'none', color: 'var(--primary)', fontWeight: 700, cursor: 'pointer', padding: 0 }}
+                        style={{ border: 0, background: 'none', color: person.last_sent_at ? 'var(--working-list-sent, #dc2626)' : 'var(--primary)', fontWeight: 700, cursor: 'pointer', padding: 0, textAlign: 'left' }}
                       >
                         {person.name}
                       </button>
+                      {person.last_sent_at && <div className="working-list-sent-note">{sentLabel(person)}</div>}
                     </td>
                     <td>{person.phone}</td>
                     {selectedListName === 'Buyers'
@@ -420,12 +428,12 @@ export default function WorkingList() {
               <article className="working-list-person-card" key={person.id}>
                 <button
                   type="button"
-                  className="working-list-send-button"
+                  className={`working-list-send-button${person.last_sent_at ? ' is-sent' : ''}`}
                   onClick={() => sendText(person)}
                   aria-label={`Text ${person.name} at ${person.phone}`}
                 >
                   <span>{person.name}</span>
-                  <small>Tap to text · {person.phone}</small>
+                  <small>{person.last_sent_at ? `${sentLabel(person)} · ` : 'Tap to text · '}{person.phone}</small>
                 </button>
                 <dl className="working-list-person-details">
                   {selectedListName !== 'Buyers' && <div><dt>Suburb</dt><dd>{person.suburb || 'Other / unassigned'}</dd></div>}

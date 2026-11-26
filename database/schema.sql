@@ -353,3 +353,5 @@ CREATE TABLE IF NOT EXISTS working_list_send_log (
 
 CREATE INDEX IF NOT EXISTS idx_working_list_send_log_person
     ON working_list_send_log(person_id, sent_at DESC);
+CREATE INDEX IF NOT EXISTS idx_working_list_send_log_phone
+    ON working_list_send_log(phone, sent_at DESC);
