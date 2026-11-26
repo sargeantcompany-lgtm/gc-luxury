@@ -22,11 +22,6 @@ export default function WorkingList() {
   const [people, setPeople] = useState([]);
   const [total, setTotal] = useState(0);
   const [lists, setLists] = useState([]);
-  const shownLists = ['Owners & Mobiles', 'Buyers']
-    .filter((name) => !lists.some((list) => list.name === name))
-    .map((name) => ({ name, count: 0 }))
-    .concat(lists)
-    .sort((a, b) => (a.name === 'Owners & Mobiles' ? -1 : b.name === 'Owners & Mobiles' ? 1 : a.name === 'Buyers' ? -1 : b.name === 'Buyers' ? 1 : a.name.localeCompare(b.name)));
   const [selectedListName, setSelectedListName] = useState('Owners & Mobiles');
   const [groups, setGroups] = useState([]);
   const [groupTotal, setGroupTotal] = useState(0);
@@ -308,7 +303,7 @@ export default function WorkingList() {
       <div className="card">
         <div className="card-header">
           <div>
-            <div className="card-title">{selectedListName === 'Buyers' ? 'Buyer SMS contacts' : 'Owner SMS contacts'}</div>
+            <div className="card-title">Owner SMS contacts</div>
             <div className="form-hint">{total.toLocaleString()} contacts · {selectedListName}</div>
           </div>
           <form onSubmit={searchPeople} className="working-list-search">
@@ -326,7 +321,7 @@ export default function WorkingList() {
         <div className="card-body" style={{ paddingTop: 0 }}>
           <div className="working-list-list-tools">
             <div className="working-list-list-tabs" role="group" aria-label="SMS lists">
-              {!shownLists.some((list) => list.name === selectedListName) && (
+              {!lists.some((list) => list.name === selectedListName) && (
                 <button
                   type="button"
                   aria-pressed="true"
@@ -336,7 +331,7 @@ export default function WorkingList() {
                   <span>{selectedListName} (new)</span><b>0</b>
                 </button>
               )}
-              {shownLists.map((list) => (
+              {lists.map((list) => (
                 <button
                   key={list.name}
                   type="button"
@@ -413,9 +408,7 @@ export default function WorkingList() {
                     </td>
                   </tr>
                 ))}
-                {!people.length && <tr><td colSpan={selectedListName === 'Buyers' ? 5 : 6} style={{ textAlign: 'center', padding: 32, color: 'var(--text-muted)' }}>{selectedListName === 'Buyers' && !search
-                  ? <>No buyers yet. <button className="btn btn-primary btn-sm" type="button" onClick={() => ownerFileInput.current?.click()} disabled={importing}>{importing ? 'Importing...' : 'Import buyers file'}</button></>
-                  : 'No contacts found'}</td></tr>}
+                {!people.length && <tr><td colSpan={selectedListName === 'Buyers' ? 5 : 6} style={{ textAlign: 'center', padding: 32, color: 'var(--text-muted)' }}>No contacts found</td></tr>}
               </tbody>
             </table>
           </div>
@@ -446,9 +439,7 @@ export default function WorkingList() {
                 </div>
               </article>
             ))}
-            {!people.length && <p className="working-list-empty">{selectedListName === 'Buyers' && !search
-                  ? <>No buyers yet. <button className="btn btn-primary btn-sm" type="button" onClick={() => ownerFileInput.current?.click()} disabled={importing}>{importing ? 'Importing...' : 'Import buyers file'}</button></>
-                  : 'No contacts found'}</p>}
+            {!people.length && <p className="working-list-empty">No contacts found</p>}
           </div>
         )}
 

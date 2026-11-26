@@ -160,17 +160,29 @@ router.post("/import", uploadOwnerFile, async (req, res) => {
     return res.status(400).json({ error: "List name must be between 1 and 120 characters." });
   }
 
+  // Either file layout can go into any list: the owners export (Address/Owner/Mobile)
+  // or the buyers sheet (name, mobile, email in the first three columns).
   let parsed;
+  let isBuyerFile = false;
   try {
-    parsed = listName === BUYERS_LIST_NAME
-      ? parseBuyerWorkingListBuffer(req.file.buffer)
-      : parseWorkingListBuffer(req.file.buffer);
-  } catch (error) {
-    return res.status(400).json({ error: error.message });
+    parsed = parseWorkingListBuffer(req.file.buffer);
+  } catch (ownerError) {
+    try {
+      parsed = parseBuyerWorkingListBuffer(req.file.buffer);
+      isBuyerFile = true;
+    } catch {
+      return res.status(400).json({ error: `${ownerError.message} (or use the Buyers sheet export).` });
+    }
   }
 
   try {
-    const contacts = parsed.contacts.map((contact) => ({ ...contact, listName }));
+    // Buyers added to a suburb-based list get their own "Buyers" category in that list.
+    const buyerCategory = isBuyerFile && listName !== BUYERS_LIST_NAME ? BUYERS_LIST_NAME : "";
+    const contacts = parsed.contacts.map((contact) => ({
+      ...contact,
+      suburb: buyerCategory || contact.suburb,
+      listName,
+    }));
     const imported = await importWorkingListContacts(contacts);
     const summary = summarizeWorkingListContacts(contacts);
     res.status(201).json({
